@@ -1,0 +1,31 @@
+<?php
+	$form = $this->form;
+?>
+<form class="box login" method="<?php echo $form->getMethod() ?>" action="<?php echo
+    $form->getAction()?>">
+    <fieldset class="boxBody admin">
+	<?php
+		if(isset($this->loginMessage))
+		{
+		?>
+		<label class="errors"><?php echo $this->loginMessage; ?></label>
+		<?php 
+		}
+	?>
+	<?php echo $form->email->renderLabel() ?>
+	  <?php echo $form->email->renderViewHelper(); ?>
+	  <?php echo $form->password->renderLabel() ?>
+	  <?php echo $form->password->renderViewHelper() ?><label class="forgot"><a href="<?php echo $this->url(array("module"=>"admin","controller"=>"forgot","action"=>"index"),"default",true)?>" class="rLink" tabindex="5"><?php echo $this->translate("Forget your password?") ?></a></label>
+	</fieldset>
+	<footer>
+	  <?php echo $form->remember->renderViewHelper()." ";?><?php echo $form->remember->renderLabel(); ?>
+	  <?php echo $form->submit->renderViewHelper() ?>
+	</footer>
+</form>
+
+<script type="text/javascript">
+$(document).ready(function() {
+	$("#password").attr("value","<?php echo $this->password; ?>");
+	$("form").validator();
+});
+</script>

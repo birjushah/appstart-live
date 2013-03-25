@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <nav> 
+    	<Modules>
+    		<label>Modules</label>
+    		<order>3</order>
+    		<uri>#</uri>
+			<resource>index</resource>
+    		<pages>
+				<ModuleImageGallery1>
+		    		<label>Image Gallery 1</label>
+					<module>module-image-gallery-1</module>			
+					<controller>index</controller>
+					<action>index</action>
+		            <order>10</order>
+		            <resource>module-image-gallery-1</resource>
+		            <pages>
+						<add>
+							<label>Add Image</label>
+							<module>module-image-gallery-1</module>			
+							<controller>index</controller>
+							<action>add</action>
+							<resource>module-image-gallery-1</resource>
+							<visible>false</visible>
+						</add>
+
+						<edit>
+							<label>Edit Image</label>
+							<module>module-image-gallery-1</module>			
+							<controller>index</controller>
+							<action>edit</action>
+							<resource>module-image-gallery-1</resource>
+							<visible>false</visible>
+						</edit>
+						<reorder>
+							<label>Reorder Image Gallery</label>
+							<module>module-image-gallery-1</module>			
+							<controller>index</controller>
+							<action>reorder</action>
+							<resource>module-image-gallery-1</resource>
+							<visible>false</visible>
+						</reorder>
+						<category>
+							<label>Categories</label>
+							<module>module-image-gallery-1</module>			
+							<controller>category</controller>
+							<action>index</action>
+							<resource>module-image-gallery-1</resource>
+							<visible>false</visible>
+						</category>
+						<addcategory>
+							<label>Add Category</label>
+							<module>module-image-gallery-1</module>			
+							<controller>category</controller>
+							<action>add</action>
+							<resource>module-image-gallery-1</resource>
+							<visible>false</visible>
+						</addcategory>
+						<editcategory>
+							<label>Edit Category</label>
+							<module>module-image-gallery-1</module>			
+							<controller>category</controller>
+							<action>edit</action>
+							<resource>module-image-gallery-1</resource>
+							<visible>false</visible>
+						</editcategory>
+						<reordercategory>
+							<label>Reorder Categories</label>
+							<module>module-image-gallery-1</module>			
+							<controller>category</controller>
+							<action>reorder</action>
+							<resource>module-image-gallery-1</resource>
+							<visible>false</visible>
+						</reordercategory>
+						<bulkupload>
+							<label>Bulk Upload</label>
+							<module>module-image-gallery-1</module>			
+							<controller>index</controller>
+							<action>bulk-upload</action>
+							<resource>module-image-gallery-1</resource>
+							<visible>false</visible>
+						</bulkupload>
+					</pages>
+		    	</ModuleImageGallery1>
+    		</pages>
+    	</Modules>
+	</nav>
+</config>

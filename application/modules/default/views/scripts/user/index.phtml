@@ -1,0 +1,122 @@
+<form id="frmFilter">
+	<div id="filterBox">
+		<table
+			style="width: 100%; border: 0; border-spacing: 0; border-collapse: collapse;">
+			<tr>
+				<td width="6%" valign="middle"><h2 class="filterIcon"><?php echo $this->translate('Filter')?></h2></td>
+				<td width="89%">
+					<table>
+						<tr>
+							<td><?php echo $this->translate('Name:')?> </td>
+							<td><input type="text" name="u[name]" class="input" id="uName"></td>
+							<td>&nbsp;</td>
+							<td><input type="submit" name="button" id="button"
+					class="button" value="<?php echo $this->translate('Submit')?>"></td>
+						</tr>
+					</table>
+		    </td>
+				<td width="2%">&nbsp;</td>
+				<td width="3%" align="right"></td>
+			</tr>
+		</table>
+	</div>
+</form>
+<a class="togglefilter"></a>
+<table style="border-spacing: 0; border-collapse: collapse; width: 100%"
+	class="pattern-style-b" id="dataGrid">
+	<thead>
+		<tr>
+			<th scope="col"><?php echo $this->translate('Customer Name')?></th>
+			<th scope="col"><?php echo $this->translate('Username')?></th>
+			<th scope="col"><?php echo $this->translate('Name')?></th>
+			<th scope="col"><?php echo $this->translate('Status')?></th>
+			<th scope="col"><?php echo $this->translate('Group Name')?></th>
+			<th scope="col"><?php echo $this->translate('Email')?></th>
+			<th scope="col" class="action"><?php echo $this->translate('Actions')?></th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td colspan="2" class="dataTables_empty"><?php echo $this->translate('Loading data from server')?></td>
+		</tr>
+	</tbody>
+</table>
+<script>
+var grid ="";
+$(document).ready(function() {
+	// Load Grid Data
+	grid = dataTable({
+		aoColumns: [
+		            { "sName": "c.customer_name"},
+					{ "sName": "username" },
+					{ "sName": "u.name" },
+					{ "sName": "status" },
+					{ "sName": "g.name" },
+					{ "sName": "email" },
+					{ "sName": "actions" },
+				 ],
+		id : $('#dataGrid'),
+		filterForm : $('#frmFilter'),
+		sAjaxSource: "<?php echo $this->url(array("module"=>"default","controller"=>"user","action"=>"grid"),"default",true);?>"
+	});
+    $(document).on("submit","#frmFilter",function(){
+    	grid.fnDraw();
+    	return false;
+    });
+
+    $(document).on("click",".grid_delete",function(e){
+        var self = this; 
+		window.currentUserDeleteUrl = $(this).attr("href"); 
+        if(!e.isDefaultPrevented()){
+        	var promtus = new prompt({
+            	reference : self,
+                element : ".dataTables_wrapper",
+                message : "<?php echo $this->translate('Are you sure you want to delete this User?')?>",
+                buttons : {
+                    "Yes" : function(self){
+                        var prompt = this;
+                        $(document).queue(function(next){
+                            prompt.showLoadingMessage("<?php echo $this->translate('Please wait while deleting User..')?>");
+                            next();
+                        }).queue(function(next){
+                        	$.ajax({
+                                url: window.currentUserDeleteUrl,
+                                cache: false,
+                                type: "GET",
+                                dataType: "json",
+                                success: function(json){
+                                    if(json.success != undefined){ 
+                                    	prompt.showSuccessMessage("<?php echo $this->translate('User deleted successfully.')?>");
+                                    	setTimeout(function(){
+                                    		prompt.close();
+                                        	grid.fnDraw();
+                                        }, 1000);
+                                    } else if(json.errors != undefined){
+                                        var errorMessage = "<?php echo $this->translate('Unable to delete record error returned:')?><br />";
+                                        errorMessage += json.errors;
+                                    	prompt.showErrorMessage(errorMessage);
+                                    	setTimeout(function(){
+                                    		prompt.close();
+                                        }, 2000);
+                                    }
+                                },
+                                error: function(){
+                                }
+                            }).complete(next); 
+                        });
+                    },
+                    "No"  : function(self){
+                    	this.close();
+                    },
+                }
+            });
+            e.preventDefault();
+        }
+    });
+    $('.togglefilter').on("click",function(){
+		$('#filterBox').toggle();
+		$(this).toggleClass('flip-vertical');
+	});
+	$('#filterBox').hide();
+});
+</script>

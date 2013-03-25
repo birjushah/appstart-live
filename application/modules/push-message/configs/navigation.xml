@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <nav> 
+    	<Modules>
+    		<label>Modules</label>
+    		<order>3</order>
+    		<uri>#</uri>
+			<resource>index</resource>
+    		<pages>
+				<PushMessage>
+		    		<label>Push Message</label>
+					<module>push-message</module>			
+					<controller>index</controller>
+					<action>index</action>
+		            <order>5</order>
+		            <resource>push-message</resource>
+		            <pages>
+						<add>
+							<label>Add Push Message</label>
+							<module>push-message</module>			
+							<controller>index</controller>
+							<action>add</action>
+							<resource>push-message</resource>
+							<visible>false</visible>
+						</add>
+						<edit>
+							<label>Edit Push Message</label>
+							<module>push-message</module>			
+							<controller>index</controller>
+							<action>edit</action>
+							<resource>push-message</resource>
+							<visible>false</visible>
+						</edit>
+						<reorder>
+							<label>Reorder Push Message</label>
+							<module>push-message</module>			
+							<controller>index</controller>
+							<action>reorder</action>
+							<resource>push-message</resource>
+							<visible>false</visible>
+						</reorder>
+					</pages>
+		    	</PushMessage>
+		    </pages>
+    	</Modules>
+	</nav>
+</config>

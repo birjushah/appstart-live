@@ -1,0 +1,31 @@
+<?php
+// English: United States
+return array (
+	"Play" => "Play",
+	"Source" => "Source",
+	"Title" => "Title",
+	"Album" => "Album",
+	"Artist" => "Artist",
+	"Status" => "Status",
+	"Order" => "Order",
+	"Action" => "Action",
+	"Import from Beatport" => "Import from Beatport",
+	"Import from Soundcloud" => "Import from Soundcloud",
+	"Import from 7Digital" => "Import from 7Digital",
+	"Import from iTunes" => "Import from iTunes",
+	"Music" => "Music",
+	"Add Track" => "Add Track",
+	"Edit Track" => "Edit Track",
+	"Purchase URL:" => "Purchase URL:",
+	"Track:" => "Track:",
+	"Artist:" => "Artist:",
+	"Title:" => "Title:",
+	"Album:" => "Album:",
+	"Album Art:" => "Album Art:",
+	"Upload file:" => "Upload file:",
+	"or Type the URL:" => "or Type the URL:",
+	"Search Method" => "Search Method",
+	"Keyword" => "Keyword",
+	"Import Tracks" => "Import Tracks",
+	"Select All" => "Select All"
+);

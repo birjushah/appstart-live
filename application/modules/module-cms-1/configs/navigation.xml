@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <nav> 
+    	<Modules>
+    		<label>Modules</label>
+    		<order>3</order>
+    		<uri>#</uri>
+			<resource>index</resource>
+    		<pages>
+				<ModuleCms1>
+		    		<label>Pages-1</label>
+					<module>module-cms-1</module>			
+					<controller>index</controller>
+					<action>index</action>
+		            <order>7</order>
+		            <resource>module-cms-1</resource>
+		            <pages>
+						<add>
+							<label>Add Pages</label>
+							<module>module-cms-1</module>			
+							<controller>index</controller>
+							<action>add</action>
+							<resource>module-cms-1</resource>
+							<visible>false</visible>
+						</add>
+						<edit>
+							<label>Edit Pages</label>
+							<module>module-cms-1</module>			
+							<controller>index</controller>
+							<action>edit</action>
+							<resource>module-cms-1</resource>
+							<visible>false</visible>
+						</edit>
+						<reorder>
+							<label>Pages Cms</label>
+							<module>module-cms-1</module>			
+							<controller>index</controller>
+							<action>reorder</action>
+							<resource>module-cms-1</resource>
+							<visible>false</visible>
+						</reorder>
+					</pages>
+		    	</ModuleCms1>
+    		</pages>
+    	</Modules>
+	</nav>
+</config>

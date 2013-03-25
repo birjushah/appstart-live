@@ -1,0 +1,94 @@
+<?php 
+	$data = $this->data;
+?>
+<form id="frmFilter">
+<div id="filterBox">
+      <table style="width:100%;border:0;border-spacing:0;border-collapse:collapse;">
+        <tr>
+          <td valign="middle"><h2 class="filterIcon"><?php echo $this->translate('Reorder Push Message'); ?></h2></td>
+          <td align="right">
+          	<input type="submit" name="button" id="save-order" class="button" value="<?php echo $this->translate('Save')?>" />
+          	<input type="reset" name="reset" id="reset" class="button" value="<?php echo $this->translate('Reset')?>" />
+          </td>
+        </tr>
+      </table>
+</div>
+</form>
+<table style="border-spacing:0;border-collapse:collapse;width:100%" class="pattern-style-b" id="dataGrid">
+	<thead>
+		<tr>
+			<th scope="col"><?php echo $this->translate('Title'); ?></th>
+		    <th scope="col"><?php echo $this->translate('Description'); ?></th>
+		    <th scope="col"><?php echo $this->translate('Status'); ?></th>
+		</tr>
+    </thead> 
+	<tbody>
+		<?php 
+			foreach($data as $row) {
+		?>
+			<tr id="index-<?php echo $row["pm.push_message_id"];?>" class="sortable" style="cursor: move;">
+				<td><?php echo $row['pmd.title']; ?></td>
+			    <td><?php echo $row['pmd.description']; ?></td>
+			    <td><?php echo ($row['pm.status']==1)? "Active" : "Inactive"; ?></td>
+			</tr>
+		<?php } ?>
+	</tbody>      
+</table>
+<script type="text/javascript" src="<?php echo $this->baseUrl("js/reorder.js");?>"></script>
+<script type="text/javascript">
+$(document).ready(function() {
+	$(document).on("click","#save-order",function(e){
+        var self = this;
+        window.currentDeleteUrl = location.href; 
+        if(!e.isDefaultPrevented()){
+        	var promptus = new prompt({
+                    	reference : self,
+                        element : "#content",
+                        message : "<?php echo $this->translate('Are you sure you want to save push message order?'); ?>",
+                        buttons : {
+                            "Yes" : function(self){
+                                var prompt = this;
+                                $(document).queue(function(next){
+                                    prompt.showLoadingMessage("<?php echo $this->translate('Please wait while saving push message order..'); ?>");
+                                    next();
+                                }).queue(function(next){
+                                    $.ajax({
+                                        url: window.currentDeleteUrl,
+                                        cache: false,
+                                        type: "POST",
+                                        dataType: "json",
+                                        data: serializeOrder(),
+                                        success: function(json){
+                                            if(json.success != undefined){ 
+                                            	prompt.showSuccessMessage("<?php echo $this->translate('Push message reordered successfully.'); ?>");
+                                            	setTimeout(function(){
+                                            		prompt.close();
+                                                }, 1000);
+                                            } else if(json.errors != undefined){
+                                                var errorMessage = "<?php echo $this->translate('Unable to reorder push message:'); ?><br />";
+                                                errorMessage += json.errors.message;
+                                            	prompt.showErrorMessage(errorMessage);
+                                            	setTimeout(function(){
+                                            		prompt.close();
+                                                }, 2000);
+                                            }
+                                        },
+                                        error: function(){
+                                        }
+                                    }).complete(next); 
+                                });
+                            },
+                            "No"  : function(self){
+                            	this.close();
+                            },
+                        }
+                    });
+            e.preventDefault();
+        }
+    });
+    
+	$("#reset").on("click", function(){
+		location.href = location.href;
+	});
+});
+</script>

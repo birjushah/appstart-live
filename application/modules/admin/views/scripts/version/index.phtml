@@ -1,0 +1,120 @@
+<form id="frmFilter">
+	<div id="filterBox">
+		<table
+			style="width: 100%; border: 0; border-spacing: 0; border-collapse: collapse;">
+			<tr>
+				<td width="6%" valign="middle"><h2 class="filterIcon"><?php echo $this->translate('Filter');?></h2></td>
+				<td width="89%">
+					<table>
+						<tr>
+							<td><?php echo $this->translate('Version Release');?></td>
+							<td><input type="text" name="" class="input" id=""></td>
+							<td>&nbsp;</td>
+							<td><input type="submit" name="button" id="button"
+					class="button" value="<?php echo $this->translate('Submit');?>"></td>
+						</tr>
+					</table>
+		    </td>
+				<td width="2%">&nbsp;</td>
+				<td width="3%" align="right"></td>
+			</tr>
+		</table>
+	</div>
+</form>
+<a class="togglefilter"></a>
+<table style="border-spacing: 0; border-collapse: collapse; width: 100%"
+	class="pattern-style-b" id="dataGrid">
+	<thead>
+		<tr>
+			<th scope="col"><?php echo $this->translate('Version');?></th>
+			<th scope="col"><?php echo $this->translate('Title');?></th>
+			<th scope="col"><?php echo $this->translate('Date');?></th>
+			<th scope="col"><?php echo $this->translate('Description');?></th>
+			<th scope="col" class="action"><?php echo $this->translate('Action');?></th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td colspan="2" class="dataTables_empty"><?php echo $this->translate('Loading data from server');?></td>
+		</tr>
+	</tbody>
+</table>
+
+<script type="text/javascript">
+var grid ="";
+$(document).ready(function() {
+
+    grid = dataTable({
+        aaSorting: [[ 3, "asc" ]],
+        "aoColumns": [
+                        { "sName": "vd.version_number" },
+                        { "sName": "vd.title" },
+                        { "sName": "v.created_at" },
+                        { "sName": "vd.description" },
+                        { "sName": "actions","bSortable": false}
+                     ],
+        id : $('#dataGrid'),
+        filterForm : $('#frmFilter'),
+        charLimit : [0,0,0,25],
+        sAjaxSource: "<?php echo $this->url(array("module"=>"admin","controller"=>"version","action"=>"grid"));?>"
+    });
+     $(document).on("click",".grid_delete",function(e){
+        var self = this;
+        window.currentDeleteUrl = $(this).attr("href"); 
+        if(!e.isDefaultPrevented()){
+        	var promptus = new prompt({
+                    	reference : self,
+                        element : ".dataTables_wrapper",
+                        message : "<?php echo $this->translate('Are you sure you want to delete this Version?'); ?>",
+                        buttons : {
+                            "Yes" : function(self){
+                                var prompt = this;
+                                $(document).queue(function(next){
+                                    prompt.showLoadingMessage("<?php echo $this->translate('Please wait while deleting Version..'); ?>");
+                                    next();
+                                }).queue(function(next){
+                                    $.ajax({
+                                        url: window.currentDeleteUrl,
+                                        cache: false,
+                                        type: "GET",
+                                        dataType: "json",
+                                        success: function(json){
+                                            if(json.success != undefined){ 
+                                            	prompt.showSuccessMessage("<?php echo $this->translate('Version deleted successfully.'); ?>");
+                                            	setTimeout(function(){
+                                            		prompt.close();
+                                                	grid.fnDraw();
+                                                }, 1000);
+                                            } else if(json.errors != undefined){
+                                                var errorMessage = "<?php echo $this->translate('Unable to delete Version:'); ?><br />";
+                                                errorMessage += json.errors.message;
+                                            	prompt.showErrorMessage(errorMessage);
+                                            	setTimeout(function(){
+                                            		prompt.close();
+                                                }, 2000);
+                                            }
+                                        },
+                                        error: function(){
+                                        }
+                                    }).complete(next); 
+                                });
+                            },
+                            "No"  : function(self){
+                            	this.close();
+                            },
+                        }
+                    });
+            e.preventDefault();
+        }
+    });
+    $(document).on("submit","#frmFilter",function(){
+        grid.fnDraw();
+        return false;
+    });
+});
+$('.togglefilter').on("click",function(){
+	$('#filterBox').toggle();
+	$(this).toggleClass('flip-vertical');
+});
+$('#filterBox').hide();
+</script>

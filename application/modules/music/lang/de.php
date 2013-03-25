@@ -1,0 +1,31 @@
+<?php
+// German
+return array (
+	"Play" => "spielen",
+	"Source" => "Quelle",
+	"Title" => "Titel",
+	"Album" => "Album",
+	"Artist" => "K&#252;nstler",
+	"Status" => "Status",
+	"Order" => "bestellen",
+	"Action" => "Aktion",
+	"Import from Beatport" => "Import von Beatport",
+	"Import from Soundcloud" => "Import von Soundcloud",
+	"Import from 7Digital" => "Import aus 7Digital",
+	"Import from iTunes" => "Importieren von iTunes",
+	"Music" => "Musik",
+	"Add Track" => "Spur hinzufügen",
+	"Edit Track" => "Track bearbeiten",
+	"Purchase URL:" => "Kauf URL:",
+	"Track:" => "verfolgen",
+	"Artist:" => "K&#252;nstler:",
+	"Title:" => "Titel:",
+	"Album:" => "Album:",
+	"Album Art:" => "Album Art:",
+	"Upload file:" => "Datei hochladen:",
+	"or Type the URL:" => "oder geben Sie die URL:",
+	"Search Method" => "Suchmethode",
+	"Keyword" => "Stichwort",
+	"Import Tracks" => "Import Tracks",
+	"Select All" => "Alles ausw&#228;hlen"
+);

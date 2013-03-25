@@ -1,0 +1,1075 @@
+<?php 
+	$formCategory = $this->formCategory;
+	$form = $this->form;
+	$languages = $this->languages;
+?>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/tinymce/js/tiny_mce.js"); ?>"></script>
+<script type="text/javascript">
+
+</script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqueryui/js/jquery.layout-latest.min.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jstree/_lib/jquery.hotkeys.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jstree/jquery.jstree.js"); ?>"></script>
+<style type="text/css">
+.explorer {
+	display:block;
+	height: 550px;
+}
+.explorer > div {
+	overflow: auto;
+	border: 1px solid #DCDDE2;
+	background-color: #FFF;
+}
+.header {
+	height: 25px;
+	border: 1px solid #DCDDE2;
+	background-color: #FFF;
+	margin-bottom: 3px;
+}
+
+.sidebar {
+	display: inline;
+	display: inline-block;
+	min-width: 30%;
+	float:left;
+	height: 99%;
+}
+.resizer  {
+	border: none !important;
+	background-color: none !important;
+	width:.2%;
+	height:99%;
+	display: inline;
+	display: inline-block;
+	float:left;
+}
+.center {
+	display: inline;
+	display: inline-block;
+	min-width: 69%;
+	float:right;
+	height: 99%;
+}
+.tools {
+	height:18px;
+	padding: 5px 10px !important;
+	border-bottom: 1px solid #BBBBBB;
+	background: linear-gradient(to bottom, #FFFFFF 0%, #E1E2EB 99%) repeat scroll 0 0 transparent;
+	margin: -10px -10px 0;
+}
+.ui-layout-pane-north {
+	padding: 5px 10px !important;
+}
+.jstree li {
+	clear:both;
+}
+.jstree ul {
+	clear:both;
+}
+.jstree a,.jstree ins {
+	float:left;
+}
+.icon {
+	display: inline;
+	display: inline-block;
+	min-width:70px;
+	padding: 6px;
+	text-align: center;
+	border: 1px solid #fff;
+	margin: 5px 2px;
+	height: auto;
+	vertical-align: top;
+}
+.icon:hover {
+	border: 1px solid #DCDDE2;
+}
+.selected {
+	background: none repeat scroll 0 0 #BEEBFF;
+    border: 1px solid #99DEFD;
+}
+.icon img{
+	border: none;
+	display: block;
+	margin: auto;
+}
+.menu-item > li {
+	display: inline;
+	border-right: 1px solid #DCDDE2;
+	padding: 0 10px;
+	cursor: pointer;
+}
+.menu-item > li:hover {
+	border: 1px solid #DCDDE2;
+	border-left:none;
+	background-color: #fff;
+}
+.menu-item > li.first:hover {
+	border: none;
+	background: none;
+	border-right: 1px solid #DCDDE2;
+}
+.menu-item > li ul {
+	display: none;
+	background-color: #fff;
+	border: 1px solid #DCDDE2;
+	position: absolute;
+	z-index: 1000;
+	min-width: 120px;
+	margin-left: -11px;
+}
+
+.menu-item > li li{
+	display: block;
+	clear:both;
+	padding: 2px 5px;
+	border: 1px solid #fff;
+	width: 120px;
+}
+.menu-item > li li.sap {
+	border: none;
+	border-bottom: 1px solid #DCDDE2;
+	height: 1px;
+	padding: 0 5px;
+}
+.menu-item > li:hover ul {
+	display: block;
+}
+.menu-item > li li:hover {
+	background: none repeat scroll 0 0 #BEEBFF;
+	border: 1px solid #99DEFD;
+}
+.menu-item > li li.sap:hover {
+	background: none;
+	border: none;
+	border-bottom: 1px solid #DCDDE2;
+}
+.menu-item a {
+	text-decoration: none;
+	display: block;
+}
+.menu-item a img{
+	float:left;
+}
+.menu-item > li > ul > li > ul {
+	display: none !important;
+}
+.menu-item > li > ul > li:hover > ul {
+	display: block !important;
+}
+.menu-item > li > ul > li > ul.disabled {
+	display: none !important;
+}
+#divContent {
+	min-height: 95%;
+    vertical-align: top;
+}
+a.disabled {
+	color: #bbb !important;
+}
+#div-document, #div-folder {
+	display:none;
+}
+</style>
+<div class="explorer">
+	<div class="ui-layout-north">
+		Document Explorer
+	</div>
+	<div  id="divTree" class="ui-layout-west">
+	</div>
+	<div class="ui-layout-center">
+		<div class="tools">
+			<ul class="menu-item">
+				<li class="first"><a href="javascript:up();"><img src="<?php echo $this->baseUrl("images/back.png"); ?>" alt="" />&nbsp;UP</a>
+				</li>
+				<li>Add New
+					<ul>
+						<li><a id="menu_add_folder" href="javascript:add_folder();">Folder</a></li>
+						<li><a id="menu_add_document" href="javascript:add_document();">Document</a></li>
+					</ul>
+				</li>
+				<li>Action
+					<ul>
+						<li>
+							<a id="menu_edit" onclick="return false" href="javascript:edit();">Edit</a>
+							<ul id="sub_menu_edit" style="top:-1px;left:140px;">
+								<?php 
+								foreach($languages as $lang) {
+								?>
+								<li><a href="javascript:void(0);" onclick="edit('<?php echo $lang["language_id"]; ?>');" style="background: url('<?php echo $this->baseUrl("images/lang/".$lang["logo"]); ?>') no-repeat scroll left center transparent; padding-left: 20px;"><?php echo $lang["title"]; ?></a></li>
+								<?php 
+								}?>
+							</ul>
+						</li>
+						<li><a id="menu_delete" href="javascript:remove();">Delete</a></li>
+						<li class="sap"></li>
+						<li><a id="menu_cut" href="javascript:cut();">Cut</a></li>
+						<li><a id="menu_copy" href="javascript:copy();">Copy</a></li>
+						<li><a id="menu_paste" href="javascript:paste();">Paste</a></li>
+						<li class="sap"></li>
+						<li><a id="menu_select_all" href="javascript:select_all();">Select All</a></li>
+					</ul>
+				</li>
+			</ul>
+		</div>
+		<div id="divContent" class="content">
+		</div>
+	</div>
+</div>
+<div id="div-folder" class="boxBorderBottom">
+	<form id="frmAddEditDocumentCategory" method="<?php echo $formCategory->getMethod();?>" action="<?php echo $formCategory->getAction();?>" class="zend_form">
+		<?php echo $formCategory->module_document_category_id->renderViewHelper(); ?>
+		<?php echo $formCategory->module_document_category_detail_id->renderViewHelper(); ?>
+		<?php echo $formCategory->language_id->renderViewHelper(); ?>
+		<?php echo $formCategory->parent_id->renderViewHelper(); ?>
+		<table style="margin:10px 0;">
+			<tbody>
+				<tr>
+			    	<td><?php echo $formCategory->title->renderLabel() ?></td>
+			        <td>
+			        	<?php echo $formCategory->title->renderViewHelper()?>
+					</td>
+				</tr>
+				<tr>
+			    	<td><?php echo $formCategory->status->renderLabel() ?></td>
+			        <td>
+			        	<?php echo $formCategory->status->renderViewHelper()?>
+					</td>
+				</tr>
+				<tr>
+			        <td colspan="3" align="center">
+			        	<?php echo $formCategory->submit->renderViewHelper() ?>&nbsp;
+						<?php echo $formCategory->reset->renderViewHelper() ?>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</form>
+</div>
+<div id="div-document">
+<form id="frmAddEditDocument" method="<?php echo $form->getMethod();?>" action="<?php echo $form->getAction();?>" class="zend_form">
+	<?php echo $form->module_document_id->renderViewHelper(); ?>
+	<?php echo $form->module_document_category_id->renderViewHelper(); ?>
+	<?php echo $form->module_document_detail_id->renderViewHelper(); ?>
+	<?php echo $form->language_id->renderViewHelper(); ?>
+	<table style="margin:10px 0; width:100%;">
+		<tbody>
+			<tr>
+		    	<td><?php echo $form->title->renderLabel() ?></td>
+		        <td>
+		        	<?php echo $form->title->renderViewHelper()?>
+				</td>
+			</tr>
+			<tr>
+		    	<td><?php echo $form->description->renderLabel() ?></td>
+		        <td>
+		        	<?php echo $form->description->renderViewHelper()?>
+				</td>
+			</tr>
+			<tr>
+		    	<td><?php echo $form->document->renderLabel() ?></td>
+		        <td>
+		        	<input id="document" type="file" name="document" />
+		        	<input id="document_path" type="hidden" name="document_path" value="" />
+				</td>
+			</tr>
+			<tr>
+		    	<td><?php echo $form->keywords->renderLabel() ?></td>
+		        <td>
+		        	<?php echo $form->keywords->renderViewHelper()?>
+				</td>
+			</tr>
+			<tr>
+		    	<td><?php echo $form->status->renderLabel() ?></td>
+		        <td>
+		        	<?php echo $form->status->renderViewHelper()?>
+				</td>
+			</tr>
+			<tr>
+		        <td colspan="3" align="center">
+		        	<?php echo $form->submit->renderViewHelper() ?>&nbsp;
+					<?php echo $form->reset->renderViewHelper() ?>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</form>
+</div>
+<script type="text/javascript">
+window.current_parent = null;
+window._clipboard = new Array();
+window._clipboard_action = null;
+$(document).ready(function(){
+	$("div.explorer").layout({ 
+		applyDefaultStyles: true,
+		north__resizable: false,
+		north__closable: false,
+		west__closable: false,
+		west__maxSize:436 
+	});
+	$("#divTree").jstree({ 
+		"plugins" : [ "themes", "json_data", "ui", "dnd","types"],
+		"json_data" : { 
+			// This tree is ajax enabled - as this is most common, and maybe a bit more complex
+			// All the options are almost the same as jQuery's AJAX (read the docs)
+			"ajax" : {
+				// the URL to fetch the data
+				"url" : "<?php echo $this->url(array("module"=>"document","controller"=>"explorer","action" => "get-tree"),"default",true); ?>",
+				// the `data` function is executed in the instance's scope
+				// the parameter is the node being loaded 
+				// (may be -1, 0, or undefined when loading the root nodes)
+				"data" : function (n) { 
+					// the result is fed to the AJAX request `data` option
+					/*return { 
+						"operation" : "get_children", 
+						"id" : n.attr ? n.attr("id").replace("node_","") : 0 
+					};*/ 
+				}
+			}
+		},
+		"types" : {
+			"max_depth" : -2,
+			"max_children" : -2,
+			"valid_children": ["drive"],
+			"types" : {
+				"default" : {
+					"valid_children" : "none",
+					"icon" : {
+						"image" : "<?php echo $this->baseUrl("images/file.png");?>"
+					}
+				},
+				"folder" : {
+					"valid_children" : [ "default", "folder" ],
+					"icon" : {
+						"image" : "<?php echo $this->baseUrl("images/folder.png");?>"
+					}
+				},
+				"drive" : {
+					"valid_children" : [ "folder" ],
+					"icon" : {
+						"image" : "<?php echo $this->baseUrl("images/root.png");?>"
+					},
+					"start_drag" : false,
+					"move_node" : false,
+					"delete_node" : false,
+					"remove" : false
+				},
+			}
+		},
+		"ui" : {
+			// this makes the node with ID node_4 selected onload
+			"initially_select" : [ "node_0" ],
+			"select_limit" : 1
+		},
+		"core" : {
+			"initially_open": ["node_0"]
+		}
+	}).bind("select_node.jstree", function (event, data) { 
+		// Node Selected
+		// $("#divTree").jstree("deselect_all");
+		// $("#divTree").jstree("select_node","#node_0");
+		
+		var parent_id = data.rslt.obj.attr("id").replace("node_","");
+		if(parent_id==0) {
+			$("#menu_add_document").addClass("disabled");
+		} else {
+			$("#menu_add_document").removeClass("disabled");
+		}
+		reset_menu();
+		if((data.rslt.obj.attr("rel")=="drive" || data.rslt.obj.attr("rel")=="folder") && window.current_parent!=parent_id) {
+			// Load content in right pane
+			window.current_parent = parent_id;
+			var promptus = false;
+			$(document).queue(function(next){
+				promptus = new prompt({
+	            	reference : "#content",
+	                element : "#content",
+	                beforeShow : function(){
+		                this.alternateMessage = this.showLoadingMessage("<?php echo ($this->translate('Loading Document...'))?>");
+	                }
+	            });
+	            next();
+			}).queue(function(next){
+				$.ajax({
+					type : "POST",
+					cache : false,
+					data : {parent_id: parent_id},
+					dataType: 'json',
+					url : "<?php echo $this->url(array("module"=>"document","controller"=>"explorer","action" => "get-content"),"default",true); ?>",
+					success : function(json){
+						if(json["errors"] != undefined){
+							$("#divContent").html(json["errors"]);
+							next();
+						} else if(json["success"] != undefined){
+							// Render content
+							$("#divContent").html("");
+							$(json["data"]).each(function(){
+								var title = this.data;
+								if(title.length >10) {
+									title = title.substr(0,10) + "...";
+								}
+								var icon = $("<a id='content_"+this.attr.id+"' class='icon' title='"+this.data+"'></a>");
+								if(this.attr.rel == "folder") {
+									icon.append("<img src='<?php echo $this->baseUrl("images/folder-big.png");?>' alt='"+this.data+"' />");
+									icon.dblclick(function(){
+										var id = this.id.replace("content_","");
+										$("#divTree").jstree("deselect_all");
+										$("#divTree").jstree("select_node","#"+id);
+									});
+								} else {
+									icon.append("<img src='<?php echo $this->baseUrl("images/file-big.png");?>' alt='"+this.data+"' />");
+								}
+								icon.append("<div style='clear:both'>"+title+"</div>");
+								icon.on("click",function(e){
+									if(e.ctrlKey){
+										$(this).toggleClass("selected");
+									} else {
+										var count = $(".selected").length;
+										if(count<=1) {
+											$(this).toggleClass("selected");
+										} else if(!$(this).hasClass("selected")) {
+											$(this).addClass("selected");
+										}
+										$(".selected").not($(this)).each(function(){
+											$(this).removeClass("selected");
+										});
+									}
+									reset_menu();
+									e.preventDefault();
+								});
+								$("#divContent").append(icon);
+							});
+						}
+					}
+	  			}).complete(next);
+			}).queue(function(next){
+				promptus.close();
+				next();
+	  		});
+		}
+	}).bind("move_node.jstree", function (e, data) {
+		data.rslt.o.each(function (i) {
+			var parent = (data.rslt.cr === -1 ? 0 : data.rslt.np.attr("id").replace("node_",""));
+			var move_data = {id:$(this).attr("id"),parent_id: parent};
+			
+			var promptus = false;
+			$(document).queue(function(next){
+				promptus = new prompt({
+	            	reference : "#content",
+	                element : "#content",
+	                beforeShow : function(){
+		                this.alternateMessage = this.showLoadingMessage("<?php echo ($this->translate('Moving Document...'))?>");
+	                }
+	            });
+	            next();
+			}).queue(function(next){
+				$.ajax({
+					type : "POST",
+					cache : false,
+					data : move_data,
+	                dataType: "json",
+					url : "<?php echo $this->url(array("module"=>"document","controller"=>"explorer","action" => "cut"),"default",true);?>",
+					success : function(json){
+						if(json["errors"] != undefined){
+							next();
+						} else if(json["success"] != undefined){
+							promptus.showSuccessMessage("<?php echo ($this->translate('Document moved successfully.'))?>");
+							setTimeout(function(){
+								$("#divTree").jstree("refresh",-1);
+								next();
+							}, 2000);
+						}
+					},
+					error : next
+	  			});
+			}).queue(function(next){
+				var parent = window.current_parent;
+				window.current_parent = null;
+				$("#divTree").jstree("deselect_all");
+				$("#divTree").jstree("select_node","#node_"+parent);
+				$("#div-document").dialog("close");
+				promptus.close();
+				next();
+	  		});
+		});
+	});
+	$("#divContent").on("click",function(e){
+		if(!e.isDefaultPrevented()){
+			$(".selected").each(function(){
+				$(this).removeClass("selected");
+			});
+			reset_menu();
+			e.preventDefault();
+		}
+	});
+	$("#frmAddEditDocumentCategory").validator().submit(function(e){
+		var form = $(this);
+		if(!e.isDefaultPrevented()){
+			var promptus = false;
+			$(document).queue(function(next){
+				promptus = new prompt({
+	            	reference : form,
+	                element : ".ui-dialog",
+	                beforeShow : function(){
+		                this.alternateMessage = this.showLoadingMessage("<?php echo $this->translate('Saving Folder...')?>");
+	                }
+	            });
+	            next();
+			}).queue(function(next){
+				$.ajax({
+					type : "POST",
+					cache : false,
+					data : form.serialize(),
+					url : "<?php echo $formCategory->getAction(); ?>",
+					success : function(json){
+						if(json["errors"] != undefined){
+							form.data("validator").invalidate(json["errors"]);
+							next();
+						} else if(json["success"] != undefined){
+							promptus.showSuccessMessage("<?php echo $this->translate('Folder saved successfully.')?>");
+							setTimeout(function(){
+								// Save Success
+								$("#divTree").jstree("refresh",-1);
+								next();
+							}, 2000);
+						}
+					},
+					error : next
+	  			});
+			}).queue(function(next){
+				var parent = window.current_parent;
+				window.current_parent = null;
+				$("#divTree").jstree("deselect_all");
+				$("#divTree").jstree("select_node","#node_"+parent);
+				$("#div-folder").dialog("close");
+				promptus.close();
+				next();
+	  		});
+			e.preventDefault();
+		}
+	});
+	$("#frmAddEditDocument").validator().submit(function(e){
+		var form = $(this);
+		if(!e.isDefaultPrevented()){
+			var promptus = false;
+			$(document).queue(function(next){
+				promptus = new prompt({
+	            	reference : form,
+	                element : ".ui-dialog",
+	                beforeShow : function(){
+		                this.alternateMessage = this.showLoadingMessage("<?php echo ($this->translate('Saving Document...'))?>");
+	                }
+	            });
+	            next();
+			}).queue(function(next){
+				if($('#document').attr("value")!="") {
+					$.ajaxFileUpload({
+						url:'<?php echo $form->getAction(); ?>',
+						secureuri:false,
+						fileElementId:'document',
+						dataType: 'json',
+						data:{upload:'true'},
+						success: function (data, status)
+						{
+							if(data.success != undefined) {
+								$("#document_path").attr("value",data.success);
+								next();
+							}
+						},
+						error: function (data, status, e)
+						{
+							promptus.showErrorMessage("<?php echo ($this->translate('Error uploading document.'))?>");
+							setTimeout(function(){
+								promptus.close();
+							}, 2000);
+							
+						}
+					});
+				} else {
+					next();
+				}
+			}).queue(function(next){
+				$.ajax({
+					type : "POST",
+					cache : false,
+					data : form.serialize(),
+					url : "<?php echo $form->getAction(); ?>",
+					success : function(json){
+						if(json["errors"] != undefined){
+							form.data("validator").invalidate(json["errors"]);
+							next();
+						} else if(json["success"] != undefined){
+							promptus.showSuccessMessage("<?php echo ($this->translate('Document saved successfully.'))?>");
+							setTimeout(function(){
+								$("#divTree").jstree("refresh",-1);
+								next();
+							}, 2000);
+						}
+					},
+					error : next
+	  			});
+			}).queue(function(next){
+				var parent = window.current_parent;
+				window.current_parent = null;
+				$("#divTree").jstree("deselect_all");
+				$("#divTree").jstree("select_node","#node_"+parent);
+				$("#div-document").dialog("close");
+				promptus.close();
+				next();
+	  		});
+			e.preventDefault();
+		}
+	});
+});
+function reset_menu() {
+	var count = $(".selected").length;
+	if(count==0) {
+		$("#menu_edit,#sub_menu_edit, #menu_delete, #menu_copy, #menu_cut").addClass("disabled");
+	} else {
+		if(count>1) {
+			$("#menu_edit,#sub_menu_edit").addClass("disabled");
+		} else {
+			$("#menu_edit,#sub_menu_edit").removeClass("disabled");
+		}
+		$("#menu_delete, #menu_copy, #menu_cut").removeClass("disabled");
+	}
+	if(window._clipboard_action==null || window._clipboard.length==0) {
+		$("#menu_paste").addClass("disabled");
+	} else {
+		$("#menu_paste").removeClass("disabled");
+	}
+}
+function up() {
+	if (window.current_parent != null && window.current_parent != 0) {
+		$("#divTree").jstree("deselect_all");
+		$("#divTree").jstree("select_node",$.jstree._reference("#divTree")._get_parent("#node_" + window.current_parent));
+	}
+}
+function select_all() {
+	$(".icon").each(function(){
+		$(this).addClass("selected");
+	});
+	reset_menu();
+}
+function cut() {
+	if($(".selected").length!=0) {
+		window._clipboard = new Array();
+		$(".selected").each(function(){
+			window._clipboard.push($(this).attr("id"));
+		});
+		window._clipboard_action = 'cut';
+	}
+}
+function copy() {
+	if($(".selected").length!=0) {
+		window._clipboard = new Array();
+		$(".selected").each(function(){
+			window._clipboard.push($(this).attr("id"));
+		});
+		window._clipboard_action = 'copy';
+	}
+}
+function paste() {
+	// console.log(window._clipboard);
+	// console.log(window._clipboard_action);
+	if(window._clipboard_action=='copy') {
+		// Copy
+		var data = {id:"",parent_id: window.current_parent};
+		$(window._clipboard).each(function(){
+			var id = this.replace("content_","");
+			data.id += (data.id=="")? id : ","+id;
+		});
+		
+		var promptus = false;
+		$(document).queue(function(next){
+			promptus = new prompt({
+            	reference : "#content",
+                element : "#content",
+                beforeShow : function(){
+	                this.alternateMessage = this.showLoadingMessage("<?php echo ($this->translate('Copying Document...'))?>");
+                }
+            });
+            next();
+		}).queue(function(next){
+			$.ajax({
+				type : "POST",
+				cache : false,
+				data : data,
+                dataType: "json",
+				url : "<?php echo $this->url(array("module"=>"document","controller"=>"explorer","action" => "copy"),"default",true);?>",
+				success : function(json){
+					if(json["errors"] != undefined){
+						next();
+					} else if(json["success"] != undefined){
+						promptus.showSuccessMessage("<?php echo ($this->translate('Document copied successfully.'))?>");
+						setTimeout(function(){
+							$("#divTree").jstree("refresh",-1);
+							next();
+						}, 2000);
+					}
+				},
+				error : next
+  			});
+		}).queue(function(next){
+			var parent = window.current_parent;
+			window.current_parent = null;
+			$("#divTree").jstree("deselect_all");
+			$("#divTree").jstree("select_node","#node_"+parent);
+			$("#div-document").dialog("close");
+			promptus.close();
+			next();
+  		});
+	} else if(window._clipboard_action=='cut') {
+		// Cut
+		var data = {id:"",parent_id: window.current_parent};
+		$(window._clipboard).each(function(){
+			var id = this.replace("content_","");
+			data.id += (data.id=="")? id : ","+id;
+		});
+		
+		var promptus = false;
+		$(document).queue(function(next){
+			promptus = new prompt({
+            	reference : "#content",
+                element : "#content",
+                beforeShow : function(){
+	                this.alternateMessage = this.showLoadingMessage("<?php echo ($this->translate('Moving Document...'))?>");
+                }
+            });
+            next();
+		}).queue(function(next){
+			$.ajax({
+				type : "POST",
+				cache : false,
+				data : data,
+                dataType: "json",
+				url : "<?php echo $this->url(array("module"=>"document","controller"=>"explorer","action" => "cut"),"default",true);?>",
+				success : function(json){
+					if(json["errors"] != undefined){
+						next();
+					} else if(json["success"] != undefined){
+						promptus.showSuccessMessage("<?php echo ($this->translate('Document moved successfully.'))?>");
+						setTimeout(function(){
+							$("#divTree").jstree("refresh",-1);
+							next();
+						}, 2000);
+					}
+				},
+				error : next
+  			});
+		}).queue(function(next){
+			var parent = window.current_parent;
+			window.current_parent = null;
+			$("#divTree").jstree("deselect_all");
+			$("#divTree").jstree("select_node","#node_"+parent);
+			$("#div-document").dialog("close");
+			promptus.close();
+			next();
+  		});
+	} else {
+		return;
+	}
+	window._clipboard = new Array();
+	window._clipboard_action = null;
+}
+function add_folder() {
+	if (window.current_parent != null && window.current_parent != 0) {
+		$("#parent_id").attr("value",window.current_parent);
+	} else {
+		$("#parent_id").attr("value",0);
+	}
+	$("#frmAddEditDocumentCategory").find("#module_document_category_id").attr("value","");
+	$("#frmAddEditDocumentCategory").find("#module_document_category_detail_id").attr("value","");
+	$("#frmAddEditDocumentCategory").find("#language_id").attr("value","");
+	$("#frmAddEditDocumentCategory").find("#title").attr("value","");
+	$("#div-folder").dialog({
+		modal: true,
+		width: 350,
+		resizable: false,
+		title: "Add Folder"
+	});
+}
+function add_document() {
+	if (window.current_parent != null && window.current_parent != 0) {
+		$("#frmAddEditDocument").find("#module_document_category_id").attr("value",window.current_parent);
+		
+		$("#frmAddEditDocument").find("#title").attr("value","");
+		$("#frmAddEditDocument").find("#description").html("");
+		$("#div-document").dialog({
+			modal: true,
+			width: 785,
+			resizable: false,
+			title: "Add Document"
+		});
+		tinyMCE.init({
+			// General options
+			mode : "textareas",
+			theme : "advanced",
+			plugins : "autolink,lists,pagebreak,style,layer,table,advhr,advimage,advlink,emotions,iespell,inlinepopups,insertdatetime,preview,media,searchreplace,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras,template,wordcount,advlist,autosave,visualblocks",
+
+			// Theme options
+			theme_advanced_buttons1 : "bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,styleselect,formatselect,fontselect,fontsizeselect,|,undo,redo,code",
+			theme_advanced_buttons2 : "",
+			theme_advanced_buttons3 : "",
+			
+			//plugins : "autolink,lists,pagebreak,style,layer,table,save,advhr,advimage,advlink,emotions,iespell,inlinepopups,insertdatetime,preview,media,searchreplace,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras,template,wordcount,advlist,visualblocks",
+			//plugins : "paste,pagebreak,table",
+			
+			// Theme options
+			//theme_advanced_buttons1 : "bold,italic,underline,strikethrough,|,undo,redo,|,bullist,numlist,|,outdent,indent,blockquote,|,forecolor,backcolor,|,tablecontrols,|,hr",
+			//theme_advanced_buttons1 : "formatselect,fontselect,fontsizeselect,|,forecolor,backcolor,|,bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,|,code",
+			//theme_advanced_buttons2 : "",
+			//theme_advanced_buttons3 : "tablecontrols,|,hr,removeformat,visualaid,|,sub,sup,|,ltr,rtl",
+			//theme_advanced_buttons4 : "insertlayer,moveforward,movebackward,absolute,|,cite,abbr,acronym,del,ins,attribs,|,visualchars,nonbreaking,pagebreak",
+			theme_advanced_toolbar_location : "top",
+			theme_advanced_toolbar_align : "left",
+			theme_advanced_statusbar_location : "bottom",
+			theme_advanced_resizing : true,
+
+			// Example content CSS (should be your site CSS)
+			content_css : "<?php echo $this->baseUrl("libs/tinymce/css/content.css"); ?>",
+
+			// Drop lists for link/image/media/template dialogs
+			template_external_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/template_list.js"); ?>",
+			external_link_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/link_list.js"); ?>",
+			external_image_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/image_list.js"); ?>",
+			media_external_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/media_list.js"); ?>",
+
+			// Style formats
+			style_formats : [
+				{title : 'Bold text', inline : 'b'},
+				{title : 'Red text', inline : 'span', styles : {color : '#ff0000'}},
+				{title : 'Red header', block : 'h1', styles : {color : '#ff0000'}},
+				{title : 'Example 1', inline : 'span', classes : 'example1'},
+				{title : 'Example 2', inline : 'span', classes : 'example2'},
+				{title : 'Table styles'},
+				{title : 'Table row 1', selector : 'tr', classes : 'tablerow1'}
+			],
+			// Replace values for the template plugin
+			template_replace_values : {
+				username : "Some User",
+				staffid : "991234"
+			}
+		});
+	}
+}
+function edit(language) {
+	if($(".selected").length==1) {
+		var elemId = $(".selected").attr("id");
+		var id = elemId.replace("content_","");
+		if(id.indexOf("node_")!=-1) {
+			// Edit Folder
+			var edit_data = {id:id,language_id: language};
+			
+			var promptus = false;
+			$(document).queue(function(next){
+				promptus = new prompt({
+	            	reference : "#content",
+	                element : "#content",
+	                beforeShow : function(){
+		                this.alternateMessage = this.showLoadingMessage("<?php echo ($this->translate('Please wait...'))?>");
+	                }
+	            });
+	            next();
+			}).queue(function(next){
+				$.ajax({
+					type : "POST",
+					cache : false,
+					data : edit_data,
+	                dataType: "json",
+					url : "<?php echo $this->url(array("module"=>"document","controller"=>"explorer","action" => "edit"),"default",true);?>",
+					success : function(json){
+						$("#frmAddEditDocumentCategory").find("#module_document_category_id").attr("value",json.data.module_document_category_id);
+						$("#frmAddEditDocumentCategory").find("#module_document_category_detail_id").attr("value",json.data.module_document_category_detail_id);
+						$("#frmAddEditDocumentCategory").find("#language_id").attr("value",json.data.language_id);
+						$("#frmAddEditDocumentCategory").find("#parent_id").attr("value",json.data.parent_id);
+						$("#frmAddEditDocumentCategory").find("#title").attr("value",json.data.title);
+						if(json.data.status) {
+							$("#frmAddEditDocumentCategory").find("#status").attr("checked","checked");
+						} else {
+							$("#frmAddEditDocumentCategory").find("#status").removeAttr("checked");
+						}
+						
+						$("#div-folder").dialog({
+							modal: true,
+							width: 350,
+							resizable: false,
+							title: "Edit Folder"
+						});
+						next();
+					},
+					error : next
+	  			});
+			}).queue(function(next){
+				promptus.close();
+				next();
+	  		});
+		} else {
+			// Edit Document
+			var edit_data = {id:id,language_id: language};
+			
+			var promptus = false;
+			$(document).queue(function(next){
+				promptus = new prompt({
+	            	reference : "#content",
+	                element : "#content",
+	                beforeShow : function(){
+		                this.alternateMessage = this.showLoadingMessage("<?php echo ($this->translate('Please wait...'))?>");
+	                }
+	            });
+	            next();
+			}).queue(function(next){
+				$.ajax({
+					type : "POST",
+					cache : false,
+					data : edit_data,
+	                dataType: "json",
+					url : "<?php echo $this->url(array("module"=>"document","controller"=>"explorer","action" => "edit"),"default",true);?>",
+					success : function(json){
+						$("#frmAddEditDocument").find("#module_document_id").attr("value",json.data.module_document_id);
+						$("#frmAddEditDocument").find("#module_document_detail_id").attr("value",json.data.module_document_detail_id);
+						$("#frmAddEditDocument").find("#module_document_category_id").attr("value",json.data.module_document_category_id);
+						$("#frmAddEditDocument").find("#language_id").attr("value",json.data.language_id);
+						$("#frmAddEditDocument").find("#title").attr("value",json.data.title);
+						$("#frmAddEditDocument").find("#description").html(json.data.description);
+						$("#frmAddEditDocument").find("#document_path").attr("value",json.data.document_path);
+						$("#frmAddEditDocument").find("#keywords").attr("value",json.data.keywords);
+						
+						if(json.data.status) {
+							$("#frmAddEditDocument").find("#status").attr("checked","checked");
+						} else {
+							$("#frmAddEditDocument").find("#status").removeAttr("checked");
+						}
+						
+						$("#div-document").dialog({
+							modal: true,
+							width: 785,
+							resizable: false,
+							title: "Edit Document"
+						});
+						tinyMCE.init({
+							// General options
+							mode : "textareas",
+							theme : "advanced",
+							plugins : "autolink,lists,pagebreak,style,layer,table,advhr,advimage,advlink,emotions,iespell,inlinepopups,insertdatetime,preview,media,searchreplace,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras,template,wordcount,advlist,autosave,visualblocks",
+
+							// Theme options
+							theme_advanced_buttons1 : "bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,styleselect,formatselect,fontselect,fontsizeselect,|,undo,redo,code",
+							theme_advanced_buttons2 : "",
+							theme_advanced_buttons3 : "",
+							
+							//plugins : "autolink,lists,pagebreak,style,layer,table,save,advhr,advimage,advlink,emotions,iespell,inlinepopups,insertdatetime,preview,media,searchreplace,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras,template,wordcount,advlist,visualblocks",
+							//plugins : "paste,pagebreak,table",
+							
+							// Theme options
+							//theme_advanced_buttons1 : "bold,italic,underline,strikethrough,|,undo,redo,|,bullist,numlist,|,outdent,indent,blockquote,|,forecolor,backcolor,|,tablecontrols,|,hr",
+							//theme_advanced_buttons1 : "formatselect,fontselect,fontsizeselect,|,forecolor,backcolor,|,bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,|,code",
+							//theme_advanced_buttons2 : "",
+							//theme_advanced_buttons3 : "tablecontrols,|,hr,removeformat,visualaid,|,sub,sup,|,ltr,rtl",
+							//theme_advanced_buttons4 : "insertlayer,moveforward,movebackward,absolute,|,cite,abbr,acronym,del,ins,attribs,|,visualchars,nonbreaking,pagebreak",
+							theme_advanced_toolbar_location : "top",
+							theme_advanced_toolbar_align : "left",
+							theme_advanced_statusbar_location : "bottom",
+							theme_advanced_resizing : true,
+
+							// Example content CSS (should be your site CSS)
+							content_css : "<?php echo $this->baseUrl("libs/tinymce/css/content.css"); ?>",
+
+							// Drop lists for link/image/media/template dialogs
+							template_external_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/template_list.js"); ?>",
+							external_link_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/link_list.js"); ?>",
+							external_image_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/image_list.js"); ?>",
+							media_external_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/media_list.js"); ?>",
+
+							// Style formats
+							style_formats : [
+								{title : 'Bold text', inline : 'b'},
+								{title : 'Red text', inline : 'span', styles : {color : '#ff0000'}},
+								{title : 'Red header', block : 'h1', styles : {color : '#ff0000'}},
+								{title : 'Example 1', inline : 'span', classes : 'example1'},
+								{title : 'Example 2', inline : 'span', classes : 'example2'},
+								{title : 'Table styles'},
+								{title : 'Table row 1', selector : 'tr', classes : 'tablerow1'}
+							],
+							// Replace values for the template plugin
+							template_replace_values : {
+								username : "Some User",
+								staffid : "991234"
+							}
+						});
+						next();
+					},
+					error : next
+	  			});
+			}).queue(function(next){
+				promptus.close();
+				next();
+	  		});
+		}
+	}
+}
+function remove() {
+	if($(".selected").length!=0) {
+		var promptus = new prompt({
+        	reference : "#content",
+            element : "#content",
+            message : "<?php echo $this->translate('Are you sure you want to delete selected items?'); ?>",
+            buttons : {
+                "Yes" : function(self){
+                    var prompt = this;
+                    $(document).queue(function(next){
+                        prompt.showLoadingMessage("<?php echo $this->translate('Please wait while deleting...'); ?>");
+                        next();
+                    }).queue(function(next){
+                        $(".selected").each(function(){
+                			var elemId = $(this).attr("id");
+                			var id = elemId.replace("content_","");
+                			if(id.indexOf("node_")!=-1) {
+                				// Folder
+                				var folder_id = id.replace("node_","");
+                				$.ajax({
+                                    url: "<?php echo $this->url(array("module"=>"document","controller"=>"category","action" => "delete"),"default",true);?>/id/" + folder_id,
+                                    cache: false,
+                                    async: false,
+                                    type: "GET",
+                                    dataType: "json",
+                                    success: function(json){
+                                    },
+                                    error: function(){
+                                    }
+                                });
+                			} else {
+                				// Document
+                				var document_id = id.replace("file_","");
+                				$.ajax({
+                                    url: "<?php echo $this->url(array("module"=>"document","controller"=>"index","action" => "delete"),"default",true);?>/id/" + document_id,
+                                    cache: false,
+                                    async: false,
+                                    type: "GET",
+                                    dataType: "json",
+                                    success: function(json){
+                                    },
+                                    error: function(){
+                                    }
+                                });
+                			}
+                		}).promise().done(next);
+                    }).queue(function(next){
+                    	$("#divTree").jstree("refresh",-1);
+                    	next();
+                    }).queue(function(next){
+                    	var parent = window.current_parent;
+						window.current_parent = null;
+						$("#divTree").jstree("deselect_all");
+						$("#divTree").jstree("select_node","#node_"+parent);
+						prompt.close();
+						next();
+                    });
+                },
+                "No"  : function(self){
+                	this.close();
+                },
+            }
+        });
+	}
+}
+</script>

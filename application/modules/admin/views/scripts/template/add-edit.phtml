@@ -1,0 +1,140 @@
+<?php $form = $this->form; ?>
+<div class="boxBorderBottom">
+      <table style="width:100%;border:0;border-spacing:0;border-collapse:collapse;">
+        <tr>
+          <td valign="middle"><?php echo $this->partial($this->partial,array()); ?></td>
+        </tr>
+      </table>
+</div>
+<style type="text/css">
+div.selected{min-height:340px !important;}
+.selected{height:300px !important;}
+.connected-list{height:300px !important;}
+</style>
+<div id="filterBox">
+<form id="form1" class="zend_form">
+<?php echo $form->template_id->renderViewHelper() ?>
+	<table>
+		<!--<tr>
+			<td align="center" colspan="2">&nbsp;</td>
+		</tr>-->
+		<!-- Template Name -->
+		<tr>
+	    	<td><?php echo $form->name->renderLabel() ?></td>
+	        <td>
+	        	<?php echo $form->name->renderViewHelper() ?>
+			</td>
+		</tr>
+		<!-- Business Type -->
+	    <tr>
+	    	<td><?php echo $form->business_type_id->renderLabel() ?></td>
+	        <td>
+	        	<?php echo $form->business_type_id->renderViewHelper() ?>
+			</td>
+		</tr>
+		<!-- Modules (Multi Select) -->
+	    <tr>
+	    	<td><?php echo $form->modules->renderLabel() ?></td>
+	        <td>
+	        	<?php echo $form->modules->renderViewHelper() ?>
+	        </td>
+		</tr>
+		<!-- Status -->
+		<tr>
+	    	<td><?php echo $form->status->renderLabel() ?></td>
+	        <td>
+	        	<?php echo $form->status->renderViewHelper() ?>
+			</td>
+		</tr>
+		<!-- Apply to All -->
+		<tr>
+	    	<td><?php echo $form->applytoall->renderLabel() ?></td>
+	        <td>
+	        	<?php echo $form->applytoall->renderViewHelper() ?>
+			</td>
+		</tr>
+		<!-- Submit -->
+		<!--<tr>
+			<td align="center" colspan="2">&nbsp;</td>
+		</tr>-->
+		<tr>
+			<td align="center" colspan="2">
+				<?php echo $form->submit->renderViewHelper() ?>&nbsp;
+				<?php echo $form->reset->renderViewHelper() ?>
+			</td>
+		</tr>
+	</table>
+</form>
+</div>
+<script type="text/javascript">
+// <!--
+$(document).ready(function() {
+
+	<?php
+		if(!$this->hasData) {
+	?>
+			promptus = new prompt({
+				element : $("#content"),
+				reference : this,
+			});
+			promptus.showErrorMessage("Not enough information to add template");
+			setTimeout(function(){
+				location.href = "<?php echo $this->url(array("module"=>"admin","controller"=>"template","action"=>"index"),"default",true);?>";
+			}, 2000);
+	<?php
+		} 
+	?>
+		
+	$("#modules").multiselect({sortable: false, searchable: false});
+
+	$("#form1").validator().submit(function(e){
+		var form = $(this);
+		if(!e.isDefaultPrevented()){
+			var promptus = false;
+			$(document).queue(function(next){
+				promptus = new prompt({
+	            	reference : form,
+	                element : "#form1",
+	                beforeShow : function(){
+		                this.alternateMessage = this.showLoadingMessage("Saving Template...");
+	                }
+	            });
+	            next();
+			}).queue(function(next){
+				jQuery.ajax({
+					url: "<?php echo $this->url(array("module"=>"admin","controller"=>"template","action"=>"save"),null,true); ?>",
+					type:"POST",
+					dataType:"json",
+					data:form.serialize(),
+					success:function(data){
+						if(!data.error)
+						{
+							promptus.showSuccessMessage("Template saved successfully.");
+		                	setTimeout(function(){
+		                		promptus.close();
+		                		location.href = "<?php echo $this->url(array("module"=>"admin","controller"=>"template","action"=>"index"),null,true); ?>";
+		                    }, 2000);
+						}
+						else {
+							promptus.showErrorMessage(data.message);
+							setTimeout(function(){
+								promptus.close();
+								next();
+		                    }, 2000);
+						}
+					},
+					error : next
+				});
+			}).queue(function(next){
+				promptus.close();
+				next();
+	  		});
+			e.preventDefault();
+		}
+	});
+	$("#reset").on("click",function(){
+		location.href=location.href;
+	});
+});
+// -->
+</script>

@@ -1,0 +1,98 @@
+<?php $form = $this->form; ?>
+	<div id="customer-edit">
+		<form id="editform" action="<?php echo $this->form->getAction(); ?>"
+		method="<?php echo $this->form->getMethod(); ?>">
+			<?php echo $form->user_id->renderViewHelper() ?>
+			<table>
+				<tbody>
+		  		<?php echo $form->user_id->renderViewHelper() ?>
+				<tr>
+			    	<td><?php echo $form->name->renderLabel() ?></td>
+			        <td>
+			        	<?php echo $form->name->renderViewHelper() ?>
+					</td>
+				</tr>		  		
+		  		<tr>
+			    	<td><?php echo $form->email->renderLabel() ?></td>
+			        <td>
+			        	<?php echo $form->email->renderViewHelper(); ?>
+					</td>
+				</tr>
+		  		<tr>
+			    	<td><?php echo $form->password->renderLabel() ?></td>
+			        <td>
+			        	<?php echo $form->password->renderViewHelper() ?>
+					</td>
+				</tr>
+				<tr>
+			    	<td><?php echo $form->confirm_password->renderLabel() ?></td>
+			        <td>
+			        	<?php echo $form->confirm_password->renderViewHelper() ?>
+					</td>
+				</tr>
+				<tr>
+					<td>
+			        	<?php echo $form->submit->renderViewHelper() ?>&nbsp;
+						<?php echo $form->reset->renderViewHelper() ?>
+		        	</td>
+	        	</tr>
+				</tbody>
+			</table>
+		</form>
+	</div>
+<script type="text/javascript">
+// <!--
+$(document).ready(function() {
+	$("#editform").validator().submit(function(e){
+		var form = $(this);
+		if(!e.isDefaultPrevented()){
+			var promptus = false;
+			$(document).queue(function(next){
+				promptus = new prompt({
+	            	reference : form,
+	                element : "#editform",
+	                beforeShow : function(){
+		                this.alternateMessage = this.showLoadingMessage("Saving User...");
+	                }
+	            });
+	            next();
+			}).queue(function(next){
+				jQuery.ajax({
+					url: "<?php echo $this->url(array("module"=>"default","controller"=>"settings","action"=>""),null,true); ?>",
+					type:"POST",
+					dataType:"json",
+					data:form.serialize(),
+					success:function(data){
+						if(!data.error)
+						{
+							promptus.showSuccessMessage("User saved successfully.");
+			            	setTimeout(function(){
+			            		promptus.close();
+			            		next();
+			                }, 2000);
+						} else {
+							promptus.showErrorMessage(data.message);
+							setTimeout(function(){
+								promptus.close();
+								next();
+			                }, 2000);
+						}
+					},
+					error: function(){
+						promptus.showErrorMessage("Error occured");
+						setTimeout(function(){
+							promptus.close();
+							next();
+			            }, 2000);
+					}
+				});
+			}).queue(function(next){
+				promptus.close();
+				next();
+	  		});
+			e.preventDefault();
+		}
+	});
+});
+// -->
+</script>

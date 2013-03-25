@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <nav> 
+    	<Modules>
+    		<label>Modules</label>
+    		<order>3</order>
+    		<uri>#</uri>
+			<resource>index</resource>
+    		<pages>
+				<Document>
+		    		<label>Document</label>
+					<module>document</module>			
+					<controller>index</controller>
+					<action>index</action>
+		            <order>3</order>
+		            <resource>document</resource>
+		            <pages>
+						<add>
+							<label>Add Document</label>
+							<module>document</module>			
+							<controller>index</controller>
+							<action>add</action>
+							<resource>document</resource>
+							<visible>false</visible>
+						</add>
+						<edit>
+							<label>Edit Document</label>
+							<module>document</module>			
+							<controller>index</controller>
+							<action>edit</action>
+							<resource>document</resource>
+							<visible>false</visible>
+						</edit>
+						<reorder>
+							<label>Reorder Document</label>
+							<module>document</module>			
+							<controller>index</controller>
+							<action>reorder</action>
+							<resource>document</resource>
+							<visible>false</visible>
+						</reorder>
+						<category>
+							<label>Document Category</label>
+							<module>document</module>			
+							<controller>category</controller>
+							<action>index</action>
+							<visible>false</visible>
+				            <resource>document</resource>
+				            <pages>
+				            	<add>
+									<label>Add Document Category</label>
+									<module>document</module>			
+									<controller>category</controller>
+									<action>add</action>
+									<resource>document</resource>
+									<visible>false</visible>
+								</add>
+								<edit>
+									<label>Edit Document Category</label>
+									<module>document</module>			
+									<controller>category</controller>
+									<action>edit</action>
+									<resource>document</resource>
+									<visible>false</visible>
+								</edit>
+								<reorder>
+									<label>Reorder Document Category</label>
+									<module>document</module>			
+									<controller>category</controller>
+									<action>reorder</action>
+									<resource>document</resource>
+									<visible>false</visible>
+								</reorder>
+				            </pages>
+						</category>
+						<explorer>
+							<label>Document Explorer</label>
+							<module>document</module>			
+							<controller>explorer</controller>
+							<action>index</action>
+							<resource>document</resource>
+							<visible>false</visible>
+						</explorer>
+					</pages>
+		    	</Document>
+	    	</pages>
+    	</Modules>
+	</nav>
+</config>

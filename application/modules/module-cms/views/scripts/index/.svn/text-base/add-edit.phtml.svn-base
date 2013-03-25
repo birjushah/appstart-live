@@ -1,0 +1,258 @@
+<?php $form = $this->form; ?>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/tinymce/js/tiny_mce.js"); ?>"></script>
+<script type="text/javascript">
+tinyMCE.init({
+	// General options
+	mode : "exact",
+	elements:"content_textarea",
+	theme : "advanced",
+	plugins : "autolink,lists,pagebreak,style,layer,table,save,advhr,advimage,advlink,emotions,iespell,inlinepopups,insertdatetime,preview,media,searchreplace,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras,template,wordcount,advlist,autosave,visualblocks",
+
+	// Theme options
+	theme_advanced_buttons1 : "save,newdocument,|,bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,styleselect,formatselect,fontselect,fontsizeselect",
+	theme_advanced_buttons2 : "cut,copy,paste,pastetext,pasteword,|,search,replace,|,bullist,numlist,|,outdent,indent,blockquote,|,undo,redo,|,link,unlink,anchor,image,cleanup,help,code,|,insertdate,inserttime,preview,|,forecolor,backcolor",
+	theme_advanced_buttons3 : "tablecontrols,|,hr,removeformat,visualaid,|,sub,sup,|,charmap,emotions,iespell,media,advhr,|,print,|,ltr,rtl,|,fullscreen",
+	theme_advanced_buttons4 : "insertlayer,moveforward,movebackward,absolute,|,styleprops,|,cite,abbr,acronym,del,ins,attribs,|,visualchars,nonbreaking,template,pagebreak,restoredraft,visualblocks",
+	
+	// set value of textarea if null
+	//onchange_callback : "textAreaValueChange",
+
+	//plugins : "autolink,lists,pagebreak,style,layer,table,save,advhr,advimage,advlink,emotions,iespell,inlinepopups,insertdatetime,preview,media,searchreplace,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras,template,wordcount,advlist,visualblocks",
+	//plugins : "paste,pagebreak,table",
+	
+	// Theme options
+	//theme_advanced_buttons1 : "bold,italic,underline,strikethrough,|,undo,redo,|,bullist,numlist,|,outdent,indent,blockquote,|,forecolor,backcolor,|,tablecontrols,|,hr",
+	//theme_advanced_buttons1 : "formatselect,fontselect,fontsizeselect,|,forecolor,backcolor,|,bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,|,code",
+	//theme_advanced_buttons2 : "",
+	//theme_advanced_buttons3 : "tablecontrols,|,hr,removeformat,visualaid,|,sub,sup,|,ltr,rtl",
+	//theme_advanced_buttons4 : "insertlayer,moveforward,movebackward,absolute,|,cite,abbr,acronym,del,ins,attribs,|,visualchars,nonbreaking,pagebreak",
+	theme_advanced_toolbar_location : "top",
+	theme_advanced_toolbar_align : "left",
+	theme_advanced_statusbar_location : "bottom",
+	theme_advanced_resizing : true,
+
+	// Example content CSS (should be your site CSS)
+	content_css : "<?php echo $this->baseUrl("libs/tinymce/css/content.css"); ?>",
+
+	// Drop lists for link/image/media/template dialogs
+	template_external_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/template_list.js"); ?>",
+	external_link_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/link_list.js"); ?>",
+	external_image_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/image_list.js"); ?>",
+	media_external_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/media_list.js"); ?>",
+
+	// Style formats
+	style_formats : [
+		{title : 'Bold text', inline : 'b'},
+		{title : 'Red text', inline : 'span', styles : {color : '#ff0000'}},
+		{title : 'Red header', block : 'h1', styles : {color : '#ff0000'}},
+		{title : 'Example 1', inline : 'span', classes : 'example1'},
+		{title : 'Example 2', inline : 'span', classes : 'example2'},
+		{title : 'Table styles'},
+		{title : 'Table row 1', selector : 'tr', classes : 'tablerow1'}
+	],
+	// Replace values for the template plugin
+	template_replace_values : {
+		username : "Some User",
+		staffid : "991234"
+	}
+});
+//function textAreaValueChange(inst){
+	//content_textarea.value = tinyMCE.get('content_textarea').getContent();
+//}
+</script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxcore.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/gettheme.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxdropdownbutton.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxscrollbar.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxbuttons.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxtree.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxpanel.js"); ?>"></script>
+
+<div id="filterBox">
+	<table
+		style="width: 100%; border: 0; border-spacing: 0; border-collapse: collapse;">
+		<tr>
+			<td valign="middle"><?php echo $this->partial($this->partial,array()); ?></td>
+			<td align="right"><h2><?php echo $this->language; ?></h2></td>
+		</tr>
+	</table>
+</div>
+<div class="boxBorderBottom">
+	<form id="frmAddEditCms" method="<?php echo $form->getMethod();?>"
+		action="<?php echo $form->getAction();?>" class="zend_form">
+	<?php  echo $form->module_cms_id->renderViewHelper();?>
+	<?php  echo $form->language_id->renderViewHelper();?>
+	<?php  echo $form->module_cms_detail_id->renderViewHelper();?>
+	<?php  echo $form->parent_id->renderViewHelper();?>
+	
+	<table style="margin: 10px 0;">
+			<tbody>
+				<tr>
+					<td><label for="tree"><?php echo $this->translate('Select Category:'); ?></label></td>
+					<td>
+						<div id='jqxWidget'>
+							<div id="dropDownButton">
+								<div id='jqxTree'></div>
+							</div>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<td><?php echo $form->title->renderLabel() ?></td>
+					<td>
+		        	<?php echo $form->title->renderViewHelper()?>
+					</td>
+				</tr>
+				
+				<tr>
+					<td><label for="thumb"><?php echo $this->translate('Thumb'); ?></label></td>
+						<td><?php echo $form->thumb;?></td>
+						<td><img alt="" src="<?php echo $this->image_thumb?>"></td>
+						<td><input name="thumb_path" type="hidden" id="thumb_path"/></td>
+				</tr>
+				
+				<tr>
+					<td><?php echo $form->content->renderLabel() ?></td>
+					<td>
+		        	<?php echo $form->content->renderViewHelper()?>
+					</td>
+				</tr>
+				
+				<tr>
+				<td><?php echo $form->status->renderLabel() ?></td>
+					<td>
+		        	<?php echo $form->status->renderViewHelper()?>
+					</td>
+				</tr>
+				
+				<tr>	
+					<td colspan="3" align="center">
+		        	<?php echo $form->submit->renderViewHelper() ?>&nbsp;
+					<?php echo $form->reset->renderViewHelper()?>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</form>
+</div>
+
+<script type="text/javascript">
+// <!--
+$(document).ready(function() {
+	var parentIdLabel = "<?php echo $this->parentCategory?>";
+	var data = <?php echo $this->moduleCmsTree?>;
+	//console.log(data);
+	//creating data which jqtree plugin can use
+	var builddata = function () {
+		var source = [];
+		var items = [];	
+		// build hierarchical source.
+		for (i = 0; i < data.length; i++) {
+			var item = data[i];
+			var label = item["text"];
+			var parentid = item["parentId"];
+			var id = item["id"];
+
+			if (items[parentid]) {
+				var item = { id: id, label: label, item: item };
+				if (!items[parentid].items) {
+					items[parentid].items = [];
+				}
+				items[parentid].items[items[parentid].items.length] = item;
+				items[id] = item;
+			}
+			else {
+				items[id] = { id: id, label: label, item: item };
+				source[id] = items[id];
+			}
+		}		
+		return source;
+	}
+	$("#dropDownButton").jqxDropDownButton({ width: 150, height: 25 });
+	$('#jqxTree').bind('initialized', function (event) { 
+		var args = event.args;
+		//by default form value for parent_id is 0
+		$("#parent_id").attr("value",0);
+    	var dropDownContent = '<div style="position: relative; margin-left: 3px; margin-top: 5px;">' + parentIdLabel + '</div>';
+    	$("#dropDownButton").jqxDropDownButton('setContent', dropDownContent);
+    });	
+	$('#jqxTree').bind('select', function (event) {
+        var args = event.args;
+        var item = $('#jqxTree').jqxTree('getItem', args.element);
+        //selected value of parent_id  
+        $("#parent_id").attr("value",item.id);
+        var dropDownContent = '<div style="position: relative; margin-left: 3px; margin-top: 5px;">' + item.label + '</div>';
+        $("#dropDownButton").jqxDropDownButton('setContent', dropDownContent);        
+    });
+    var source = builddata();
+    //console.log(source);
+	$("#jqxTree").jqxTree({source:source,width: 250 });
+	$("#frmAddEditCms").validator().submit(function(e){
+		var form = $(this);
+		if(!e.isDefaultPrevented()){
+			var promptus = false;
+			$(document).queue(function(next){
+				promptus = new prompt({
+	            	reference : form,
+	                element : "#content",
+	                beforeShow : function(){
+		                this.alternateMessage = this.showLoadingMessage("<?php echo $this->translate('Saving page...')?>");
+	                }
+	            });
+	            next();
+			}).queue(function(next){
+				if($('#thumb').attr("value")!="") {
+					$.ajaxFileUpload({
+						url:'<?php echo $form->getAction(); ?>',
+						secureuri:false,
+						fileElementId:'thumb',
+						dataType: 'json',
+						data:{upload:'true'},
+						success: function (data, status)
+						{
+							if(data.success != undefined) {
+								$("#thumb_path").attr("value",data.success);
+								next();
+							}
+						},
+						error: function (data, status, e)
+						{
+							promptus.showErrorMessage("<?php echo $this->translate('Error uploading logo.')?>");
+							setTimeout(function(){
+								promptus.close();
+							}, 2000);
+							
+						}
+					});
+				} else {
+					next();
+				}
+			}).queue(function(next){
+				$.ajax({
+					type : "POST",
+					cache : false,
+					data : form.serialize(),
+					url : "<?php echo $form->getAction(); ?>",
+					success : function(json){
+						if(json["errors"] != undefined){
+							form.data("validator").invalidate(json["errors"]);
+							next();
+						} else if(json["success"] != undefined){
+							promptus.showSuccessMessage("<?php echo $this->translate('Page saved successfully.')?>");
+							setTimeout(function(){
+								location.href = "<?php echo $this->url(array("module"=>"module-cms","controller"=>"index","action" => "index"),"default",true);?>";
+							}, 2000);
+						}
+					},
+					error : next
+	  			});
+			}).queue(function(next){
+				promptus.close();
+				next();
+	  		});
+			e.preventDefault();
+		}
+	});
+});
+// -->
+</script>

@@ -1,0 +1,90 @@
+<?php $form = $this->form; ?>
+<div id="filterBox">
+	<table
+		style="width: 100%; border: 0; border-spacing: 0; border-collapse: collapse;">
+		<tr>
+			<td valign="middle"><?php echo $this->partial($this->partial,array()); ?></td>
+			<td align="right"><h2><?php echo $this->language; ?></h2></td>
+		</tr>
+	</table>
+</div>
+<div class="boxBorderBottom">
+	<form id="frmAddEditimageCategory1" method="<?php echo $form->getMethod();?>"
+		action="<?php echo $form->getAction();?>" class="zend_form">
+	<table style="margin: 10px 0;">
+		<tbody>
+				<tr>
+					<td>
+						<?php echo $form->module_image_gallery_category_1_id->renderViewHelper(); ?>
+						<?php echo $form->module_image_gallery_category_detail_1_id->renderViewHelper(); ?>
+						<?php echo $form->language_id->renderViewHelper();?>
+						<?php echo $form->title->renderLabel() ?>
+					</td>
+					<td>
+		        		<?php echo $form->title->renderViewHelper()?>
+					</td>
+				</tr>
+				
+				<tr>
+					<td>
+						<?php echo $form->status->renderLabel() ?>
+					</td>
+					<td>
+		        		<?php echo $form->status->renderViewHelper()?>
+					</td>
+				</tr>
+				
+				<tr>	
+					<td colspan="3" align="center">
+			        	<?php echo $form->submit->renderViewHelper() ?>&nbsp;
+						<?php echo $form->reset->renderViewHelper()?>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</form>
+</div>
+<script type="text/javascript">
+$(document).ready(function() {
+	$("#frmAddEditimageCategory1").validator().submit(function(e){
+		var form = $(this);
+		if(!e.isDefaultPrevented()){
+			var promptus = false;
+			$(document).queue(function(next){
+				promptus = new prompt({
+	            	reference : form,
+	                element : "#content",
+	                beforeShow : function(){
+		                this.alternateMessage = this.showLoadingMessage("<?php echo $this->translate('Saving Category..')?>");
+	                }
+	            });
+	            next();
+
+			}).queue(function(next){
+				$.ajax({
+					type : "POST",
+					cache : false,
+					data : form.serialize(),
+					url : "<?php echo $form->getAction(); ?>",
+					success : function(json){
+						if(json["errors"] != undefined){
+							form.data("validator").invalidate(json["errors"]);
+							next();
+						} else if(json["success"] != undefined){
+							promptus.showSuccessMessage("<?php echo $this->translate('Category saved successfully.')?>");
+							setTimeout(function(){
+								location.href = "<?php echo $this->url(array("module"=>"module-image-gallery-1","controller"=>"category","action" => "index"),"default",true);?>";
+							}, 2000);
+						}
+					},
+					error : next
+	  			});
+			}).queue(function(next){
+				promptus.close();
+				next();
+	  		});
+			e.preventDefault();
+		}
+	});
+});
+</script>
