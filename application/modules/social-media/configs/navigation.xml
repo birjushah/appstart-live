@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <nav> 
+    	<Modules>
+    		<label>Modules</label>
+    		<order>3</order>
+    		<uri>#</uri>
+			<resource>index</resource>
+    		<pages>
+				<SocailMedia>
+		    		<label>Social Media</label>
+					<module>social-media</module>			
+					<controller>index</controller>
+					<action>index</action>
+		            <order>5</order>
+		            <resource>social-media</resource>
+		            <pages>
+						<add>
+							<label>Add Social Media</label>
+							<module>social-media</module>			
+							<controller>index</controller>
+							<action>add</action>
+							<resource>social-media</resource>
+							<visible>false</visible>
+						</add>
+						<edit>
+							<label>Edit Social Media</label>
+							<module>social-media</module>			
+							<controller>index</controller>
+							<action>edit</action>
+							<resource>social-media</resource>
+							<visible>false</visible>
+						</edit>
+						<reorder>
+							<label>Reorder Social Media</label>
+							<module>social-media</module>			
+							<controller>index</controller>
+							<action>reorder</action>
+							<resource>social-media</resource>
+							<visible>false</visible>
+						</reorder>
+					</pages>
+		    	</SocailMedia>
+		    </pages>
+    	</Modules>
+	</nav>
+</config>

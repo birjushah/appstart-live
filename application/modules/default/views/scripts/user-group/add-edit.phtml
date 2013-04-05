@@ -1,0 +1,102 @@
+<?php $form = $this->form; ?>
+<div id="filterBox">
+	<form id="usergroupaddedit" class="zend_form"
+		method="<?php echo $this->form->getMethod();?>"
+		action = "<?php echo $this->form->getAction();?>">
+	<?php echo $form->user_group_id->renderViewHelper()?>
+	<?php echo $form->customer_id->renderViewHelper()?>
+	<table>
+			<!-- Group Name -->
+			<tr>
+				<td><?php echo $form->name->renderLabel() ?></td>
+				<td>
+	        	<?php echo $form->name->renderViewHelper()?>
+			</td>
+			</tr>
+			<!-- Modules (Multi Select) -->
+			<tr>
+				<td><?php echo $form->modules->renderLabel() ?></td>
+				<td>
+	        	<?php echo $form->modules->renderViewHelper()?>
+	        </td>
+			</tr>
+			<!-- Submit -->
+			<tr>
+				<td align="center" colspan="2">
+				<?php echo $form->submit->renderViewHelper() ?>&nbsp;
+				<?php echo $form->reset->renderViewHelper()?>
+			</td>
+			</tr>
+		</table>
+	</form>
+</div>
+<script type="text/javascript">
+// <!--
+$(document).ready(function() {
+	$("#modules").multiselect({sortable: false, searchable: false});
+
+	$("#usergroupaddedit").validator().submit(function(e){
+		var form = $(this);
+		if(!e.isDefaultPrevented()){
+			var promptus = false;
+			$(document).queue(function(next){
+				promptus = new prompt({
+	            	reference : form,
+	                element : "#usergroupaddedit",
+	                beforeShow : function(){
+		                this.alternateMessage = this.showLoadingMessage("Saving Created Group...");
+	                }
+	            });
+	            next();
+			}).queue(function(next){
+				jQuery.ajax({
+					url: $(form).attr("action"),
+					type:"POST",
+					dataType:"json",
+					data:form.serialize(),
+					success:function(data){
+						if(!data.errors)
+						{
+							promptus.showSuccessMessage("User Group saved successfully.");
+		                	setTimeout(function(){
+		                		promptus.close();
+		                		location.href = "<?php echo $this->url(array("module"=>"default","controller"=>"user-group","action"=>"index"),null,true); ?>";
+		                    }, 2000);
+						}
+						else {
+							if(typeof(data.errors) == "string"){
+								promptus.showErrorMessage(data.errors);
+								setTimeout(function(){
+									promptus.close();
+									next();
+			                    }, 2000);
+							} else if(typeof(data.errors.modules) == "string" ){
+								promptus.showErrorMessage("Please select atleast one moudle for group.");
+								setTimeout(function(){
+									promptus.close();
+									next();
+			                    }, 2000);
+							} else {
+								form.data("validator").invalidate(data.errors);
+								next();
+							}
+						}
+					},
+					error: function(){
+						promptus.showErrorMessage("Error occured");
+						setTimeout(function(){
+							promptus.close();
+							next();
+			            }, 2000);
+					}
+				});
+			}).queue(function(next){
+				promptus.close();
+				next();
+	  		});
+			e.preventDefault();
+		}
+	});
+});
+// -->
+</script>

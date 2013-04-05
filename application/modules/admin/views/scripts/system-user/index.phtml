@@ -1,0 +1,115 @@
+<form id="frmFilter" onsubmit="_filter();return false;">
+<div id="filterBox">
+      <table style="width:100%;border:0;border-spacing:0;border-collapse:collapse;">
+        <tr>
+          <td width="10%" valign="middle"><h2 class="filterIcon"><?php echo $this->translate('Filter');?></h2></td>
+          <td width="77%">
+          	<table>
+              <tr>
+                <td><?php echo $this->translate('User Email');?></td>
+                <td><input type="text" name="email" class="input" id="txtEmail"></td>
+                <td><?php echo $this->translate('Role');?></td>
+                <td><input type="text" name="role" class="input" id="txtRole"></td>
+                <td>&nbsp;</td>
+                <td><input type="submit" name="button" id="button" class="button" value="<?php echo $this->translate('Submit');?>"></td>
+              </tr>
+            </table>
+          </td>
+          
+        </tr>
+      </table>
+</div>
+</form>
+<a class="togglefilter"></a>
+<table style="border-spacing:0;border-collapse:collapse;width:100%" class="pattern-style-b" id="dataGrid">
+	<thead>
+		<tr>
+	        <th scope="col"><?php echo $this->translate('User Email');?></th>
+		    <th scope="col"><?php echo $this->translate('Role');?></th>
+		    <th scope="col"><?php echo $this->translate('Action');?></th>
+		</tr>
+    </thead> 
+	<tbody>
+		<tr>
+			<td colspan="3" class="dataTables_empty"><?php echo $this->translate('Loading data from server');?></td>
+		</tr>
+	</tbody>      
+</table>
+
+<script type="text/javascript">
+var grid ="";
+$(document).ready(function() {
+	grid= dataTable({
+		id: $('#dataGrid'),
+		"aoColumns": [
+			{ "sName": "email" },
+			{ "sName": "role" },
+			{ "sName": "actions","bSortable": false}
+		 ],
+		 "sAjaxSource": "<?php echo $this->url(array("module"=>"admin","controller"=>"system-user","action"=>"grid"));?>",
+		 filterForm : $("#frmFilter")
+	});    
+    $("#dataGrid_length,#dataGrid_filter").hide();
+
+    $(document).on("click",".grid_delete",function(e){
+        var self = this;
+        window.currentUserDeleteUrl = $(this).attr("href"); 
+        if(!e.isDefaultPrevented()){
+        	var promptus = new prompt({
+                    	reference : self,
+                        element : ".dataTables_wrapper",
+                        message : "<?php echo $this->translate('Are you sure you want to delete this user');?>",
+                        buttons : {
+                            "Yes" : function(self){
+                                var prompt = this;
+                                $(document).queue(function(next){
+                                    prompt.showLoadingMessage("<?php echo $this->translate('Please wait. Deleting user..');?>");
+                                    next();
+                                }).queue(function(next){
+                                    console.log(window.currentUserDeleteUrl);
+                                	$.ajax({
+                                        url: window.currentUserDeleteUrl,
+                                        cache: false,
+                                        type: "GET",
+                                        dataType: "json",
+                                        success: function(json){
+                                            if(json.success != undefined){ 
+                                            	prompt.showSuccessMessage("<?php echo $this->translate('User deleted successfully.');?>");
+                                            	setTimeout(function(){
+                                            		prompt.close();
+                                                	grid.fnDraw();
+                                                }, 1000);
+                                            } else if(json.errors != undefined){
+                                                var errorMessage = "<?php echo $this->translate('Unable to delete user:');?><br />";
+                                                errorMessage += json.errors.message;
+                                            	prompt.showErrorMessage(errorMessage);
+                                            	setTimeout(function(){
+                                            		prompt.close();
+                                                }, 2000);
+                                            }
+                                        },
+                                        error: function(){
+                                        }
+                                    }).complete(next); 
+                                });
+                            },
+                            "No"  : function(self){
+                            	this.close();
+                            },
+                        }
+                    });
+            e.preventDefault();
+        }
+    });
+    $('.togglefilter').on("click",function(){
+		$('#filterBox').toggle();
+		$('#content > a').toggleClass('flip-vertical');
+	});
+	$('#filterBox').hide();
+});
+function _filter()
+{
+	grid.fnDraw();
+	return false;	
+}
+</script>

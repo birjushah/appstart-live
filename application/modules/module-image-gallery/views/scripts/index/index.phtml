@@ -1,0 +1,230 @@
+<form id="frmFilter">
+	<div id="filterBox">
+		<table
+			style="width: 100%; border: 0; border-spacing: 0; border-collapse: collapse;">
+			<tr>
+				<td valign="middle"><h2 class="filterIcon"><?php echo $this->translate('Filter'); ?></h2></td>
+				<td>
+					<table>
+						<tr>
+							<td>
+								<select  name="migcd[module_image_gallery_category_id]" class="selCategory">
+									<?php
+										foreach($this->categories as $category_id => $category_name){
+											echo "<option value='".$category_id."'>".$category_name."</option>";
+										}
+									?>
+								</select>
+							</td>
+							<td><?php echo $this->translate('Title'); ?></td>
+							<td><input type="text" class="input" id="txtTitle"
+								name="migd[title]"></td>
+							<td><?php echo $this->translate('Status'); ?></td>
+							<td><select name="mig[status]">
+									<option value="1"><?php echo $this->translate('Active'); ?></option>
+									<option value="0"><?php echo $this->translate('InActive'); ?></option>
+							</select></td>
+						</tr>
+					</table>
+				</td>
+				<td>&nbsp;</td>
+				<td align="right"><input type="submit" name="button" id="button"
+					class="button" value="<?php echo $this->translate('Submit'); ?>">
+                    <input type="submit" name="delete" id="delete" class="delete" value="<?php echo $this->translate('Delete'); ?>">
+                </td>
+			</tr>
+		</table>
+	</div>
+</form>
+<a class="togglefilter"></a>
+<table style="border-spacing: 0; border-collapse: collapse; width: 100%"
+	class="pattern-style-b" id="dataGrid">
+	<thead>
+		<tr>
+            <th scope="col"><input type="checkbox" id="select_all" onclick="selectAll()" /></th>
+			<th scope="col"><?php echo $this->translate('Title'); ?></th>
+            <th scope="col"><?php echo $this->translate('Category'); ?></th>
+			<th scope="col"><?php echo $this->translate('Image'); ?></th>
+			<th scope="col"><?php echo $this->translate('Status'); ?></th>
+			<th scope="col"><?php echo $this->translate('Order'); ?></th>
+			<th scope="col" class="action"><?php echo $this->translate('Action'); ?></th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td colspan="3" class="dataTables_empty"><?php echo $this->translate('Loading data from server'); ?></td>
+		</tr>
+	</tbody>
+</table>
+<script type="text/javascript">
+var grid ="";
+$(document).ready(function() {
+
+	grid = dataTable({
+		aaSorting: [[ 5, "asc" ]],
+		"aoColumns": [
+                        { "sName": "mig.module_image_gallery_id","bSortable": false},
+						{ "sName": "migd.title" },
+                        { "sName": "migcd.title" },
+						{ "sName": "migd.image_path" ,"bSortable": false},
+						{ "sName": "mig.status" },
+						{ "sName": "mig.order" },
+						{ "sName": "actions","bSortable": false}
+					 ],
+		id : $('#dataGrid'),
+		filterForm : $('#frmFilter'),
+		charLimit : [0,0,0,0],
+		sAjaxSource: "<?php echo $this->url(array("module"=>"module-image-gallery","controller"=>"index","action"=>"grid"));?>"
+	});
+    $(document).on("submit","#frmFilter",function(){
+    	grid.fnDraw();
+    	return false;
+    });
+    
+    $(document).on("click",".grid_delete",function(e){
+        var self = this;
+        window.currentDeleteUrl = $(this).attr("href"); 
+        if(!e.isDefaultPrevented()){
+        	var promptus = new prompt({
+                    	reference : self,
+                        element : ".dataTables_wrapper",
+                        message : "<?php echo $this->translate('Are you sure you want to delete this Image?'); ?>",
+                        buttons : {
+                            "Yes" : function(self){
+                                var prompt = this;
+                                $(document).queue(function(next){
+                                    prompt.showLoadingMessage("<?php echo $this->translate('Please wait while deleting Image..'); ?>");
+                                    next();
+                                }).queue(function(next){
+                                    $.ajax({
+                                        url: window.currentDeleteUrl,
+                                        cache: false,
+                                        type: "GET",
+                                        dataType: "json",
+                                        success: function(json){
+                                            if(json.success != undefined){ 
+                                            	prompt.showSuccessMessage("<?php echo $this->translate('Image deleted successfully.'); ?>");
+                                            	setTimeout(function(){
+                                            		prompt.close();
+                                                	grid.fnDraw();
+                                                }, 1000);
+                                            } else if(json.errors != undefined){
+                                                var errorMessage = "<?php echo $this->translate('Unable to delete Image:'); ?><br />";
+                                                errorMessage += json.errors.message;
+                                            	prompt.showErrorMessage(errorMessage);
+                                            	setTimeout(function(){
+                                            		prompt.close();
+                                                }, 2000);
+                                            }
+                                        },
+                                        error: function(){
+                                        }
+                                    }).complete(next); 
+                                });
+                            },
+                            "No"  : function(self){
+                            	this.close();
+                            },
+                        }
+                    });
+            e.preventDefault();
+        }
+    });
+
+    $(document).on("click","#delete",function(e){
+        var self = this;
+        if($(".image_id:checked").length == 0) {
+            promptus = new prompt({
+                reference : self,
+                element : ".dataTables_wrapper"
+            });
+            promptus.showErrorMessage("Please select tracks to delete");
+            setTimeout(function(){
+                promptus.close();
+            }, 2000);
+            return;
+        }
+        var image_ids = $(".image_id:checked").serialize();
+        window.currentDeleteUrl = "<?php echo $this->url ( array ("module" => "module-image-gallery","controller" => "index","action" => "delete"), "default", true ); ?>";
+        if(!e.isDefaultPrevented()){
+            var promptus = new prompt({
+                        reference : self,
+                        element : ".dataTables_wrapper",
+                        message : "<?php echo $this->translate('Are you sure you want to delete this tracks?'); ?>",
+                        buttons : {
+                            "Yes" : function(self){
+                                var prompt = this;
+                                $(document).queue(function(next){
+                                    prompt.showLoadingMessage("<?php echo $this->translate('Please wait while deleting images..'); ?>");
+                                    next();
+                                }).queue(function(next){
+                                    $.ajax({
+                                        url: window.currentDeleteUrl,
+                                        cache: false,
+                                        type: "post",
+                                        dataType: "json",
+                                        data:{id:image_ids},
+                                        success: function(json){
+                                            if(json.success != undefined){ 
+                                                prompt.showSuccessMessage("<?php echo $this->translate('images deleted successfully.'); ?>");
+                                                setTimeout(function(){
+                                                    prompt.close();
+                                                    grid.fnDraw();
+                                                }, 1000);
+                                            } else if(json.errors != undefined){
+                                                var errorMessage = "<?php echo $this->translate('Unable to delete tracks:'); ?><br />";
+                                                errorMessage += json.errors.message;
+                                                prompt.showErrorMessage(errorMessage);
+                                                setTimeout(function(){
+                                                    prompt.close();
+                                                }, 2000);
+                                            }
+                                        },
+                                        error: function(){
+                                        }
+                                    }).complete(next); 
+                                });
+                            },
+                            "No"  : function(self){
+                                this.close();
+                            },
+                        }
+                    });
+            e.preventDefault();
+        }
+    });
+    var reorderLink = $("#hrefReorder").attr("href");
+    $(document).on("change",".selCategory",function(){
+        //alert($(this).attr('value'));
+        var selId = $(this).attr('value');
+        $("#hrefReorder").attr("href",reorderLink + "/id/" + selId);
+    	grid = dataTable({
+    		aaSorting: [[ 5, "asc" ]],
+    		"aoColumns": [
+                            { "sName": "mig.module_image_gallery_id","bSortable": false},
+    						{ "sName": "migd.title" },
+                            { "sName": "migcd.title" },
+    						{ "sName": "migd.image_path" ,"bSortable": false},
+    						{ "sName": "mig.status" },
+    						{ "sName": "mig.order" },
+    						{ "sName": "actions","bSortable": false}
+    					 ],
+    		id : $('#dataGrid'),
+    		filterForm : $('#frmFilter'),
+    		sAjaxSource: "<?php echo $this->url(array("module"=>"module-image-gallery","controller"=>"index","action"=>"grid"));?>/id/"+ selId
+    	});
+    });
+    $('.togglefilter').on("click",function(){
+		$('#filterBox').toggle();
+		$('#content > a').toggleClass('flip-vertical');
+	});
+    $("#select_all").on("click",function(){
+        if($("#select_all").attr("checked") == "checked") {
+            $(".image_id").attr("checked","checked");
+        } else {
+            $(".image_id").removeAttr("checked");
+        }
+    });
+	$('#filterBox').hide();
+});
+</script>

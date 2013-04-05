@@ -1,0 +1,157 @@
+<form id="frmFilter">
+<div id="filterBox">
+      <table style="width:100%;border:0;border-spacing:0;border-collapse:collapse;">
+        <tr>
+          <td valign="middle"><h2 class="filterIcon"><?php echo $this->translate('Filter');?></h2></td>
+          <td>
+          	<table>
+              <tr>
+                <td><?php echo $this->translate('Template Name');?></td>
+                <td><input type="text" name="t[name]" class="input" id="txtTemplate" name="template"></td>
+                <td><?php echo $this->translate('Business Type');?></td>
+                <td><input type="text" name="bt[name]" class="input" id="txtEmail" name="email"></td>
+                <td><?php echo $this->translate('Status');?></td>
+                <td>
+                	<select name="t[status]">
+                		<option value="1"><?php echo $this->translate('Active');?></option>
+                		<option value="0"><?php echo $this->translate('InActive');?></option>
+                	</select>
+                	<!-- <input type="text" name="t_status" class="input " style="width:100px;" id="txtRole" name="role"> -->
+                </td>
+                <td>&nbsp;</td>
+                <td><input type="submit" name="button" id="button" class="button" value="<?php echo $this->translate('Submit');?>">&nbsp;</td>
+              </tr>
+            </table>
+          </td>
+          
+        </tr>
+      </table>
+</div>
+</form>
+<a class="togglefilter"></a>
+<table style="border-spacing:0;border-collapse:collapse;width:100%" class="pattern-style-b" id="dataGrid">
+	<thead>
+		<tr>
+	        <th scope="col"><?php echo $this->translate('Template');?></th>
+		    <th scope="col"><?php echo $this->translate('Business Type');?></th>
+		    <th scope="col"><?php echo $this->translate('Status');?></th>
+		    <th scope="col"><?php echo $this->translate('Total Modules');?></th>
+		    <th scope="col"><?php echo $this->translate('Last Updated');?></th>
+		    <th scope="col"><?php echo $this->translate('Action');?></th>
+		</tr>
+    </thead> 
+	<tbody>
+		<tr>
+			<td colspan="3" class="dataTables_empty"><?php echo $this->translate('Loading data from server');?></td>
+		</tr>
+	</tbody>      
+</table>
+
+<script type="text/javascript">
+var grid ="";
+$(document).ready(function() {
+
+	grid = dataTable({
+		aaSorting: [[ 0, "desc" ]],
+		"aoColumns": [
+						{ "sName": "t_name" },
+						{ "sName": "business_type" },
+						{ "sName": "t_status" },
+						{ "sName": "total_modules" },
+						{ "sName": "t_last_updated_at" },
+						{ "sName": "actions","bSortable": false}
+					 ],
+		id : $('#dataGrid'),
+		filterForm : $('#frmFilter'),
+		charLimit : [35,25,0,0],
+		sAjaxSource: "<?php echo $this->url(array("module"=>"admin","controller"=>"template","action"=>"grid"));?>"
+	});
+    $(document).on("submit","#frmFilter",function(){
+    	grid.fnDraw();
+    	return false;
+    });
+    
+	/*grid = $('#dataGrid').dataTable({    	
+    	"aoColumns": [
+						{ "sName": "t_name" },
+						{ "sName": "business_type" },
+						{ "sName": "t_status" },
+						{ "sName": "total_modules" },
+						{ "sName": "t_last_updated_at" },
+						{ "sName": "actions","bSortable": false}
+					 ],
+		"bPaginate" : true,
+		"bDestroy": true,	
+        "bProcessing": false,
+        "bServerSide": true,
+        "bSortClasses": false,       
+        "sAjaxSource": "<?php //echo $this->url(array("module"=>"admin","controller"=>"template","action"=>"grid"));?>",
+        "sServerMethod": "POST",
+        	"fnServerParams": function ( aoData ) {
+            	tmData= $('#frmFilter').serializeArray();
+            	$(tmData).each(function(){
+                   	name= $(this).attr("name");
+    				value= $(this).attr("value");                
+                   	aoData.push( { "name": name, "value": value } );
+                });            
+            }
+    });    
+    $("#dataGrid_length,#dataGrid_filter").hide();
+    */
+
+    $(document).on("click",".grid_delete",function(e){
+        var self = this;
+        window.currentDeleteUrl = $(this).attr("href"); 
+        if(!e.isDefaultPrevented()){
+        	var promptus = new prompt({
+                    	reference : self,
+                        element : ".dataTables_wrapper",
+                        message : "<?php echo $this->translate('Are you sure you want to delete this Template?');?>",
+                        buttons : {
+                            "Yes" : function(self){
+                                var prompt = this;
+                                $(document).queue(function(next){
+                                    prompt.showLoadingMessage("<?php echo $this->translate('Please wait while deleting template..');?>");
+                                    next();
+                                }).queue(function(next){
+                                    $.ajax({
+                                        url: window.currentDeleteUrl,
+                                        cache: false,
+                                        type: "GET",
+                                        dataType: "json",
+                                        success: function(json){
+                                            if(json.success != undefined){ 
+                                            	prompt.showSuccessMessage("<?php echo $this->translate('Template deleted successfully.');?>");
+                                            	setTimeout(function(){
+                                            		prompt.close();
+                                                	grid.fnDraw();
+                                                }, 1000);
+                                            } else if(json.errors != undefined){
+                                                var errorMessage = "<?php echo $this->translate('Action');?>Unable to delete template:<br />";
+                                                errorMessage += json.errors.message;
+                                            	prompt.showErrorMessage(errorMessage);
+                                            	setTimeout(function(){
+                                            		prompt.close();
+                                                }, 2000);
+                                            }
+                                        },
+                                        error: function(){
+                                        }
+                                    }).complete(next); 
+                                });
+                            },
+                            "No"  : function(self){
+                            	this.close();
+                            },
+                        }
+                    });
+            e.preventDefault();
+        }
+    });
+    $('.togglefilter').on("click",function(){
+		$('#filterBox').toggle();
+		$('#content > a').toggleClass('flip-vertical');
+	});
+	$('#filterBox').hide();
+});
+</script>

@@ -1,0 +1,26 @@
+<?php
+if (isset($this->imageSet)) {
+?>
+<input type="text" id="src" name="src" />
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/tinymce/js/tiny_mce_popup.js"); ?>"></script>
+<script>
+  var ImageDialog = {
+    init : function(ed) {
+      ed.execCommand('mceInsertContent', false, 
+        tinyMCEPopup.editor.dom.createHTML('img', {
+          src : '<?php echo $this->imageSet; ?>'
+        })
+      );      
+      tinyMCEPopup.editor.execCommand('mceRepaint');
+      tinyMCEPopup.editor.focus();
+      tinyMCEPopup.close();
+    }
+  };  
+  tinyMCEPopup.onInit.add(ImageDialog.init, ImageDialog);
+</script>
+<?php  } else {
+  ?>
+<form name="iform" action="" method="post" enctype="multipart/form-data">
+  <input id="file" accept="image/*" type="file" name="image" onchange="this.parentElement.submit()" />
+</form>
+<?php }?>

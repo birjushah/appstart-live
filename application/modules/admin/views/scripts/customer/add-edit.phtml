@@ -1,0 +1,333 @@
+<?php
+$customerForm = $this->customerForm;
+$customerConfigurationForm = $this->customerConfigurationForm;
+?>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/colorpicker/jquery.colorpicker.js"); ?>"></script>
+<link href="<?php echo $this->baseUrl("libs/colorpicker/jquery.colorpicker.css"); ?>" rel="stylesheet" type="text/css"/>
+<script src="<?php echo $this->baseUrl("libs/colorpicker/i18n/jquery.ui.colorpicker-en.js"); ?>"></script>
+
+<div id="customer-tabs">
+	<ul>
+		<li><a href="#customer-information"><?php echo $this->translate('Customer Information');?></a></li>
+		<li><a href="#customer-configuration"><?php echo $this->translate('Customer Configuration');?></a></li>
+	</ul>
+	<div id="customer-information">
+		<form action="<?php echo $customerForm->getAction(); ?>"
+			method="<?php echo $customerForm->getMethod();?>"
+			id="frmAddEditCustomer" class="zend_form">
+			<?php echo $customerForm->customer_id->renderViewHelper()?>
+			<?php echo $customerForm->user_id->renderViewHelper()?>
+			<table style="width:100%">
+				<tbody>
+					<tr>
+						<td><?php echo $customerForm->app_access_id->renderLabel() ?></td>
+						<td><?php echo $customerForm->app_access_id->renderViewHelper()?></td>
+						<td><?php echo $customerForm->customer_name->renderLabel() ?></td>
+						<td><?php echo $customerForm->customer_name->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $customerForm->app_password->renderLabel() ?></td>
+						<td><?php echo $customerForm->app_password->renderViewHelper() ?></td>
+						<td><?php echo $customerForm->phone->renderLabel() ?></td>
+						<td><?php echo $customerForm->phone->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $customerForm->username->renderLabel() ?></td>
+						<td><?php echo $customerForm->username->renderViewHelper()?></td>
+						<td><?php echo $customerForm->email->renderLabel() ?></td>
+						<td><?php echo $customerForm->email->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $customerForm->password->renderLabel() ?></td>
+						<td><?php echo $customerForm->password->renderViewHelper()?></td>
+						<td><?php echo $customerForm->address->renderLabel() ?></td>
+						<td><?php echo $customerForm->address->renderViewHelper()?></td>
+					
+					</tr>
+					<tr>
+						<td rowspan="3"><?php echo $customerForm->language_id->renderLabel() ?></td>
+						<td rowspan="3"><?php echo $customerForm->language_id->renderViewHelper()?></td>
+						<td><?php echo $customerForm->country->renderLabel() ?></td>
+						<td><?php echo $customerForm->country->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $customerForm->plz->renderLabel() ?></td>
+						<td><?php echo $customerForm->plz->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $customerForm->default_language_id->renderLabel() ?></td>
+						<td><?php echo $customerForm->default_language_id->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $customerForm->business_type_id->renderLabel() ?></td>
+						<td><?php echo $customerForm->business_type_id->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $customerForm->template_id->renderLabel() ?></td>
+						<td><?php echo $customerForm->template_id->renderViewHelper()?></td>
+						<td><?php echo $customerForm->contact_person_email->renderLabel() ?></td>
+						<td><?php echo $customerForm->contact_person_email->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $customerForm->status->renderLabel() ?></td>
+						<td><?php echo $customerForm->status->renderViewHelper()?></td>
+						<td><?php echo $customerForm->contact_person_phone->renderLabel() ?></td>
+						<td><?php echo $customerForm->contact_person_phone->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $customerForm->start_date_time->renderLabel() ?></td>
+						<td><?php echo $customerForm->start_date_time->renderViewHelper()?></td>
+						<td><?php echo $customerForm->cycle->renderLabel() ?></td>
+						<td><?php echo $customerForm->cycle->renderViewHelper()?></td>
+					</tr>
+				</tbody>
+			</table>
+			<div class="customer_submit"><?php echo $customerForm->submit->renderViewHelper().$customerForm->reset->renderViewHelper();?></div>
+		</form>
+	</div>
+
+	<!-- Customer Configuration Part -->
+	<div id="customer-configuration">
+		<form action="<?php echo $customerConfigurationForm->getAction(); ?>"
+			method="<?php echo $customerConfigurationForm->getMethod();?>"
+			id="frmCustomerConfiguration" class="zend_form">
+			<?php echo $customerConfigurationForm->customer_configuration_id->renderViewHelper()?>
+			<?php echo $customerConfigurationForm->customer_id->renderViewHelper()?>
+			<table>
+				<tbody>
+					<tr>
+						<td><?php echo $customerConfigurationForm->font_type->renderLabel() ?></td>
+						<td><?php echo $customerConfigurationForm->font_type->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $customerConfigurationForm->font_color->renderLabel() ?></td>
+						<td><?php echo $customerConfigurationForm->font_color->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $customerConfigurationForm->font_size->renderLabel() ?></td>
+						<td><?php echo $customerConfigurationForm->font_size->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $customerConfigurationForm->spacing->renderLabel() ?></td>
+						<td><?php echo $customerConfigurationForm->spacing->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $customerConfigurationForm->theme_color->renderLabel() ?></td>
+						<td><?php echo $customerConfigurationForm->theme_color->renderViewHelper()?></td>
+					</tr>
+				</tbody>
+			</table>
+			<div class="customer_submit"><?php echo $customerConfigurationForm->submit->renderViewHelper().$customerForm->reset->renderViewHelper();?></div>
+		</form>
+	</div>
+</div>
+<script type="text/javascript">
+	$(document).ready(function(){
+		$("#font_color,#theme_color").colorpicker({
+			parts: 'draggable',
+			showOn: 'both',
+			regional: 'en',
+			buttonColorize: true,
+			showNoneButton: true,
+			alpha: true,
+			close : function(){
+				//$(this).val("#"+$(this).val());
+				var self = $(this);
+				$(this).parent().find("button").css({background:"#"+self.val()});
+			}
+		});
+		<?php
+			if(!$this->hasData) {
+		?>
+			promptus = new prompt({
+				element : $("#content"),
+				reference : this,
+			});
+			promptus.showErrorMessage("<?php echo $this->translate('Not enough information to add customers');?>");
+			setTimeout(function(){
+				location.href = "<?php echo $this->url(array("module"=>"admin","controller"=>"customer","action"=>"index"),"default",true);?>";
+			}, 2000);
+		<?php
+			} 
+		?>
+		
+		$("#language_id").multiselect({
+			sortable: false, 
+			searchable: false
+		});
+		$('#language_id').bind('change', function(event, ui) {
+			$("#default_language_id").html("");
+			$.map( $('#language_id').find('option[selected]'), function(item,i) { 
+				$('#default_language_id').append(
+				        $('<option label="'+$(item).html()+'"></option>').val($(item).val()).html($(item).html())
+				);
+			});
+		});
+		
+		// Hide errors on changing tab
+		var tabs = $( "#customer-tabs" ).tabs({
+			select: function(event, ui){
+				if($('div.error').length){
+					$('div.error').hide();
+				}
+			}
+		});
+		if($("#customer_id").attr("value")=="" || $("#customer_id").attr("value")==null )
+			$(tabs).tabs('option','disabled',[1]);
+
+		$("#frmAddEditCustomer").validator().submit(function(e){
+			if(!e.isDefaultPrevented()){
+				var self = this;
+				var promptus = false;
+				$(document).queue(function(next){
+					promptus = new prompt({
+						element : $("#customer-information"),
+						reference : self,
+						beforeShow : function(){
+							this.alternateMessage = this.showLoadingMessage("<?php echo $this->translate('Saving Customer Information..');?>");
+						}
+					});
+					next();
+				}).queue(function(next){
+					$.ajax({
+						url : "<?php echo $this->url(array("module"=>"admin","controller"=>"customer","action"=>"save-customer"),"default",true);?>",
+						cache : false,
+						type : "POST",
+						data : $(self).serialize(),
+						dataType : "json",
+						success : function(json){
+							if( json && json.success != undefined ) {
+								var customer = json.success.message.customer;
+								$(self).find("#customer_id").attr("value",customer.customer_id);
+								$(self).find("#user_id").attr("value",customer.user_id);
+								$(tabs).tabs('option','disabled',[]);
+								// Set the id for the customer configuration
+								$("#configuration_customer_id").attr("value",customer.customer_id);
+								promptus.showSuccessMessage("<?php echo $this->translate('Customer saved successfully');?>");
+								setTimeout(function(){
+									$(self).find("input[type=submit]").attr({"disabled":"disabled"});
+									next();
+								}, 2000);
+							} else if( json && json.errors != undefined ){
+								$(self).data("validator").invalidate(json.errors);
+								next();
+							}
+						},
+						error : next
+					});
+				}).queue(function(next){
+					promptus.close();
+					next();
+				});
+			}
+			e.preventDefault();
+		});
+
+		// On submitting the Configuration Form
+		$("#frmCustomerConfiguration").validator().submit(function(e){
+			if(!e.isDefaultPrevented()){
+				var self = this;
+				var promptus = false;
+				$(document).queue(function(next){
+					promptus = new prompt({
+						element : $("#customer-configuration"),
+						reference : self,
+						beforeShow : function(){
+							this.alternateMessage = this.showLoadingMessage("<?php echo $this->translate('Saving Customer Configuration..');?>");
+						}
+					});
+					next();
+				}).queue(function(next){
+					$.ajax({
+						url : "<?php echo $this->url(array("module"=>"admin","controller"=>"customer","action"=>"save-customer-configuration"),"default",true);?>",
+						cache : false,
+						type : "POST",
+						data : $(self).serialize(),
+						dataType : "json",
+						success : function(json){
+							if( json && json.success != undefined ) {
+								var customer_configuration = json.success.message.customer_configuration;
+								$(self).find("#customer_configuration_id").attr("value",customer_configuration.customer_configuration_id);								
+								promptus.showSuccessMessage("<?php echo $this->translate('Customer saved successfully');?>");
+								setTimeout(function(){
+									$(self).find("input[type=submit]").attr({"disabled":"disabled"});
+									next();
+								}, 2000);
+							} else if( json && json.errors != undefined ){
+								if( typeof(json.errors.message) == "string"){
+										promptus.showErrorMessage(json.errors.message);
+										setTimeout(function(){
+											next();
+										}, 2000);
+								} else {
+									$(self).data("validator").invalidate(json.errors);
+									next();
+								}
+							}
+						},
+						error : next
+					});
+				}).queue(function(next){
+					promptus.close();
+					next();
+				});
+			}
+			e.preventDefault();
+		});
+
+		// Allow submit when the key is press or the form is changed
+		$("#frmCustomerConfiguration, #frmAddEditCustomer").on("keypress change",function(e){
+			if(e.keyCode != 13){
+				$(this).find("input[type=submit]").removeAttr("disabled");
+			}
+		});
+		// making password field mandatory if username changes
+		$("#username").change(function(){
+			password.required = true;
+		});
+		
+		$("#business_type_id").change(function(){
+			var self = this;
+			$(document).queue(function(next){
+				promptus = new prompt({
+					element : $("#customer-information"),
+					reference : self,
+					beforeShow : function(){
+						this.alternateMessage = this.showLoadingMessage("<?php echo $this->translate('Loading templates for the selected business type..');?>");
+					}
+				});
+				next();
+			}).queue(function(next){
+				$.ajax({
+					url : "<?php echo $this->url(array("module"=>"admin","controller"=>"customer","action"=>"get-template"),"default",true);?>",
+					cache : false,
+					type : "POST",
+					data : {business_type_id : $(self).attr("value")},
+					dataType : "json",
+					success : function(data){
+						$("#template_id").html("");
+						$.each(data, function (i, j) {
+							$('#template_id').append(
+							        $('<option label="'+j.value+'"></option>').val(j.key).html(j.value)
+							);			
+				        });
+				        next();
+					},
+					error : next
+				});
+			}).queue(function(next){
+				promptus.close();
+				next();
+			});
+		});
+		$('#start_date_time').datetimepicker({ 
+			showOn: "both",
+			buttonImage: "<?php echo $this->baseUrl("images/calander.png");?>",
+			buttonImageOnly: true,
+			dateFormat: 'dd/mm/yy', 
+			showSecond: false,
+			timeFormat: 'hh:mm',
+			firstDay:1
+		});
+	});
+</script>

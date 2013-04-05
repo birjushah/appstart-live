@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <nav> 
+    	<Modules>
+    		<label>Modules</label>
+    		<order>3</order>
+    		<uri>#</uri>
+			<resource>index</resource>
+    		<pages>
+				<Events>
+		    		<label>Events</label>
+					<module>events</module>			
+					<controller>index</controller>
+					<action>index</action>
+		            <order>5</order>
+		            <resource>events</resource>
+		            <pages>
+						<add>
+							<label>Add Event</label>
+							<module>events</module>			
+							<controller>index</controller>
+							<action>add</action>
+							<resource>events</resource>
+							<visible>false</visible>
+						</add>
+						<edit>
+							<label>Edit Event</label>
+							<module>events</module>			
+							<controller>index</controller>
+							<action>edit</action>
+							<resource>events</resource>
+							<visible>false</visible>
+						</edit>
+						<reorder>
+							<label>Reorder Event</label>
+							<module>events</module>			
+							<controller>index</controller>
+							<action>reorder</action>
+							<resource>events</resource>
+							<visible>false</visible>
+						</reorder>
+					</pages>
+		    	</Events>
+		    </pages>
+    	</Modules>
+	</nav>
+</config>

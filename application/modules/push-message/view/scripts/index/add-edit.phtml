@@ -1,0 +1,104 @@
+<?php $form = $this->form; ?>
+<div id="filterBox">
+      <table style="width:100%;border:0;border-spacing:0;border-collapse:collapse;">
+        <tr>
+          <td valign="middle"><?php echo $this->partial($this->partial,array()); ?></td>
+          <td align="right"><h2 class="filterIcon"><?php echo $this->language; ?></h2></td>
+        </tr>
+      </table>
+</div>
+<div class="boxBorderBottom">
+<form id="frmAddEditPushMessage" method="<?php echo $form->getMethod();?>" action="<?php echo $form->getAction();?>" class="zend_form">
+	<?php  echo $form->push_message_id->renderViewHelper();?>
+	<?php  echo $form->language_id->renderViewHelper();?>
+	<?php  echo $form->push_message_detail_id->renderViewHelper();?>
+	
+	<table style="margin:10px 0;">
+		<tbody>
+			
+			<tr>
+		    	<td><?php echo $form->title->renderLabel() ?></td>
+		        <td>
+		        	<?php echo $form->title->renderViewHelper()?>
+				</td>
+			</tr>
+			<tr>
+		    	<td><?php echo $form->description->renderLabel() ?></td>
+		        <td>
+		        	<?php echo $form->description->renderViewHelper()?>
+				</td>
+			</tr>
+			<tr>
+		    	<td><?php echo $form->status->renderLabel() ?></td>
+		        <td>
+		        	<?php echo $form->status->renderViewHelper()?>
+				</td>
+			</tr>
+			<tr>
+		    	<td></td>
+		        <td>
+		        	<?php echo $form->submit->renderViewHelper() ?>&nbsp;
+					<?php echo $form->reset->renderViewHelper() ?>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</form>
+</div>
+<script type="text/javascript">
+// <!--
+$(document).ready(function() {
+	$("#frmAddEditPushMessage").validator().submit(function(e){
+		if(!e.isDefaultPrevented()){
+			var form = $(this);
+			var promptus = new prompt({
+            	reference : form,
+                element : "#frmAddEditPushMessage",
+                message : "<?php echo $this->translate('Are you sure you want to delete this Message?'); ?>",
+                buttons : {
+                    "Yes" : function(self){
+                        var prompt = this;
+                        $(document).queue(function(next){
+                            prompt.showLoadingMessage("<?php echo $this->translate('Please wait while deleting Message..'); ?>");
+                next();
+   			}).queue(function(next){
+				jQuery.ajax({
+					url: "<?php echo $this->url(array("module"=>"push-message","controller"=>"index","action"=>"save"),null,true); ?>",
+					type:"POST",
+					dataType:"json",
+					data:form.serialize(),
+					success:function(data){
+						if(!data.error)
+						{
+							promptus.showSuccessMessage("<?php echo $this->translate('Message saved successfully.')?>");
+			            	setTimeout(function(){
+			            		promptus.close();
+			            		location.href = "<?php echo $this->url(array("module"=>"push-message","controller"=>"","action"=>""),null,true); ?>";
+			            		next();
+			                }, 2000);
+						} else {
+							promptus.showErrorMessage(data.message);
+							setTimeout(function(){
+								promptus.close();
+								next();
+			                }, 2000);
+						}
+					},
+					error: function(){
+						promptus.showErrorMessage("<?php echo $this->translate('Error occured') ?>");
+						setTimeout(function(){
+							promptus.close();
+							next();
+			            }, 2000);
+					}
+				});
+			}).queue(function(next){
+				promptus.close();
+				next();
+	  		});
+			e.preventDefault();
+		}
+	});
+});
+// -->
+</script>

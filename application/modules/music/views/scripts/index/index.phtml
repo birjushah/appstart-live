@@ -1,0 +1,896 @@
+<link rel="stylesheet" href="<?php echo $this->baseUrl("libs/jwplayer/css/not.the.skin.css"); ?>" />
+<link rel="stylesheet" href="<?php echo $this->baseUrl("libs/jwplayer/circle.skin/circle.player.css"); ?>" />
+
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jwplayer/js/jquery.transform2d.js");?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jwplayer/js/jquery.grab.js");?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jwplayer/js/jquery.jplayer.js");?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jwplayer/js/mod.csstransforms.min.js");?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jwplayer/js/circle.player.js");?>"></script>
+<style type="text/css">
+#div-itunes ,
+#div-seven-digital ,
+#div-beatport,
+#div-soundcloud {
+	display: none;
+}
+.music-search-box {
+	border:solid 1px #dcdde2;
+	background-color:#f2f4f8;
+
+-webkit-border-radius: 6px;
+-moz-border-radius: 6px;
+border-radius: 6px;
+margin-bottom:10px; padding:8px;
+}
+.music-content-box {
+	border:solid 1px #dcdde2;
+	background-color:#f2f4f8;
+
+-webkit-border-radius: 6px;
+-moz-border-radius: 6px;
+border-radius: 6px;
+margin-bottom:10px; padding:8px;
+}
+.music-search-box input[type=text] {
+	width:350px;
+}
+
+.music-search-label {
+	display: inline;
+	display: inline-block;
+	width: 100px;
+	padding: 5px;
+}
+.music-search-control {
+	display: inline;
+	display: inline-block;
+	padding: 5px;
+}
+.music-content-box-content {
+	height: 350px !important;
+	padding: 5px;
+	overflow: auto;
+}
+
+div.import-box {
+	margin: 0 5px;
+	float: right;
+}
+a.import-link:hover {
+	color: #01A0BF !important;
+	text-decoration: none;
+}
+</style>
+<form id="frmFilter">
+<div id="filterBox">
+      <table style="width:100%;border:0;border-spacing:0;border-collapse:collapse;">
+        <tr>
+          <td valign="middle"><h2 class="filterIcon"><?php echo $this->translate('Filter'); ?></h2></td>
+          <td>
+          	<table>
+              <tr>
+              	<td><?php echo $this->translate('Source'); ?></td>
+                <td>
+                	<select name="md[track_url]">
+                		<option value="">Select Source</option>
+                		<option value="7digital">7 Digital</option>
+                		<option value="beatport">BeatPort</option>
+                		<option value="itunes">iTunes</option>
+                		<option value="soundcloud">SoundCloud</option>
+                	</select>
+                </td>
+                <td><?php echo $this->translate('Title'); ?></td>
+                <td><input type="text" class="input" id="txtTemplate" name="md[title]"></td>
+                <td><?php echo $this->translate('Status'); ?></td>
+                 <td>
+                	<select name="status">
+                		<option value="1"><?php echo $this->translate('Active'); ?></option>
+                		<option value="0"><?php echo $this->translate('InActive'); ?></option>
+                	</select>
+               	</td>
+              </tr>
+            </table>
+          </td>
+          <td>&nbsp;</td>
+          <td align="right">
+          	<input type="submit" name="button" id="button" class="button" value="<?php echo $this->translate('Submit'); ?>">
+          	<input type="submit" name="delete" id="delete" class="delete" value="<?php echo $this->translate('Delete'); ?>">
+          </td>
+        </tr>
+      </table>
+</div>
+</form>
+<table style="border-spacing:0;border-collapse:collapse;width:100%; margin-top: 10px !important;">
+	<tr>
+		<td align="left" valign="top">
+			<a class="togglefilter"></a>
+		</td>
+		<td align="right">
+			<div class="import-box">
+				<!-- <input type="button" name="import-itunes" id="import-itunes" class="button" value="<?php echo $this->translate('Import from iTunes'); ?>" /> -->
+				<a href="javascript:void(0);" id="import-itunes" class="import-link">
+				<div style="text-align:center;"><img src="<?php echo $this->baseUrl('images/itunes.png'); ?>" alt="" height="25" /></div>
+				<?php echo $this->translate('Import from iTunes'); ?></a>
+			</div>
+			<div class="import-box">
+				<!-- <input type="button" name="import-seven-digital" id="import-seven-digital" class="button" value="<?php echo $this->translate('Import from 7Digital'); ?>" />-->
+				<a href="javascript:void(0);" id="import-seven-digital" class="import-link">
+				<div style="text-align:center;"><img src="<?php echo $this->baseUrl('images/7digital.png'); ?>" alt="" height="25" /></div>
+				<?php echo $this->translate('Import from 7Digital'); ?></a>
+			</div>
+			<div class="import-box">
+				<!-- <input type="button" name="import-soundcloud" id="import-soundcloud" class="button" value="<?php echo $this->translate('Import from Soundcloud'); ?>" /> -->
+				<a href="javascript:void(0);" id="import-soundcloud" class="import-link">
+				<div style="text-align:center;"><img src="<?php echo $this->baseUrl('images/soundcloud.png'); ?>" alt="" height="25" /></div>
+				<?php echo $this->translate('Import from Soundcloud'); ?></a>
+			</div>
+			<div class="import-box">
+				<!-- <input type="button" name="import-beatport" id="import-beatport" class="button" value="<?php echo $this->translate('Import from Beatport'); ?>" /> -->
+				<a href="javascript:void(0);" id="import-beatport" class="import-link"> 
+					<div style="text-align:center;"> 
+						<img src="<?php echo $this->baseUrl('images/beatport.png'); ?>" alt="" height="25" />
+					</div>
+					<?php echo $this->translate('Import from Beatport'); ?>
+				</a>
+			</div>
+		</td>
+	</tr>
+</table>
+<table style="border-spacing:0;border-collapse:collapse;width:100%" class="pattern-style-b" id="dataGrid">
+	<thead>
+		<tr>
+			<th scope="col"><input type="checkbox" id="select_all" /></th>
+	        <th scope="col"><?php echo $this->translate('Play'); ?></th>
+	        <th scope="col"><?php echo $this->translate('Source'); ?></th>
+	        <th scope="col"><?php echo $this->translate('Title'); ?></th>
+		    <th scope="col"><?php echo $this->translate('Album'); ?></th>
+		    <th scope="col"><?php echo $this->translate('Artist'); ?></th>
+		    <th scope="col"><?php echo $this->translate('Status'); ?></th>
+		    <th scope="col"><?php echo $this->translate('Order'); ?></th>
+		    <th scope="col" class="action"><?php echo $this->translate('Action'); ?></th>
+		</tr>
+    </thead> 
+	<tbody>
+		<tr>
+			<td colspan="3" class="dataTables_empty"><?php echo $this->translate('Loading data from server'); ?></td>
+		</tr>
+	</tbody>      
+</table>
+
+<div id="div-itunes">
+	<div class="music-search-box">
+		<div class="music-search-row">
+			<div class="music-search-label"><label for="search-method">Search Method</label>
+			</div>
+			<div class="music-search-control">
+				<select name="search-method" id="search-method">
+					<option value="search">By Search</option>
+					<option value="url">By Album</option>
+				</select>
+			</div>
+		</div>
+		<div id="divMethodSearch">
+				<div class="music-search-row">
+					<div class="music-search-label"><label for="search-method">Country</label>
+					</div>
+					<div class="music-search-control">
+						<select name="country" id="country">
+							<?php 
+							$locale =  Zend_Locale::getTranslationList('Territory','en');
+							asort($locale);
+							foreach($locale as $key => $value) {
+								if(is_numeric($key) || $key=="ZZ") continue;
+								$selected = (($key=="US")?'selected="selected"' : "");
+							?>
+								<option value="<?php echo $key; ?>" <?php echo $selected;?>><?php echo $value; ?></option>
+							<?php 
+							}
+							?>
+						</select>
+					</div>
+				</div>
+				<div class="music-search-row">
+					<div class="music-search-label"><label for="search-method">Keyword</label>
+					</div>
+					<div class="music-search-control">
+						<input type="text" name="txtSearch" id="txtSearch" value="" />
+					</div>
+				</div>
+		</div>
+		<div id="divMethodAlbum" class="music-search-row" style="display: none;">
+			<div class="music-search-label"><label for="search-method">URL</label>
+			</div>
+			<div class="music-search-control">
+				<input type="text" name="txtUrl" id="txtUrl" value="" />
+			</div>
+		</div>
+		<div class="music-search-row">
+			<div class="music-search-control">
+				<input type="button" class="button" name="search" id="btnSearch" value="Search" />
+			</div>
+		</div>
+	</div>
+	<div class="music-content-box">
+		<form name="frmItunes" id="frmItunes">
+			<div id="divItunesImport" style="padding-bottom: 10px;display:none; text-align: right;">
+				<input type="button" class="button" name="importItunes" id="btnImportItunes" value="Import Tracks" />
+			</div>
+			<div class="music-content-box-content">
+				<div id="searchResult">
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+<div id="div-seven-digital">
+	<div class="music-search-box">
+		<div class="music-search-row">
+			<div class="music-search-label"><label for="search-method">Country</label>
+			</div>
+			<div class="music-search-control">
+				<select name="country" id="countrySevenDigital">
+					<?php 
+					$locale = Zend_Locale::getTranslationList('Territory','en');
+					asort($locale);
+					foreach($locale as $key => $value) {
+						if(is_numeric($key) || $key=="ZZ") continue;
+						$selected = (($key=="US")?'selected="selected"' : "");
+					?>
+						<option value="<?php echo $key; ?>" <?php echo $selected;?>><?php echo $value; ?></option>
+					<?php 
+					}
+					?>
+				</select>
+			</div>
+		</div>
+		<div class="music-search-row">
+			<div class="music-search-label"><label for="search-method">Keyword</label>
+			</div>
+			<div class="music-search-control">
+				<input type="text" name="txtAlbumKeyword" id="txtAlbumKeyword" value="" />
+			</div>
+		</div>
+		<div class="music-search-row">
+			<div class="music-search-control">
+				<input type="button" class="button" name="searchAlbum" id="btnSearchAlbum" value="Search" />
+			</div>
+		</div>
+	</div>
+	<div class="music-content-box">
+		<form name="frmSevenDigital" id="frmSevenDigital">
+			<div id="divAlbumImport" style="padding-bottom: 10px;display:none; text-align: right;">
+				<input type="button" class="button" name="importAlbum" id="btnImportAlbum" value="Import Tracks" />
+			</div>
+			<div class="music-content-box-content">
+				<div id="albumResult">
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+<div id="div-beatport">
+	<div class="music-search-box">
+		<div class="music-search-row">
+			<div class="music-search-label"><label for="search-method">Keyword</label>
+			</div>
+			<div class="music-search-control">
+				<input type="text" name="txtBeatportKeyword" id="txtBeatportKeyword" value="" />
+			</div>
+		</div>
+		<div class="music-search-row">
+			<div class="music-search-control">
+				<input type="button" class="button" name="searchBeatport" id="btnSearchBeatport" value="Search" />
+			</div>
+		</div>
+	</div>
+	<div class="music-content-box">
+		<form name="frmBeatport" id="frmBeatport">
+			<div id="divBeatportImport" style="padding-bottom: 10px;display:none; text-align: right;">
+				<input type="button" class="button" name="importBeatport" id="btnBeatportAlbum" value="Import Tracks" />
+			</div>
+			<div class="music-content-box-content">
+				<div id="beatportResult">
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+
+<div id="div-soundcloud">
+	<div class="music-search-box">
+		<div class="music-search-row">
+			<div class="music-search-label"><label for="search-method">Keyword</label>
+			</div>
+			<div class="music-search-control">
+				<input type="text" name="txtSoundcloudKeyword" id="txtSoundcloudKeyword" value="" />
+			</div>
+		</div>
+		<div class="music-search-row">
+			<div class="music-search-control">
+				<input type="button" class="button" name="searchSoundcloud" id="btnSearchSoundcloud" value="Search" />
+			</div>
+		</div>
+	</div>
+	<div class="music-content-box">
+		<form name="frmSoundcloud" id="frmSoundcloud">
+			<div id="divSoundcloudImport" style="padding-bottom: 10px;display:none; text-align: right;">
+				<input type="button" class="button" name="importSoundcloud" id="btnSoundcloudAlbum" value="Import Tracks" />
+			</div>
+			<div class="music-content-box-content">
+				<div id="soundcloudResult">
+				</div>
+			</div>
+		</form>
+	</div>
+</div>
+<script type="text/javascript">
+var grid ="";
+$(document).ready(function() {
+
+	grid = dataTable({
+		aaSorting: [[ 7, "asc" ]],
+		"aoColumns": [
+						{ "sName": "m.module_music_id","bSortable": false},
+						{ "sName": "md.preview_url","bSortable": false},
+						{ "sName": "md.track_url","bSortable": false},
+						{ "sName": "md.title" },
+						{ "sName": "md.album" },
+						{ "sName": "md.artist" },
+						{ "sName": "m.status" },
+						{ "sName": "m.order" },
+						{ "sName": "actions","bSortable": false}
+					 ],
+		id : $('#dataGrid'),
+		filterForm : $('#frmFilter'),
+		charLimit : [0,0,0,25,25,25,0],
+		sAjaxSource: "<?php echo $this->url(array("module"=>"music","controller"=>"index","action"=>"grid"));?>",
+		fnServerDataSuccess: function(json) {
+			$(".cp-jplayer").each(function(){
+				var s = $(this).closest("td").find(".ext").html();
+				var option = $.parseJSON('{"' + s + '" : "' + $(this).closest("td").find(".path").html() + '"}');
+				$(this).closest("td").find(".ext").hide();
+				$(this).closest("td").find(".path").hide();
+				
+				var myCirclePlayer = new CirclePlayer("#" + $(this).attr("id"),
+				option, 
+				{
+					supplied: s,
+					swfPath: "<?php echo $this->baseUrl("libs/jwplayer/js"); ?>",
+					cssSelectorAncestor: "#" + $(this).closest("td").find(".cp-container").attr("id"),
+					wmode: "window"
+				});
+			});
+		}
+	});
+    $(document).on("submit","#frmFilter",function(){
+    	grid.fnDraw();
+    	return false;
+    });
+    $("#select_all").on("change",function(){
+		$(".track_id").prop("checked",$(this).prop("checked"))
+    });
+    $(document).on("click",".grid_delete",function(e){
+        var self = this;
+        window.currentDeleteUrl = $(this).attr("href"); 
+        if(!e.isDefaultPrevented()){
+        	var promptus = new prompt({
+                    	reference : self,
+                        element : ".dataTables_wrapper",
+                        message : "<?php echo $this->translate('Are you sure you want to delete this track?'); ?>",
+                        buttons : {
+                            "Yes" : function(self){
+                                var prompt = this;
+                                $(document).queue(function(next){
+                                    prompt.showLoadingMessage("<?php echo $this->translate('Please wait while deleting track..'); ?>");
+                                    next();
+                                }).queue(function(next){
+                                    $.ajax({
+                                        url: window.currentDeleteUrl,
+                                        cache: false,
+                                        type: "GET",
+                                        dataType: "json",
+                                        success: function(json){
+                                            if(json.success != undefined){ 
+                                            	prompt.showSuccessMessage("<?php echo $this->translate('Track deleted successfully.'); ?>");
+                                            	setTimeout(function(){
+                                            		prompt.close();
+                                                	grid.fnDraw();
+                                                }, 1000);
+                                            } else if(json.errors != undefined){
+                                                var errorMessage = "<?php echo $this->translate('Unable to delete track:'); ?><br />";
+                                                errorMessage += json.errors.message;
+                                            	prompt.showErrorMessage(errorMessage);
+                                            	setTimeout(function(){
+                                            		prompt.close();
+                                                }, 2000);
+                                            }
+                                        },
+                                        error: function(){
+                                        }
+                                    }).complete(next); 
+                                });
+                            },
+                            "No"  : function(self){
+                            	this.close();
+                            },
+                        }
+                    });
+            e.preventDefault();
+        }
+    });
+
+    $(document).on("click","#delete",function(e){
+        var self = this;
+		if($(".track_id:checked").length == 0) {
+			promptus = new prompt({
+            	reference : self,
+                element : ".dataTables_wrapper"
+            });
+            promptus.showErrorMessage("Please select tracks to delete");
+            setTimeout(function(){
+            	promptus.close();
+			}, 2000);
+			return;
+		}
+		var track_ids = $(".track_id:checked").serialize();
+        window.currentDeleteUrl = "<?php echo $this->url ( array ("module" => "music","controller" => "index","action" => "delete"), "default", true ); ?>";
+        if(!e.isDefaultPrevented()){
+        	var promptus = new prompt({
+                    	reference : self,
+                        element : ".dataTables_wrapper",
+                        message : "<?php echo $this->translate('Are you sure you want to delete this tracks?'); ?>",
+                        buttons : {
+                            "Yes" : function(self){
+                                var prompt = this;
+                                $(document).queue(function(next){
+                                    prompt.showLoadingMessage("<?php echo $this->translate('Please wait while deleting tracks..'); ?>");
+                                    next();
+                                }).queue(function(next){
+                                    $.ajax({
+                                        url: window.currentDeleteUrl,
+                                        cache: false,
+                                        type: "GET",
+                                        dataType: "json",
+                                        data:{id:track_ids},
+                                        success: function(json){
+                                            if(json.success != undefined){ 
+                                            	prompt.showSuccessMessage("<?php echo $this->translate('Tracks deleted successfully.'); ?>");
+                                            	setTimeout(function(){
+                                            		prompt.close();
+                                                	grid.fnDraw();
+                                                }, 1000);
+                                            } else if(json.errors != undefined){
+                                                var errorMessage = "<?php echo $this->translate('Unable to delete tracks:'); ?><br />";
+                                                errorMessage += json.errors.message;
+                                            	prompt.showErrorMessage(errorMessage);
+                                            	setTimeout(function(){
+                                            		prompt.close();
+                                                }, 2000);
+                                            }
+                                        },
+                                        error: function(){
+                                        }
+                                    }).complete(next); 
+                                });
+                            },
+                            "No"  : function(self){
+                            	this.close();
+                            },
+                        }
+                    });
+            e.preventDefault();
+        }
+    });
+    
+	// iTunes
+    $("#import-itunes").on("click", function(){
+		$("#div-itunes").dialog({
+			modal: true,
+			width: 650,
+			resizable: false,
+			title: "Import from iTunes"
+		});
+		$("#country option").removeAttr("selected");
+		$("#country option[value='US']").attr("selected","selected");
+		$("#txtSearch").attr("value","");
+		$("#searchResult").html("");
+		$("#divItunesImport").hide();
+    });
+    $("#search-method").on("change",function(){
+		if($(this).attr("value")=="search") {
+			$("#divMethodAlbum").hide();
+			$("#divMethodSearch").show();
+		} else {
+			$("#divMethodSearch").hide();
+			$("#divMethodAlbum").show();
+		}
+    });
+    $("#btnSearch").on("click",function(){
+		// Search iTunes
+    	var promptus = false;
+    	var self = this;
+		$(document).queue(function(next){
+			promptus = new prompt({
+            	reference : self,
+                element : "#div-itunes",
+                beforeShow : function(){
+	                this.alternateMessage = this.showLoadingMessage("<?php echo $this->translate('Fetching tracks...'); ?>");
+                }
+            });
+            next();
+		}).queue(function(next){
+	    	$.ajax({
+	            url: "<?php echo $this->url(array("module"=>"music","controller"=>"index","action"=>"search-itunes","t"=>time())); ?>",
+	            cache: false,
+	            type: "POST",
+	            data: {method:$("#search-method").attr("value"),
+	                keyword:$("#txtSearch").attr("value"),
+	                country:$("#country").attr("value"),
+					url:$("#txtUrl").attr("value"),
+	                },
+	            success: function(response){
+	                $("#searchResult").html(response);
+	                $("#divItunesImport").show();
+	            },
+	            error: function(){
+	            	$("#searchResult").html("Error searching iTunes");
+	            }
+	        }).complete(next);
+		}).queue(function(next){
+			promptus.close();
+			next();
+  		});
+    });
+    $("#divItunesImport").on("click",function(){
+		// Import iTunes
+    	if($(".track:checked").length==0) {
+    		promptus = new prompt({
+            	reference : self,
+                element : "#div-itunes"
+            });
+            promptus.showErrorMessage("Please select tracks to import");
+            setTimeout(function(){
+            	promptus.close();
+			}, 2000);
+			return;
+    	}
+    	var promptus = false;
+    	var self = this;
+		$(document).queue(function(next){
+			promptus = new prompt({
+            	reference : self,
+                element : "#div-itunes",
+                beforeShow : function(){
+	                this.alternateMessage = this.showLoadingMessage("<?php echo $this->translate('Fetching tracks...'); ?>");
+                }
+            });
+            next();
+		}).queue(function(next){
+	    	$.ajax({
+	            url: "<?php echo $this->url(array("module"=>"music","controller"=>"index","action"=>"import-itunes","t"=>time())); ?>",
+	            cache: false,
+	            type: "POST",
+	            dataType: 'json',
+	            data: $("#frmItunes").serialize(),
+	            success: function(json){
+	            	if(json["errors"] != undefined){
+	            		promptus.showErrorMessage(json["errors"]);
+	            		next();
+					} else if(json["success"] != undefined){
+						promptus.showSuccessMessage("<?php echo $this->translate('Track saved successfully.'); ?>");
+						setTimeout(function(){
+							location.href = location.href;
+						}, 2000);
+					}
+	            }
+	        });
+		}).queue(function(next){
+			promptus.close();
+			next();
+  		});
+    });
+    
+    // 7Digital
+    $("#import-seven-digital").on("click", function(){
+    	$("#div-seven-digital").dialog({
+    		modal: true,
+    		width: 650,
+    		resizable: false,
+    		title: "Import from 7Digital"
+    	});
+    	$("#countrySevenDigital option").removeAttr("selected");
+    	$("#countrySevenDigital option[value='US']").attr("selected","selected");
+    	$("#txtAlbumKeyword").attr("value","");
+    	$("#albumResult").html("");
+    	$("#divAlbumImport").hide();
+    });
+
+    $("#btnSearchAlbum").on("click",function(){
+		// Search 7Digital
+    	var promptus = false;
+    	var self = this;
+		$(document).queue(function(next){
+			promptus = new prompt({
+            	reference : self,
+                element : "#div-seven-digital",
+                beforeShow : function(){
+	                this.alternateMessage = this.showLoadingMessage("<?php echo $this->translate('Fetching tracks...'); ?>");
+                }
+            });
+            next();
+		}).queue(function(next){
+	    	$.ajax({
+	            url: "<?php echo $this->url(array("module"=>"music","controller"=>"index","action"=>"search-seven-digital","t"=>time())); ?>",
+	            cache: false,
+	            type: "POST",
+	            data: {
+	                keyword:$("#txtAlbumKeyword").attr("value"),
+	                country:$("#countrySevenDigital").attr("value")
+	                },
+	            success: function(response){
+	                $("#albumResult").html(response);
+	                $("#divAlbumImport").show();
+	            },
+	            error: function(){
+	            	$("#albumResult").html("Error searching 7Digital");
+	            }
+	        }).complete(next);
+		}).queue(function(next){
+			promptus.close();
+			next();
+  		});
+    });
+    $("#divAlbumImport").on("click",function(){
+		// Import 7Digital
+    	if($(".track:checked").length==0) {
+    		promptus = new prompt({
+            	reference : self,
+                element : "#div-seven-digital"
+            });
+            promptus.showErrorMessage("Please select tracks to import");
+            setTimeout(function(){
+            	promptus.close();
+			}, 2000);
+			return;
+    	}
+    	var promptus = false;
+    	var self = this;
+		$(document).queue(function(next){
+			promptus = new prompt({
+            	reference : self,
+                element : "#div-seven-digital",
+                beforeShow : function(){
+	                this.alternateMessage = this.showLoadingMessage("<?php echo $this->translate('Fetching tracks...'); ?>");
+                }
+            });
+            next();
+		}).queue(function(next){
+	    	$.ajax({
+	            url: "<?php echo $this->url(array("module"=>"music","controller"=>"index","action"=>"import-seven-digital","t"=>time())); ?>",
+	            cache: false,
+	            type: "POST",
+	            dataType: 'json',
+	            data: $("#frmSevenDigital").serialize(),
+	            success: function(json){
+	            	if(json["errors"] != undefined){
+	            		promptus.showErrorMessage(json["errors"]);
+	            		next();
+					} else if(json["success"] != undefined){
+						promptus.showSuccessMessage("<?php echo $this->translate('Track saved successfully.'); ?>");
+						setTimeout(function(){
+							location.href = location.href;
+						}, 2000);
+					}
+	            }
+	        });
+		}).queue(function(next){
+			promptus.close();
+			next();
+  		});
+    });
+    
+    // Beatport
+    $("#import-beatport").on("click", function(){
+    	$("#div-beatport").dialog({
+    		modal: true,
+    		width: 650,
+    		resizable: false,
+    		title: "Import from Beatport"
+    	});
+    	$("#txtBeatportKeyword").attr("value","");
+    	$("#beatportResult").html("");
+    	$("#divBeatportImport").hide();
+    });
+
+    $("#btnSearchBeatport").on("click",function(){
+		// Search Beatport
+    	var promptus = false;
+    	var self = this;
+		$(document).queue(function(next){
+			promptus = new prompt({
+            	reference : self,
+                element : "#div-beatport",
+                beforeShow : function(){
+	                this.alternateMessage = this.showLoadingMessage("<?php echo $this->translate('Fetching tracks...'); ?>");
+                }
+            });
+            next();
+		}).queue(function(next){
+	    	$.ajax({
+	            url: "<?php echo $this->url(array("module"=>"music","controller"=>"index","action"=>"search-beatport","t"=>time())); ?>",
+	            cache: false,
+	            type: "POST",
+	            data: {
+	                keyword:$("#txtBeatportKeyword").attr("value")
+	                },
+	            success: function(response){
+	                $("#beatportResult").html(response);
+	                $("#divBeatportImport").show();
+	            },
+	            error: function(){
+	            	$("#beatportResult").html("Error searching Beatport");
+	            }
+	        }).complete(next);
+		}).queue(function(next){
+			promptus.close();
+			next();
+  		});
+    });
+    $("#divBeatportImport").on("click",function(){
+		// Import Beatport
+    	if($(".track:checked").length==0) {
+    		promptus = new prompt({
+            	reference : self,
+                element : "#div-beatport"
+            });
+            promptus.showErrorMessage("Please select tracks to import");
+            setTimeout(function(){
+            	promptus.close();
+			}, 2000);
+			return;
+    	}
+    	var promptus = false;
+    	var self = this;
+		$(document).queue(function(next){
+			promptus = new prompt({
+            	reference : self,
+                element : "#div-beatport",
+                beforeShow : function(){
+	                this.alternateMessage = this.showLoadingMessage("<?php echo $this->translate('Fetching tracks...'); ?>");
+                }
+            });
+            next();
+		}).queue(function(next){
+	    	$.ajax({
+	            url: "<?php echo $this->url(array("module"=>"music","controller"=>"index","action"=>"import-beatport","t"=>time())); ?>",
+	            cache: false,
+	            type: "POST",
+	            dataType: 'json',
+	            data: $("#frmBeatport").serialize(),
+	            success: function(json){
+	            	if(json["errors"] != undefined){
+	            		promptus.showErrorMessage(json["errors"]);
+	            		next();
+					} else if(json["success"] != undefined){
+						promptus.showSuccessMessage("<?php echo $this->translate('Track saved successfully.'); ?>");
+						setTimeout(function(){
+							location.href = location.href;
+						}, 2000);
+					}
+	            }
+	        });
+		}).queue(function(next){
+			promptus.close();
+			next();
+  		});
+    });
+
+    // Soundcloud
+    $("#import-soundcloud").on("click", function(){
+    	$("#div-soundcloud").dialog({
+    		modal: true,
+    		width: 650,
+    		resizable: false,
+    		title: "Import from Soundcloud"
+    	});
+    	$("#txtSoundcloudKeyword").attr("value","");
+    	$("#soundcloudResult").html("");
+    	$("#divSoundcloudImport").hide();
+    });
+
+    $("#btnSearchSoundcloud").on("click",function(){
+		// Search Soundcloud
+    	var promptus = false;
+    	var self = this;
+		$(document).queue(function(next){
+			promptus = new prompt({
+            	reference : self,
+                element : "#div-soundcloud",
+                beforeShow : function(){
+	                this.alternateMessage = this.showLoadingMessage("<?php echo $this->translate('Fetching tracks...'); ?>");
+                }
+            });
+            next();
+		}).queue(function(next){
+	    	$.ajax({
+	            url: "<?php echo $this->url(array("module"=>"music","controller"=>"index","action"=>"search-soundcloud","t"=>time())); ?>",
+	            cache: false,
+	            type: "POST",
+	            data: {
+	                keyword:$("#txtSoundcloudKeyword").attr("value")
+	                },
+	            success: function(response){
+	                $("#soundcloudResult").html(response);
+	                $("#divSoundcloudImport").show();
+	            },
+	            error: function(){
+	            	$("#soundcloudResult").html("Error searching Soundcloud");
+	            }
+	        }).complete(next);
+		}).queue(function(next){
+			promptus.close();
+			next();
+  		});
+    });
+    $("#divSoundcloudImport").on("click",function(){
+		// Import Soundcloud
+    	if($(".track:checked").length==0) {
+    		promptus = new prompt({
+            	reference : self,
+                element : "#div-soundcloud"
+            });
+            promptus.showErrorMessage("Please select tracks to import");
+            setTimeout(function(){
+            	promptus.close();
+			}, 2000);
+			return;
+    	}
+    	var promptus = false;
+    	var self = this;
+		$(document).queue(function(next){
+			promptus = new prompt({
+            	reference : self,
+                element : "#div-soundcloud",
+                beforeShow : function(){
+	                this.alternateMessage = this.showLoadingMessage("<?php echo $this->translate('Fetching tracks...'); ?>");
+                }
+            });
+            next();
+		}).queue(function(next){
+	    	$.ajax({
+	            url: "<?php echo $this->url(array("module"=>"music","controller"=>"index","action"=>"import-soundcloud","t"=>time())); ?>",
+	            cache: false,
+	            type: "POST",
+	            dataType: 'json',
+	            data: $("#frmSoundcloud").serialize(),
+	            success: function(json){
+	            	if(json["errors"] != undefined){
+	            		promptus.showErrorMessage(json["errors"]);
+	            		next();
+					} else if(json["success"] != undefined){
+						promptus.showSuccessMessage("<?php echo $this->translate('Track saved successfully.'); ?>");
+						setTimeout(function(){
+							location.href = location.href;
+						}, 2000);
+					}
+	            }
+	        });
+		}).queue(function(next){
+			promptus.close();
+			next();
+  		});
+    });
+    $('.togglefilter').on("click",function(){
+		$('#filterBox').toggle();
+		$(this).toggleClass('flip-vertical');
+	});
+	$('#filterBox').hide();
+});
+function selectAll() {
+	if($("#chkSelectAll").attr("checked") == "checked") {
+		$(".track").attr("checked","checked");
+    } else {
+    	$(".track").removeAttr("checked");
+    }
+}
+</script>

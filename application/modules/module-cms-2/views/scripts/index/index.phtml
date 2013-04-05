@@ -1,0 +1,210 @@
+<script type="text/javascript"
+	src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxcore.js"); ?>"></script>
+<script type="text/javascript"
+	src="<?php echo $this->baseUrl("libs/jqwidget/js/gettheme.js"); ?>"></script>
+<script type="text/javascript"
+	src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxdropdownbutton.js"); ?>"></script>
+<script type="text/javascript"
+	src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxscrollbar.js"); ?>"></script>
+<script type="text/javascript"
+	src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxbuttons.js"); ?>"></script>
+<script type="text/javascript"
+	src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxtree.js"); ?>"></script>
+<script type="text/javascript"
+	src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxpanel.js"); ?>"></script>
+
+<form id="frmFilter">
+	<div id="filterBox">
+		<table
+			style="width: 100%; border: 0; border-spacing: 0; border-collapse: collapse;">
+			<tr>
+				<td valign="middle"><h2 class="filterIcon"><?php echo $this->translate('Filter'); ?></h2></td>
+				<td>
+					<table>
+						<tr>
+							<td><label for="tree"><?php echo $this->translate('Select Category:'); ?></label></td>
+							<td class="default">
+								<div id='jqxWidget'>
+									<div id="dropDownButton">
+										<div id='jqxTree'></div>
+									</div>
+								</div>
+								<input type="hidden" name="c[parent_id]" id="parent_id" value="0" />
+							</td>
+							<td><?php echo $this->translate('Title'); ?></td>
+							<td><input type="text" class="input" id="txtTitle"
+								name="cd[title]"></td>
+							<td><?php echo $this->translate('Status'); ?></td>
+							<td><select name="status">
+									<option value="1"><?php echo $this->translate('Active'); ?></option>
+									<option value="0"><?php echo $this->translate('InActive'); ?></option>
+							</select></td>
+						</tr>
+					</table>
+				</td>
+				<td>&nbsp;</td>
+				<td align="right"><input type="submit" name="button" id="button"
+					class="button" value="<?php echo $this->translate('Submit'); ?>"></td>
+			</tr>
+		</table>
+	</div>
+</form>
+<a class="togglefilter"></a>
+<table style="border-spacing: 0; border-collapse: collapse; width: 100%"
+	class="pattern-style-b" id="dataGrid">
+	<thead>
+		<tr>
+			<th scope="col"><?php echo $this->translate('Title'); ?></th>
+			<th scope="col"><?php echo $this->translate('Thumb'); ?></th>
+			<th scope="col"><?php echo $this->translate('Status'); ?></th>
+			<th scope="col"><?php echo $this->translate('Order'); ?></th>
+			<th scope="col" class="action"><?php echo $this->translate('Action'); ?></th>
+		</tr>
+	</thead>
+	<tbody>
+		<tr>
+			<td colspan="3" class="dataTables_empty"><?php echo $this->translate('Loading data from server'); ?></td>
+		</tr>
+	</tbody>
+</table>
+
+<script type="text/javascript">
+var grid ="";
+$(document).ready(function() {
+	
+    $(document).on("click",".grid_delete",function(e){
+        var self = this;
+        window.currentDeleteUrl = $(this).attr("href"); 
+ 		if(!e.isDefaultPrevented()){
+        	var promptus = new prompt({
+                    	reference : self,
+                        element : ".dataTables_wrapper",
+                        message : "<?php echo $this->translate('Are you sure you want to delete this page?'); ?>",
+                        buttons : {
+                            "Yes" : function(self){
+                                var prompt = this;
+                                $(document).queue(function(next){
+                                    prompt.showLoadingMessage("<?php echo $this->translate('Please wait while deleting page.'); ?>");
+                                    next();
+                                }).queue(function(next){
+                                    $.ajax({
+                                        url: window.currentDeleteUrl,
+                                        cache: false,
+                                        type: "GET",
+                                        dataType: "json",
+                                        success: function(json){
+                                            if(json.success != undefined){ 
+                                            	prompt.showSuccessMessage("<?php echo $this->translate('Page deleted successfully.'); ?>");
+                                            	setTimeout(function(){
+                                            		prompt.close();
+                                                	grid.fnDraw();
+                                                }, 1000);
+                                            } else if(json.errors != undefined){
+                                                var errorMessage = "<?php echo $this->translate('Unable to delete page:'); ?><br />";
+                                                errorMessage += json.errors.message;
+                                            	prompt.showErrorMessage(errorMessage);
+                                            	setTimeout(function(){
+                                            		prompt.close();
+                                                }, 2000);
+                                            }
+                                        },
+                                        error: function(){
+                                        }
+                                    }).complete(next); 
+                                });
+                            },
+                            "No"  : function(self){
+                            	this.close();
+                            },
+                        }
+                    });
+            e.preventDefault();
+        }
+    });
+	var data = <?php echo $this->parentCategories?>;
+	//console.log(data);
+	//creating data which jqtree plugin can use
+	var builddata = function () {
+		var source = [];
+		var items = [];
+		// build hierarchical source.
+		items[0]={id:0,label:'Root Parents',selected:true};
+		source[0] = items[0];
+		for (var i = 0; i < data.length; i++) {
+			var item = data[i];
+			var label = item["text"];
+			var parentid = item["parentId"];
+			var id = item["id"];
+
+			if (items[parentid]) {
+				var item = { id: id, label: label, item: item };
+				if (!items[parentid].items) {
+					items[parentid].items = [];
+				}
+				items[parentid].items[items[parentid].items.length] = item;
+				items[id] = item;
+			}
+			else {
+				items[id] = { id: id, label: label, item: item };
+				source[id] = items[id];
+			}
+		}		
+		return source;
+	}
+	$("#dropDownButton").jqxDropDownButton({ width: 150, height: 25 });
+    $(document).on("submit","#frmFilter",function(){
+    	grid.fnDraw();
+    	return false;
+    });
+    var source = builddata();
+	$("#jqxTree").jqxTree({source:source});	
+    $('#jqxTree').jqxTree('expandAll');
+    window.grid = dataTable({
+		aaSorting: [[ 3, "asc" ]],
+		"aoColumns": [
+						{ "sName": "cd.title" },
+						{ "sName": "cd.thumb" },
+						{ "sName": "c.status" },
+						{ "sName":  "c.order"},						
+						{ "sName": "actions","bSortable": false}
+					 ],
+		id : $('#dataGrid'),
+		filterForm : $('#frmFilter'),
+		charLimit : [25,0,0,0],
+		sAjaxSource: "<?php echo $this->url(array("module"=>"module-cms-2","controller"=>"index","action"=>"grid"));?>",
+	});
+    $('.togglefilter').on("click",function(){
+		$('#filterBox').toggle();
+		$('#content > a').toggleClass('flip-vertical');
+	});
+	$('#filterBox').hide();
+});
+//getting the reorder link
+//var reorderLink = $("#hrefReorder").attr("href");
+$('#jqxTree').on('select', function (event) {
+    var args = event.args;
+    var item = $('#jqxTree').jqxTree('getItem', args.element);
+    var dropDownContent = '<div style="position: relative; margin-left: 3px; margin-top: 5px;">' + item.label + '</div>';
+    $("#dropDownButton").jqxDropDownButton('setContent', dropDownContent);
+    $("#parent_id").attr("value",item.id);
+    if(window.grid){        
+    	window.grid.fnDraw();
+    }
+	//adding the id param to pass value to reorder's view
+	//reloading grid on basis of category selected
+    $("#dropDownButton").jqxDropDownButton("close");
+});
+
+$(document).on("click","td",function(){
+	if($(this).closest("tr").find("span.child").length){
+		if($(this).index()<4){
+			var parentid = $(this).closest("tr").find("span.child span.child").attr("id");
+			$("#parent_id").attr("value",parentid);
+			window.grid.fnDraw();
+		}
+	}	
+});
+$(document).on("hover","tr",function(){
+	$('tr').css( 'cursor', 'pointer' );
+});
+</script>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <nav> 
+    	<Modules>
+    		<label>Modules</label>
+    		<order>3</order>
+    		<uri>#</uri>
+			<resource>index</resource>
+    		<pages>
+				<HomeWallpaper>
+		    		<label>Home Wallpaper</label>
+					<module>home-wallpaper</module>			
+					<controller>index</controller>
+					<action>index</action>
+		            <order>2</order>
+		            <resource>home-wallpaper</resource>
+		            <pages>
+						<add>
+							<label>Add Home Wallpaper</label>
+							<module>home-wallpaper</module>			
+							<controller>index</controller>
+							<action>add</action>
+							<resource>home-wallpaper</resource>
+							<visible>false</visible>
+						</add>
+						<edit>
+							<label>Edit Home Wallpaper</label>
+							<module>home-wallpaper</module>			
+							<controller>index</controller>
+							<action>edit</action>
+							<resource>home-wallpaper</resource>
+							<visible>false</visible>
+						</edit>
+						<reorder>
+							<label>Reorder Home Wallpaper</label>
+							<module>home-wallpaper</module>			
+							<controller>index</controller>
+							<action>reorder</action>
+							<resource>home-wallpaper</resource>
+							<visible>false</visible>
+						</reorder>
+					</pages>
+		    	</HomeWallpaper>
+    		</pages>
+    	</Modules>
+	</nav>
+</config>

@@ -1,0 +1,6 @@
+@CHARSET "ISO-8859-1";
+div.confirm_wrapper{padding:5px;}
+div.confirm{text-align: right;margin-top:10px;}
+div.grid_success{padding-left:30px;background-image: url("../images/grid_success.png");background-position: left center;background-repeat: no-repeat;}
+div.grid_error{padding-left:30px;background-image: url("../images/grid_error.png");background-position: left center;background-repeat: no-repeat;}
+div.grid_loading{padding-left:24px;background-image: url("../images/grid_load.gif");background-position: left center;background-repeat: no-repeat;}
