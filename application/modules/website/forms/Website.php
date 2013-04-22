@@ -100,15 +100,22 @@ class Website_Form_Website extends Standard_Form {
 				'ignore' => true,
 				'class' => "button" 
 		) );
+
+		// Submit For ALL button
+		$allpyall = $this->addElement ( 'button', 'applyall', array (
+				'ignore' => true,
+				'class' => "button",
+				'label' => 'submit to all' 
+		) );
 		
 		// Reset button
 		$reset = $this->addElement ( 'reset', 'reset', array (
 				'ignore' => true,
 				'class' => "button" 
 		) );
-		$this->addElements ( array (
-				$submit,
-				$reset 
-		) );
+		// $this->addElements ( array (
+		// 		$submit,
+		// 		$reset 
+		// ) );
 	}
 }

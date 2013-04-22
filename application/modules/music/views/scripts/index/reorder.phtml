@@ -66,6 +66,7 @@ $(document).ready(function() {
                                             	setTimeout(function(){
                                             		prompt.close();
                                                 }, 1000);
+                                                location.href = "<?php echo $this->url(array("module"=>"music","controller"=>"index","action"=>"index"),"default",true); ?>";
                                             } else if(json.errors != undefined){
                                                 var errorMessage = "<?php echo $this->translate('Unable to reorder tracks:'); ?><br />";
                                                 errorMessage += json.errors.message;

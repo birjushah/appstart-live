@@ -27,6 +27,13 @@ class Default_Form_Login extends Zend_Form
                 array($notEmpty,true),
             )
         ));
+
+        $this->addElement('hidden', 'offset', array(
+            'value' => '',
+            'filters' => array (
+						'StringTrim'
+			)
+        ));
 		
 		$this->addElement('checkbox', 'remember', array(        
 			'label'      => 'Keep me logged in',

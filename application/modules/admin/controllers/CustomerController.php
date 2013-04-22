@@ -395,11 +395,12 @@ class Admin_CustomerController extends Zend_Controller_Action {
 					"module" => "default",
 					"controller" => "login",
 					"action" => "admin-login",
-					"customer_id" => $row [6] ["customer_id"]
+					"customer_id" => $row [6] ["customer_id"],
+					"offset" => "",
 			), "default", true );
 			$edit = '<a href="' . $editUrl . '" class="button-grid greay grid_edit" >'.$this->view->translate('Edit').'</a>';
 			$delete = '<a href="' . $deleteUrl . '" class="button-grid greay grid_delete" >'.$this->view->translate('Delete').'</a>';
-			$view = '<a href="' . $viewUrl . '"class="button-grid greay" target="_blank">Dashboard</a>';
+			$view = '<a href="' . $viewUrl . '"class="button-grid greay grid_dashboard" target="_blank">Dashboard</a>';
 			$response ['aaData'] [$rowId] [6] = $edit . "&nbsp;|&nbsp;" . $delete . "&nbsp;|&nbsp;" .$view;
 		}
 		echo $this->_helper->json ( $response );

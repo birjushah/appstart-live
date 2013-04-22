@@ -140,6 +140,7 @@ tinyMCE.init({
 				<tr>	
 					<td colspan="3" align="center">
 		        	<?php echo $form->submit->renderViewHelper() ?>&nbsp;
+		        	<?php echo $form->applyall->renderViewHelper()?>&nbsp;
 					<?php echo $form->reset->renderViewHelper()?>
 					</td>
 				</tr>
@@ -151,19 +152,25 @@ tinyMCE.init({
 <script type="text/javascript">
 // <!--
 $(document).ready(function() {
-	//$("#background_color").colorpicker({
-	// 		parts: 'draggable',
-	// 		showOn: 'both',
-	// 		regional: 'en',
-	// 		buttonColorize: true,
-	// 		showNoneButton: false,
-	// 		alpha: true,
-	// 		close : function(){
-	// 			//$(this).val("#"+$(this).val());
-	// 			var self = $(this);
-	// 			$(this).parent().find("button").css({background:"#"+self.val()});
-	// 		}
-	// });
+	$("#applyall").on("click",function(e){
+		if(!e.isDefaultPrevented()){
+	    	var promptus = new prompt({
+	            	reference :"#frmAddEditCms",
+	                element : "#content",
+	                message : "<?php echo $this->translate('Your changes will be saved and applied to all languages. Is it Ok?'); ?>",
+	                buttons : {
+	                    "Yes" : function(self){
+	                        $("#frmAddEditCms").trigger("submit",{all:true});
+	                    },
+	                    "No"  : function(self){
+	                    	this.close();
+	                    },
+	                }
+	            });
+	        e.preventDefault();
+	    }
+	});
+
 	var parentIdLabel = <?php echo ($this->parentCategory!="")? "'$this->parentCategory'":"'Parent'" ?>;
 	//console.log(parentIdLabel);
 	var data = <?php echo $this->moduleCmsTree?>;
@@ -216,7 +223,12 @@ $(document).ready(function() {
     var source = builddata();
     //console.log(source);
 	$("#jqxTree").jqxTree({source:source});
-	$("#frmAddEditCms").validator().submit(function(e){
+	$("#frmAddEditCms").validator().submit(function(e,customObject){
+		customObject = customObject || {};
+		var queryAppend = "";
+		if(customObject.all){
+			queryAppend = "&all=true";
+		}
 		var orignalParentId = <?php echo ($this->orignalParent != "")?$this->orignalParent:"''" ?>;
 		var currentParentId = $("#parent_id").val();
 		if(orignalParentId != currentParentId){
@@ -267,7 +279,7 @@ $(document).ready(function() {
 				$.ajax({
 					type : "POST",
 					cache : false,
-					data : form.serialize() +"&parent="+ parent,
+					data : form.serialize() +"&parent="+ parent + queryAppend,
 					url : "<?php echo $form->getAction(); ?>",
 					success : function(json){
 						if(json["errors"] != undefined){

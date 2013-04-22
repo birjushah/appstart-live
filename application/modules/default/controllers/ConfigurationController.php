@@ -344,29 +344,77 @@ class Default_ConfigurationController extends Zend_Controller_Action {
 					$this->view->dropdownData = $this->_getDropdownData ( $customerId, $language_id );
 					$detailsMapper = new Admin_Model_Mapper_CustomerModuleDetail ();
 					$details = $detailsMapper->fetchAll ( "customer_module_id = " . $customer_module_id . " AND language_id=" . $language_id );
-					if (! $details) {
-						$details = $detailsMapper->fetchAll ( "customer_module_id = " . $customer_module_id . " AND language_id=" . $default_lang_id );
-						$details = $details [0];
-						if (! $details) {
-							$details = new Admin_Model_CustomerModuleDetail ();
-							$details->setCustomerModuleId ( $customer_module_id );
-						}
-						$details->setCustomerModuleDetailId ( "" );
-						$details->setLanguageId ( $language_id );
-					} else {
-						$details = $details [0];
+					$allFlag = $this->_request->getParam("all",false);
+				    if(!$allFlag){
+					    if (! $details) {
+					        $details = $detailsMapper->fetchAll ( "customer_module_id = " . $customer_module_id . " AND language_id=" . $default_lang_id );
+					        $details = $details [0];
+					        if (! $details) {
+					            $details = new Admin_Model_CustomerModuleDetail ();
+					            $details->setCustomerModuleId ( $customer_module_id );
+					        }
+					        $details->setCustomerModuleDetailId ( "" );
+					        $details->setLanguageId ( $language_id );
+					    } else {
+					        $details = $details [0];
+					    }
+					    $details->setScreenName ( $request->getParam ( "screen_name" ) );
+					    if ($request->getParam ( "background_image", "" ) !== null) {
+					        $details->setBackgroundImage ( $request->getParam ( "background_image" ) );
+					    }
+					    if ($request->getParam ( "background_type", "" ) != "") {
+					        $details->setBackgroundType ( $request->getParam ( "background_type" ) );
+					    }
+					    if(!$request->getParam ( "background_color" )){
+					        $details->setBackgroundColor ("");
+					    }else{
+					        $details->setBackgroundColor ( $request->getParam ( "background_color" ) );
+					    }
+					    $details->save ();
+					}else{
+					    $customerLanguageMapper = new Admin_Model_Mapper_CustomerLanguage ();
+					    $customerLanguageModel = $customerLanguageMapper->fetchAll ( "customer_id = " . $customerId );
+					    $records = $detailsMapper->fetchAll ( "customer_module_id = " . $customer_module_id);
+					    if(count($records) == count($customerLanguageModel)){
+					        foreach ($records as $record){
+					            $record->setScreenName ( $request->getParam ( "screen_name" ) );
+					            if ($request->getParam ( "background_image", "" ) !== null) {
+					                $record->setBackgroundImage ( $request->getParam ( "background_image" ) );
+					            }
+					            if ($request->getParam ( "background_type", "" ) != "") {
+					                $record->setBackgroundType ( $request->getParam ( "background_type" ) );
+					            }
+					            if(!$request->getParam ( "background_color")){
+					                $record->setBackgroundColor ("");
+					            }else{
+					                $record->setBackgroundColor ( $request->getParam ( "background_color" ) );
+					            }
+					            $record->save ();
+					        }
+					    }else{
+					        foreach ($records as $record){
+					            $record->delete();
+					        }
+					        if (is_array ( $customerLanguageModel )) {
+					            foreach ( $customerLanguageModel as $languages ) {
+					                $details = new Admin_Model_CustomerModuleDetail ();
+					                $details->setCustomerModuleId ( $customer_module_id );
+					                $details->setLanguageId ( $languages->getLanguageId () );
+					                $details->setScreenName ( $request->getParam ( "screen_name" ) );
+					                if ($request->getParam ( "background_image", "" ) !== null) {
+					                    $details->setBackgroundImage ( $request->getParam ( "background_image" ) );
+					                }
+					                if ($request->getParam ( "background_type", "" ) != "") {
+					                    $details->setBackgroundType ( $request->getParam ( "background_type" ) );
+					                }
+					                if ($request->getParam ( "background_color", "" ) !== null) {
+					                    $details->setBackgroundColor ( $request->getParam ( "background_color" ) );
+					                }
+					                $details->save ();
+					            }
+					        }
+					    }
 					}
-					$details->setScreenName ( $request->getParam ( "screen_name" ) );
-					if ($request->getParam ( "background_image", "" ) != "") {
-						$details->setBackgroundImage ( $request->getParam ( "background_image" ) );
-					}
-					if ($request->getParam ( "background_type", "" ) != "") {
-						$details->setBackgroundType ( $request->getParam ( "background_type" ) );
-					}
-					if ($request->getParam ( "background_color", "" ) != "") {
-						$details->setBackgroundColor ( $request->getParam ( "background_color" ) );
-					}
-					$details->save ();
 					
 					$model = $mapper->find ( $customer_module_id ); 
 					if($request->getParam("selIcon") != '0') {
@@ -464,8 +512,9 @@ class Default_ConfigurationController extends Zend_Controller_Action {
 				$resolution_id = $image_path["resolution_id"];
 				$img_uri = "resource/home-wallpaper/wallpapers/C" . $customer_id."/R".$resolution_id;
 				$slice[$key]["imageSrc"] = $this->view->baseUrl($img_uri ."/" . $image_path['image_path']);
-				if($preSelectedImage==$value["value"])
+				if($preSelectedImage==$value["value"]){
 					$slice[$key]["selected"] = true;
+				}	
 				else 
 					$slice[$key]["selected"] = false;	 				
 			}

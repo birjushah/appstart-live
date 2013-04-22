@@ -1,12 +1,20 @@
 <?php
 class ModuleImageGallery_CategoryController extends Zend_Controller_Action {
 	var $_module_id;
+	var $_customer_module_id;
 	public function init() {
 		/* Initialize Action Controller Here.. */
 		$modulesMapper = new Admin_Model_Mapper_Module ();
 		$module = $modulesMapper->fetchAll ( "name ='module-image-gallery'" );
 		if (is_array ( $module )) {
 			$this->_module_id = $module [0]->getModuleId ();
+		}
+		$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
+		$customermoduleMapper = new Admin_Model_Mapper_CustomerModule();
+		$customermodule = $customermoduleMapper->fetchAll("customer_id=". $customer_id ." AND module_id=".$this->_module_id);
+		if(is_array($customermodule)) {
+		    $customermodule = $customermodule[0];
+		    $this->_customer_module_id = $customermodule->getCustomerModuleId();
 		}
 	}
 	
@@ -16,6 +24,12 @@ class ModuleImageGallery_CategoryController extends Zend_Controller_Action {
 				"module" => "module-image-gallery",
 				"controller" => "category",
 				"action" => "add"
+		), "default", true );
+		$this->view->publishlink = $this->view->url ( array (
+		        "module" => "default",
+		        "controller" => "configuration",
+		        "action" => "publish",
+		        "id" => $this->_customer_module_id
 		), "default", true );
 		$this->view->reorderlink = $this->view->url ( array (
 				"module" => "module-image-gallery",
@@ -70,12 +84,12 @@ class ModuleImageGallery_CategoryController extends Zend_Controller_Action {
 			else {
 				// Record For Language Not Found
 				$dataDetails = $detailsMapper->getDbTable ()->fetchAll ( "module_image_gallery_category_id = " . $module_image_gallery_category_id . " AND language_id = " . $default_lang_id )->toArray ();
-				$dataDetails [0] ["module_image_gallery_category_id"] = "";
+				$dataDetails [0] ["module_image_gallery_category_detail_id"] = "";
 				$dataDetails [0] ["language_id"] = $language_id;
 				//$this->view->category = $dataDetails[0]['title'];
 			}
 			if (isset ( $dataDetails [0] ) && is_array ( $dataDetails [0] )) {
-				$form->populate ( $dataDetails [0] );
+			    $form->populate ( $dataDetails [0] );
 			}
 			$action = $this->view->url ( array (
 					"module" => "module-image-gallery",
@@ -99,6 +113,7 @@ class ModuleImageGallery_CategoryController extends Zend_Controller_Action {
 		$form = new ModuleImageGallery_Form_Category();
 		$request = $this->getRequest ();
 		$response = array ();
+		$allFlag = $this->_request->getParam("all",false);
 		if ($this->_request->isPost ()) {
 			if ($form->isValid ( $this->_request->getParams () )) {
 				try{
@@ -111,31 +126,65 @@ class ModuleImageGallery_CategoryController extends Zend_Controller_Action {
 				$model = new ModuleImageGallery_Model_ModuleImageGalleryCategory ( $allFormValues );
 				if ($request->getParam ( "id", "" ) == "") {
 					// Add new category
-					$maxOrder = $mapper->getNextOrder ( $customer_id );
-					$model->setOrder ( $maxOrder + 1 );
-					$model->setCustomerId ( $customer_id );
-					$model->setCreatedBy ( $user_id );
-					$model->setCreatedAt ( $date_time );
-					$model->setLastUpdatedBy ( $user_id );
-					$model->setLastUpdatedAt ( $date_time );
-					$model = $model->save ();
-					// Save image Details
-					$module_image_gallery_category_id = $model->get ( "module_image_gallery_category_id" );
-					$mapperLanguage = new Admin_Model_Mapper_CustomerLanguage ();
-					$modelLanguages = $mapperLanguage->fetchAll ( "customer_id = " . $customer_id );
-					if (is_array ( $modelLanguages )) {
-						foreach ( $modelLanguages as $languages ) {
-							$modelDetails = new ModuleImageGallery_Model_ModuleImageGalleryCategoryDetail($allFormValues);
-							$modelDetails->setModuleImageGalleryCategoryId ( $module_image_gallery_category_id );
-							$modelDetails->setLanguageId ( $languages->getLanguageId () );
-							$modelDetails->setCreatedBy ( $user_id );
-							$modelDetails->setCreatedAt ( $date_time );
-							$modelDetails->setLastUpdatedBy ( $user_id );
-							$modelDetails->setLastUpdatedAt ( $date_time );
-							$modelDetails = $modelDetails->save ();
+    					$maxOrder = $mapper->getNextOrder ( $customer_id );
+    					$model->setOrder ( $maxOrder + 1 );
+    					$model->setCustomerId ( $customer_id );
+    					$model->setCreatedBy ( $user_id );
+    					$model->setCreatedAt ( $date_time );
+    					$model->setLastUpdatedBy ( $user_id );
+    					$model->setLastUpdatedAt ( $date_time );
+    					$model = $model->save ();
+    					// Save image Details
+    					$module_image_gallery_category_id = $model->get ( "module_image_gallery_category_id" );
+    					$mapperLanguage = new Admin_Model_Mapper_CustomerLanguage ();
+    					$modelLanguages = $mapperLanguage->fetchAll ( "customer_id = " . $customer_id );
+    					if (is_array ( $modelLanguages )) {
+    						foreach ( $modelLanguages as $languages ) {
+    							$modelDetails = new ModuleImageGallery_Model_ModuleImageGalleryCategoryDetail($allFormValues);
+    							$modelDetails->setModuleImageGalleryCategoryId ( $module_image_gallery_category_id );
+    							$modelDetails->setLanguageId ( $languages->getLanguageId () );
+    							$modelDetails->setCreatedBy ( $user_id );
+    							$modelDetails->setCreatedAt ( $date_time );
+    							$modelDetails->setLastUpdatedBy ( $user_id );
+    							$modelDetails->setLastUpdatedAt ( $date_time );
+    							$modelDetails = $modelDetails->save ();
+    						}
+    					}
+    				}elseif($allFlag){
+						$model->setLastUpdatedBy ( $user_id );
+    					$model->setLastUpdatedAt ( $date_time );
+    					$model = $model->save ();
+    					$categoryDetail = new ModuleImageGallery_Model_Mapper_ModuleImageGalleryCategoryDetail($allFormValues);
+						$categoryDetails = $categoryDetail->getDbTable()->fetchAll("module_image_gallery_category_id =".$allFormValues['module_image_gallery_category_id'])->toArray();
+						$mapperLanguage = new Admin_Model_Mapper_CustomerLanguage ();
+						$modelLanguages = $mapperLanguage->fetchAll ( "customer_id = " . $customer_id );
+						unset($allFormValues['module_image_gallery_category_detail_id'],$allFormValues['language_id']);
+						if(count($modelLanguages) == count($categoryDetails)){
+						    foreach ($categoryDetails as $categoryDetail) {
+						        $categoryDetail = array_intersect_key($allFormValues + $categoryDetail, $categoryDetail);
+						        $categoryDetailModel = new ModuleImageGallery_Model_ModuleImageGalleryCategoryDetail($categoryDetail);
+						        $categoryDetailModel = $categoryDetailModel->save();
+						    }   
+						}else{
+						    $categoryDetail = new ModuleImageGallery_Model_Mapper_ModuleImageGalleryCategoryDetail();
+						    $categoryDetails = $categoryDetail->fetchAll("module_image_gallery_category_id =".$allFormValues['module_image_gallery_category_id']);
+						    foreach ($categoryDetails as $categoryDetail){
+						        $categoryDetail->delete();
+						    }
+						    if (is_array ( $modelLanguages )) {
+						        $is_uploaded_image = false;
+						        foreach ( $modelLanguages as $languages ) {
+						            $categoryDetail = new ModuleImageGallery_Model_ModuleImageGalleryCategoryDetail($allFormValues);
+						            $categoryDetail->setLanguageId ( $languages->getLanguageId () );
+						            $categoryDetail->setCreatedBy ( $user_id );
+						            $categoryDetail->setCreatedAt ( $date_time );
+						            $categoryDetail->setLastUpdatedBy ( $user_id );
+						            $categoryDetail->setLastUpdatedAt ( $date_time );
+						            $categoryDetail = $categoryDetail->save();
+						        }
+						    }
 						}
-					}
-				}else {
+					}else {
 					$model->setLastUpdatedBy ( $user_id );
 					$model->setLastUpdatedAt ( $date_time );
 					$model = $model->save ();

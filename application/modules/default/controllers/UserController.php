@@ -55,29 +55,23 @@ class Default_UserController extends Zend_Controller_Action {
     							joinLeft ( array ("cl" => "customer_language"), "l.language_id = cl.language_id",
     											array ("cl.customer_id") )->
     											where("cl.customer_id=".Standard_Functions::getCurrentUser ()->customer_id);
-    	$languages = $mapper->getDbTable ()->fetchAll($select)->toArray();
 		foreach ( $rows as $rowId => $row ) {
-			if($languages){
-				foreach ($languages as $lang) {
-						$editUrl = $this->view->url ( array (
-						"module" => "default",
-						"controller" => "user",
-						"action" => "edit",
-						"id" => $row [6] ["u.user_id"] 
-					), "default", true );
-					$edit[] = '<a href="'. $editUrl .'"><img src="images/lang/'.$lang["logo"].'" alt="'.$lang["l.title"].'" /></a>';	
-				}
-			}
+		    $editUrl = $this->view->url ( array (
+		            "module" => "default",
+		            "controller" => "user",
+		            "action" => "edit",
+		            "id" => $row [6] ["u.user_id"]
+		    ), "default", true );
 			$deleteUrl = $this->view->url ( array (
 					"module" => "default",
 					"controller" => "user",
 					"action" => "delete",
 					"id" => $row [6] ["u.user_id"] 
 			), "default", true );
-			$defaultEdit = '<div id="editLanguage">&nbsp;<div class="flag-list">'.implode("",$edit).'</div></div>';
+			$edit = '<a href="' . $editUrl . '" class="button-grid greay grid_edit" >'.$this->view->translate('Edit').'</a>';
 			$delete = '<a href="' . $deleteUrl . '" class="button-grid greay grid_delete" >'.$this->view->translate('Delete').'</a>';
-			$sap = '';
-			$response ['aaData'] [$rowId] [6] = $defaultEdit.$sap.$delete;
+			$sap = '&nbsp;';
+			$response ['aaData'] [$rowId] [6] = $edit.$sap.$delete;
 		}
 		$this->_helper->json ( $response );
 	}
@@ -170,7 +164,7 @@ class Default_UserController extends Zend_Controller_Action {
 					if (strpos ( $ex->getMessage (), "Duplicate entry" ) !== false) {
 						$response = array (
 								'errors' => array (
-										'name' => "Group name already exists." 
+										'name' => "User name already exists." 
 								) 
 						);
 					} else {
@@ -179,6 +173,15 @@ class Default_UserController extends Zend_Controller_Action {
 						);
 					}
 				}
+			}else{
+				$errors = $form->getMessages ();
+			
+				foreach ( $errors as $name => $error ) {
+					$errors [$name] = array_pop ( $error );
+				}
+				$response = array (
+						"errors" => $errors 
+				);
 			}
 			$this->_helper->json ( $response );
 		}

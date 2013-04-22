@@ -52,7 +52,8 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 				$customermodule = $customermoduleMapper->fetchAll("customer_id=". $customer_id ." AND module_id=".$this->_module_id);
 				if(is_array($customermodule)) {
 					$customermodule = $customermodule[0];
-					$customermodule->setIsPublish("NO");
+					$customermodule->setSyncDateTime ( Standard_Functions::getCurrentDateTime () );
+					$customermodule->setIsPublish("YES");
 					$customermodule->save();
 				}
 		   
@@ -149,9 +150,12 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 				$details = $mapper->fetchAll("push_message_id=".$row[5]["pm.push_message_id"]." AND language_id=".$default_lang_id);
 				if(is_array($details)){
 					$details = $details[0];
-					$row[5][pmd.title] = $row[0] = $details->getTitle();
-					$row[5][pmd.description] = $row[1] = $details->getDescription();
+					$row[5]["pmd.title"] = $row[0] = $details->getTitle();
+					$row[5]["pmd.description"] = $row[1] = $details->getDescription();
 				}
+			}
+			if($row[5]["pmd.message_date"] != null){
+				$row[5]["pmd.message_date"] = $row[2] = Standard_Functions::getLocalDateTime($row[5]["pmd.message_date"]);
 			}
 			$response['aaData'][$rowId] = $row;
 			if ($languages) {
@@ -224,6 +228,7 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 				
 			}
 			if (isset ( $dataDetails [0] ) && is_array ( $dataDetails [0] )) {
+				$dataDetails[0]['message_date'] = Standard_Functions::getLocalDateTime ($dataDetails[0]['message_date']);
 				$form->populate ( $dataDetails [0] );
 			}
 			$action = $this->view->url ( array (
@@ -246,6 +251,7 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 		$form = new PushMessage_Form_PushMessage ();
 		$request = $this->getRequest ();
 		$response = array ();
+		$default_lang_id = Standard_Functions::getCurrentUser ()->default_language_id;
 		if ($this->_request->isPost ()) {
 			if ($form->isValid ( $this->_request->getParams () )) {
 				try {
@@ -261,9 +267,11 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 	                        if($message_date){
 	                        	$allFormValues["message_date"] = $message_date->format ( "Y-m-d H:i:s" ) ;
 	                        }
+	                        $allFormValues["message_date"] = Standard_Functions::getServerDateTime ($allFormValues['message_date']);
 	                }else{
 	                    unset($allFormValues["message_date"]);
 	                }
+	                $allFlag = $this->_request->getParam("all",false);
 					if ($request->getParam ( "push_message_id", "" ) == "") {
 						// save push message
 						$maxOrder = $pushMessageMapper->getNextOrder ( $customer_id );
@@ -288,11 +296,36 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 								$pushMessageDetailModel = $pushMessageDetailModel->save ();
 							}
 						}
-						//setting the message in variable only in add mode
-						//if($allFormValues["description"] != ""){
-							//$message = array();
-							//$message['message'] = $allFormValues["description"];
-						//}
+					}elseif($allFlag){
+					    $pushMessageModel->setLastUpdatedBy ( $user_id );
+						$pushMessageModel->setLastUpdatedAt ( $date_time );
+						$pushMessageModel = $pushMessageModel->save ();
+						$customerLanguageMapper = new Admin_Model_Mapper_CustomerLanguage ();
+						$customerLanguageModel = $customerLanguageMapper->fetchAll ( "customer_id = " . $customer_id );
+						$pushDetailMapper = new PushMessage_Model_Mapper_PushMessageDetail();
+						$pushDetails = $pushDetailMapper->getDbTable()->fetchAll("push_message_id =".$allFormValues['push_message_id'])->toArray();
+						unset($allFormValues['push_message_detail_id'],$allFormValues['language_id']);
+						if(count($pushDetails) == count($customerLanguageModel)){
+						    foreach ($pushDetails as $pushDetail) {
+						        $pushDetail = array_intersect_key($allFormValues + $pushDetail, $pushDetail);
+						        $pushDetailModel = new PushMessage_Model_PushMessageDetail($pushDetail);
+						        $pushDetailModel = $pushDetailModel->save();
+						    }    
+						}else{
+						    $pushDetailMapper = new PushMessage_Model_Mapper_PushMessageDetail();
+						    $pushDetails = $pushDetailMapper->fetchAll("push_message_id =".$allFormValues['push_message_id']);
+						    foreach ($pushDetails as $pushDetail){
+						        $pushDetail->delete();
+						    }
+						    if (is_array ( $customerLanguageModel )) {
+						        $is_uploaded_image = false;
+						        foreach ( $customerLanguageModel as $languages ) {
+						            $pushDetailModel = new PushMessage_Model_PushMessageDetail($allFormValues);
+						            $pushDetailModel->setLanguageId ( $languages->getLanguageId () );
+						            $pushDetailModel = $pushDetailModel->save ();
+						        }
+						    }
+						}
 					} else {
 						$pushMessageModel->setLastUpdatedBy ( $user_id );
 						$pushMessageModel->setLastUpdatedAt ( $date_time );
@@ -306,7 +339,8 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 					$customermodule = $customermoduleMapper->fetchAll("customer_id=". $customer_id ." AND module_id=".$this->_module_id);
 					if(is_array($customermodule)) {
 						$customermodule = $customermodule[0];
-						$customermodule->setIsPublish("NO");
+						$customermodule->setSyncDateTime ( Standard_Functions::getCurrentDateTime () );
+						$customermodule->setIsPublish("YES");
 						$customermodule->save();
 					}
 					$pushMessageMapper->getDbTable ()->getAdapter ()->commit ();
@@ -353,7 +387,8 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 					$customermodule = $customermoduleMapper->fetchAll("customer_id=". $customer_id ." AND module_id=".$this->_module_id);
 					if(is_array($customermodule)) {
 						$customermodule = $customermodule[0];
-						$customermodule->setIsPublish("NO");
+						$customermodule->setSyncDateTime ( Standard_Functions::getCurrentDateTime () );
+						$customermodule->setIsPublish("YES");
 						$customermodule->save();
 					}
 					

@@ -51,28 +51,22 @@ class Default_UserGroupController extends Zend_Controller_Action {
 			
 			$response ['aaData'] [$rowId] [2] = $totalModules;
 			$response ['aaData'] [$rowId] [3] = $totalUsers;
-			
-			if($languages){
-				foreach ($languages as $lang) {
-					$editUrl = $this->view->url ( array (
-					"module" => "default",
-					"controller" => "user-group",
-					"action" => "edit",
-					"id" => $row [4] ["user_group_id"] 
-					), "default", true );
-					$edit[] = '<a href="'. $editUrl .'"><img src="images/lang/'.$lang["logo"].'" alt="'.$lang["l.title"].'" /></a>';
-				}
-			}
+			$editUrl = $this->view->url ( array (
+    			"module" => "default",
+    			"controller" => "user-group",
+    			"action" => "edit",
+    			"id" => $row [4] ["user_group_id"] 
+    			), "default", true );
 			$deleteUrl = $this->view->url ( array (
 					"module" => "default",
 					"controller" => "user-group",
 					"action" => "delete",
 					"id" => $row [4] ["user_group_id"] 
 			), "default", true );
-    		$defaultEdit = '<div id="editLanguage">&nbsp;<div class="flag-list">'.implode("",$edit).'</div></div>';
+			$edit = '<a href="' . $editUrl . '" class="button-grid greay grid_edit" >'.$this->view->translate('Edit').'</a>';
 			$delete = '<a href="' . $deleteUrl . '" class="button-grid greay grid_delete" >'.$this->view->translate('Delete').'</a>';
-			$sap = '';
-			$response ['aaData'] [$rowId] [4] = $defaultEdit.$sap.$delete;
+			$sap = '&nbsp;';
+			$response ['aaData'] [$rowId] [4] = $edit.$sap.$delete;
 		}
 		echo $this->_helper->json ( $response );
 	}

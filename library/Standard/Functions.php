@@ -89,4 +89,35 @@ class Standard_Functions {
 		}
 		return $version;
 	}
+
+	public static function getLocalDateTime($serverdatetime = null){
+		if($serverdatetime == null){
+			$serverdatetime = self::getCurrentDateTime();
+		}
+		$offset = self::getCurrentUser()->offset;
+		$serverdatetime = new DateTime($serverdatetime);
+		if($offset > 0){
+			$serverdatetime->modify("-".abs($offset)." minutes");
+		}else{
+			$serverdatetime->modify("+".abs($offset)." minutes");
+		}
+		$datetime = $serverdatetime->format('Y-m-d H:i:s');
+		return $datetime;
+	}
+
+	public static function getServerDateTime($localdatetime = null){
+		if($localdatetime == null){
+			$datetime = self::getCurrentDateTime();
+			return $datetime;
+		}
+		$offset = self::getCurrentUser()->offset;
+		$localdatetime = new DateTime($localdatetime);
+		if($offset > 0){
+			$localdatetime->modify("+".abs($offset)." minutes");
+		}else{
+			$localdatetime->modify("-".abs($offset)." minutes");
+		}
+		$datetime = $localdatetime->format('Y-m-d H:i:s');
+		return $datetime;
+	}
 }

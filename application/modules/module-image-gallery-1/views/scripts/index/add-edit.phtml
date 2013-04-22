@@ -121,6 +121,7 @@ function callTinymce(id){
 		style="width: 100%; border: 0; border-spacing: 0; border-collapse: collapse;">
 		<tr>
 			<td valign="middle"><?php echo $this->partial($this->partial,array()); ?></td>
+			<td align="right"><h2><?php echo $this->language; ?></h2></td>
 		</tr>
 	</table>
 </div>
@@ -188,27 +189,42 @@ function callTinymce(id){
 					?>
 				</td>
 				</tr>
-			</tbody>
-		</table>
-		<table>
-			<tr>
-				<td colspan="3" align="center">
-		        	<?php echo $form->submit->renderViewHelper() ?>&nbsp;
-					<?php echo $form->reset->renderViewHelper()?>
-				</td>
-				<?php if($mode == "add"){/*
-				?>
-				<td><input type="button" id="btnAdd" value="add another name"  /></td>
-				<td><input type="button" id="btnDel" value="remove name" /></td>
-				<?php
-				*/} 
-				?>
-			</tr>
+    			<tr>
+    				<td colspan="3" align="center">
+    		        	<?php echo $form->submit->renderViewHelper() ?>&nbsp;
+    		        	<?php echo $form->applyall->renderViewHelper()?>&nbsp;
+    					<?php echo $form->reset->renderViewHelper()?>
+    				</td>
+    			</tr>
+			<tbody>
 		</table>
 	</form>
 </div>
 <script type="text/javascript">
-function submitForm(e){
+$("#applyall").on("click",function(e){
+	if(!e.isDefaultPrevented()){
+    	var promptus = new prompt({
+            	reference :"#frmAddEditimageGallery",
+                element : "#content",
+                message : "<?php echo $this->translate('Your changes will be saved and applied to all languages. Is it Ok?'); ?>",
+                buttons : {
+                    "Yes" : function(self){
+                        $("#frmAddEditimageGallery").trigger("submit",{all:true});
+                    },
+                    "No"  : function(self){
+                    	this.close();
+                    },
+                }
+            });
+        e.preventDefault();
+    }
+});
+function submitForm(e,customObject){
+	customObject = customObject || {};
+	var queryAppend = "";
+	if(customObject.all){
+		queryAppend = "&all=true";
+	}
 	var form = $("#frmAddEditimageGallery");
 	if(!e.isDefaultPrevented()){
 		var promptus = false;
@@ -265,7 +281,7 @@ function submitForm(e){
 			$.ajax({
 				type : "POST",
 				cache : false,
-				data : form.serialize(),
+				data : form.serialize() + queryAppend,
 				url : "<?php echo $form->getAction(); ?>",
 				success : function(json){
 					if(json["errors"] != undefined){
@@ -288,8 +304,8 @@ function submitForm(e){
 	}
 }
 $(document).ready(function() {
-	$("#frmAddEditimageGallery").validator().submit(function(e){	
-		submitForm(e);
+	$("#frmAddEditimageGallery").validator().submit(function(e,customObject){	
+		submitForm(e,customObject);
 		});
 	
 	function initTag(){

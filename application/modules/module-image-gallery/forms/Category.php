@@ -61,6 +61,13 @@ class ModuleImageGallery_Form_Category extends Standard_Form{
 		) );
 		$this->addElement($language_id);
 		
+		// Submit For ALL button
+		$allpyall = $this->addElement ( 'button', 'applyall', array (
+				'ignore' => true,
+				'class' => "button",
+				'label' => 'submit to all' 
+		) );
+
 		// Reset button
 		$reset = $this->addElement ( 'reset', 'reset', array (
 				'ignore' => true,
@@ -69,7 +76,6 @@ class ModuleImageGallery_Form_Category extends Standard_Form{
 		$this->addElements ( array (
 				$submit,
 				$reset
-		) );
-		
+		) );	
 	}
 }

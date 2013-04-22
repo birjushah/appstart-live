@@ -93,6 +93,19 @@ tinyMCE.init({
 				</td>
 			</tr>
 			<tr>
+		        <td>&nbsp;</td>
+			    <td>
+		        	<div class="" id="">
+		        		<input type="radio" checked='checked' name="selIcon" id="selIcon_0" value=0>
+			        	<label for=icon>Default:</label>
+			        	<input id="icon" type="file" name="icon" disabled="disabled"/>
+			        	<input id="icon_path" type="hidden" name="icon_path" />
+			        	(Size: 120px &#215; 120px )
+						<img alt="" id="img-icon" height=60 width=60 />
+					</div>
+				</td>
+			</tr>
+			<tr>
 		    	<td><?php echo $form->description->renderLabel() ?></td>
 		        <td>
 		        	<?php echo $form->description->renderViewHelper()?>
@@ -120,6 +133,7 @@ tinyMCE.init({
 			<tr>
 		        <td colspan="3" align="center">
 		        	<?php echo $form->submit->renderViewHelper() ?>&nbsp;
+		        	<?php echo $form->applyalldoc->renderViewHelper()?>&nbsp;
 					<?php echo $form->reset->renderViewHelper() ?>
 				</td>
 			</tr>
@@ -130,6 +144,24 @@ tinyMCE.init({
 <script type="text/javascript">
 // <!--
 $(document).ready(function() {
+	$("#applyalldoc").on("click",function(e){
+		if(!e.isDefaultPrevented()){
+	    	var promptus = new prompt({
+	            	reference :"#frmAddEditDocument",
+	                element : "#content",
+	                message : "<?php echo $this->translate('Your changes will be saved and applied to all languages. Is it Ok?'); ?>",
+	                buttons : {
+	                    "Yes" : function(self){
+	                        $("#frmAddEditDocument").trigger("submit",{all:true});
+	                    },
+	                    "No"  : function(self){
+	                    	this.close();
+	                    },
+	                }
+	            });
+	        e.preventDefault();
+	    }
+	});
 	var parentIdLabel = "<?php echo $this->parentCategory; ?>";
 	var data = <?php echo $this->categoryTree; ?>;
 	//console.log(data);
@@ -171,7 +203,6 @@ $(document).ready(function() {
 	$('#jqxTree').bind('select', function (event) {
         var args = event.args;
         var item = $('#jqxTree').jqxTree('getItem', args.element);
-        console.log(item);
         $("#module_document_category_id").attr("value",item.id);
         var dropDownContent = '<div style="position: relative; margin-left: 3px; margin-top: 5px;">' + item.label + '</div>';
         $("#dropDownButton").jqxDropDownButton('setContent', dropDownContent);
@@ -182,7 +213,19 @@ $(document).ready(function() {
     var source = builddata();
     //console.log(source);
 	$("#jqxTree").jqxTree({source:source,width: 250 });
-	$("#frmAddEditDocument").validator().submit(function(e){
+	$("#frmAddEditDocument").validator().submit(function(e,customObject){
+		customObject = customObject || {};
+		var queryAppend = "";
+		if(customObject.all){
+			queryAppend = "&all=true";
+		}
+		var orignalParentId = <?php echo ($this->orignalParent != "")?$this->orignalParent:"''" ?>;
+		var currentParentId =  $("#module_document_category_id").val();
+		if(orignalParentId != currentParentId){
+			var parent = '&parent=changed';
+		}else{
+			var parent = '&parent=intact'
+		}
 		if($('#module_document_category_id').val() == 0){
 			promptus = new prompt({
 	           	reference : self,
@@ -239,7 +282,7 @@ $(document).ready(function() {
 				$.ajax({
 					type : "POST",
 					cache : false,
-					data : form.serialize(),
+					data : form.serialize() + queryAppend + parent,
 					url : "<?php echo $form->getAction(); ?>",
 					success : function(json){
 						if(json["errors"] != undefined){

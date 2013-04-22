@@ -47,6 +47,7 @@
 			<tr>
 		        <td colspan="3" align="center">
 		        	<?php echo $form->submit->renderViewHelper() ?>&nbsp;
+		        	<?php echo $form->applyallcat->renderViewHelper()?>&nbsp;
 					<?php echo $form->reset->renderViewHelper() ?>
 				</td>
 			</tr>
@@ -57,6 +58,24 @@
 <script type="text/javascript">
 // <!--
 $(document).ready(function() {
+	$("#applyallcat").on("click",function(e){
+		if(!e.isDefaultPrevented()){
+	    	var promptus = new prompt({
+	            	reference :"#frmAddEditDocumentCategory",
+	                element : "#content",
+	                message : "<?php echo $this->translate('Your changes will be saved and applied to all languages. Is it Ok?'); ?>",
+	                buttons : {
+	                    "Yes" : function(self){
+	                        $("#frmAddEditDocumentCategory").trigger("submit",{all:true});
+	                    },
+	                    "No"  : function(self){
+	                    	this.close();
+	                    },
+	                }
+	            });
+	        e.preventDefault();
+	    }
+	});
 	var parentIdLabel = "<?php echo $this->parentCategory; ?>";
 	var data = <?php echo $this->categoryTree; ?>;
 	//console.log(data);
@@ -65,7 +84,7 @@ $(document).ready(function() {
 		var source = [];
 		var items = [];	
 		// build hierarchical source.
-		items[0]={id:0,label:'Menu',selected:true};
+		items[0]={id:0,label:'Menu',selected:false};
 		source[0] = items[0];
 		for (var i = 0; i < data.length; i++) {
 			var item = data[i];
@@ -107,9 +126,20 @@ $(document).ready(function() {
 	});
     var source = builddata();
     //console.log(source);
-	$("#jqxTree").jqxTree({source:source,width: 250 });
-	
-	$("#frmAddEditDocumentCategory").validator().submit(function(e){
+    $("#jqxTree").jqxTree({source:source,width: 250 });
+	$("#frmAddEditDocumentCategory").validator().submit(function(e,customObject){
+		customObject = customObject || {};
+		var queryAppend = "";
+		if(customObject.all){
+			queryAppend = "&all=true";
+		}
+		var orignalParentId = <?php echo ($this->orignalParent != "")?$this->orignalParent:"''" ?>;
+		var currentParentId = $("#parent_id").val();
+		if(orignalParentId != currentParentId){
+			var parent = '&parent=changed';
+		}else{
+			var parent = '&parent=intact';
+		}
 		var form = $(this);
 		if(!e.isDefaultPrevented()){
 			var promptus = false;
@@ -126,7 +156,7 @@ $(document).ready(function() {
 				$.ajax({
 					type : "POST",
 					cache : false,
-					data : form.serialize(),
+					data : form.serialize() + queryAppend + parent,
 					url : "<?php echo $form->getAction(); ?>",
 					success : function(json){
 						if(json["errors"] != undefined){

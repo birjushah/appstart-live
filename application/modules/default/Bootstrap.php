@@ -18,7 +18,8 @@ class Default_Bootstrap extends Zend_Application_Module_Bootstrap {
 		$frontController = Zend_Controller_Front::getInstance ();
 		$restRoute = new Zend_Rest_Route ( $frontController, array (), array (
 				'default' => array (
-						'rest' 
+						'rest',
+						'download'
 				) 
 		) );
 		$frontController->getRouter ()->addRoute ( 'defaultrestroute', $restRoute );

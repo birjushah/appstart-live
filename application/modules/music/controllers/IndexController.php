@@ -2,7 +2,7 @@
 class Music_IndexController extends Zend_Controller_Action
 {
 	var $_module_id;
-	
+	var $_customer_module_id;
     public function init()
     {
 		/* Initialize action controller here */
@@ -10,6 +10,13 @@ class Music_IndexController extends Zend_Controller_Action
     	$module = $modulesMapper->fetchAll("name ='music'");
     	if(is_array($module)) {
     		$this->_module_id = $module[0]->getModuleId();
+    	}
+    	$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
+    	$customermoduleMapper = new Admin_Model_Mapper_CustomerModule();
+    	$customermodule = $customermoduleMapper->fetchAll("customer_id=". $customer_id ." AND module_id=".$this->_module_id);
+    	if(is_array($customermodule)) {
+    	    $customermodule = $customermodule[0];
+    	    $this->_customer_module_id = $customermodule->getCustomerModuleId();
     	}
     }
 
@@ -20,6 +27,12 @@ class Music_IndexController extends Zend_Controller_Action
 						    			"controller" => "index",
 						    			"action" => "add"
 						    	), "default", true );
+    	$this->view->publishlink = $this->view->url ( array (
+                            	        "module" => "default",
+                            	        "controller" => "configuration",
+                            	        "action" => "publish",
+                            	        "id" => $this->_customer_module_id
+                            	), "default", true );
     	$this->view->reorderlink = $this->view->url ( array (
 						    			"module" => "music",
 						    			"controller" => "index",
@@ -193,7 +206,7 @@ class Music_IndexController extends Zend_Controller_Action
     	$form = new Music_Form_Music();
     	$request = $this->getRequest ();
     	$response = array ();
-    	
+    	$default_lang_id = Standard_Functions::getCurrentUser ()->default_language_id;
     	if ($this->_request->isPost ()) {
     		if($request->getParam ( "upload", "" ) == "preview") {
     			$adapter = new Zend_File_Transfer_Adapter_Http();
@@ -233,6 +246,7 @@ class Music_IndexController extends Zend_Controller_Action
     		}
     		$form->removeElement("preview");
     		$form->removeElement("album_art");
+    		$allFlag = $this->_request->getParam("all",false);
     		if ($form->isValid ( $this->_request->getParams () )) {
     			$mapper = new Music_Model_Mapper_ModuleMusic();
     			$mapper->getDbTable()->getAdapter()->beginTransaction();
@@ -282,6 +296,63 @@ class Music_IndexController extends Zend_Controller_Action
     							$modelDetails = $modelDetails->save();
     						}
     					}
+    				}elseif($allFlag){
+    				    $model->setLastUpdatedBy ( $user_id );
+    				    $model->setLastUpdatedAt ( $date_time);
+    				    $model = $model->save ();
+    				    $customerLanguageMapper = new Admin_Model_Mapper_CustomerLanguage ();
+    				    $customerLanguageModel = $customerLanguageMapper->fetchAll ( "customer_id = " . $customer_id );
+    				    $musicDetailMapper = new Music_Model_Mapper_ModuleMusicDetail();
+    				    if($arrFormValues['module_music_detail_id'] != null){
+    				        $currentMusicDetails = $musicDetailMapper->getDbTable()->fetchAll("module_music_detail_id =".$arrFormValues['module_music_detail_id'])->toArray();
+    				    }else{
+    				        $currentMusicDetails = $musicDetailMapper->getDbTable()->fetchAll("module_music_id ='".$arrFormValues['module_music_id']."' AND language_id =".$default_lang_id)->toArray();
+    				    }
+    				    if(is_array($currentMusicDetails)){
+    				        $allFormValues['preview_url'] = $currentMusicDetails[0]['preview_url'];
+    				        $allFormValues['album_art_url'] = $currentMusicDetails[0]['album_art_url'];
+    				    }
+    				    $musicDetails = $musicDetailMapper->getDbTable()->fetchAll("module_music_id =".$arrFormValues['module_music_id'])->toArray();
+    				    unset($arrFormValues['module_music_detail_id'],$arrFormValues['language_id']);
+    				    if(count($musicDetails) == count($customerLanguageModel)){
+    				        foreach ($musicDetails as $musicDetail) {
+    				            $musicDetail = array_intersect_key($arrFormValues + $musicDetail, $musicDetail);
+    				            $musicDetailModel = new Music_Model_ModuleMusicDetail($musicDetail);
+        				        if($preview_url != "")
+            					{
+            						$musicDetailModel->setPreviewUrl($preview_url);
+            					}
+            					
+            					if($album_art_url != "")
+            					{
+            						$musicDetailModel->setAlbumArtUrl($album_art_url);
+            					}
+        				        $musicDetailModel = $musicDetailModel->save();
+        				    }
+    				   }else{
+    				       $musicDetailMapper = new Music_Model_Mapper_ModuleMusicDetail();
+    				       $musicDetails = $musicDetailMapper->fetchAll("module_music_id =".$arrFormValues['module_music_id']);
+    				       foreach ($musicDetails as $musicDetail){
+    				           $musicDetail->delete();
+    				       }
+    				       if (is_array ( $customerLanguageModel )) {
+    				           foreach ( $customerLanguageModel as $languages ) {
+    				               $musicDetailModel = new Music_Model_ModuleMusicDetail($arrFormValues);
+    				               $musicDetailModel->setLanguageId ( $languages->getLanguageId () );
+        				           if($preview_url != ""){
+                						$musicDetailModel->setPreviewUrl($preview_url);
+                				   }
+                				   if($album_art_url != ""){
+                						$musicDetailModel->setAlbumArtUrl($album_art_url);
+                				   }
+    				               $musicDetailModel->setCreatedBy ( $user_id );
+    				               $musicDetailModel->setCreatedAt ( $date_time );
+    				               $musicDetailModel->setLastUpdatedBy ( $user_id );
+    				               $musicDetailModel->setLastUpdatedAt ( $date_time );
+    				               $musicDetailModel = $musicDetailModel->save ();
+    				           }
+    				       }
+    				   }
     				} else {
     					$model->setLastUpdatedBy ( $user_id );
     					$model->setLastUpdatedAt ( $date_time);

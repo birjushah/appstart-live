@@ -2,7 +2,7 @@
 class Document_IndexController extends Zend_Controller_Action
 {
 	var $_module_id;
-	
+	var $_customer_module_id;
     public function init()
     {
 		/* Initialize action controller here */
@@ -10,6 +10,13 @@ class Document_IndexController extends Zend_Controller_Action
     	$module = $modulesMapper->fetchAll("name ='document'");
     	if(is_array($module)) {
     		$this->_module_id = $module[0]->getModuleId();
+    	}
+    	$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
+    	$customermoduleMapper = new Admin_Model_Mapper_CustomerModule();
+    	$customermodule = $customermoduleMapper->fetchAll("customer_id=". $customer_id ." AND module_id=".$this->_module_id);
+    	if(is_array($customermodule)) {
+    	    $customermodule = $customermodule[0];
+    	    $this->_customer_module_id = $customermodule->getCustomerModuleId();
     	}
     }
 
@@ -25,6 +32,12 @@ class Document_IndexController extends Zend_Controller_Action
     			"module" => "document",
     			"controller" => "index",
     			"action" => "reorder"
+    	), "default", true );
+    	$this->view->publishlink = $this->view->url ( array (
+    	        "module" => "default",
+    	        "controller" => "configuration",
+    	        "action" => "publish",
+    	        "id" => $this->_customer_module_id
     	), "default", true );
     	$this->view->addcategory = $this->view->url(array (
     			"module" => "document",
@@ -122,6 +135,7 @@ class Document_IndexController extends Zend_Controller_Action
     		$language_id = $lang_id;
     		$this->view->categoryTree = $this->_getCategoryTree ( $customer_id, $language_id);
     		$parent_id = $data["module_document_category_id"];
+    		$this->view->orignalParent = $parent_id;
     		$detailMapper = new Document_Model_Mapper_ModuleDocumentCategoryDetail();
     		if($parent_id != 0){
     			$details = $detailMapper->getDbTable()->fetchAll("language_id = ".$language_id." AND module_document_category_id =" .$parent_id)->toArray();
@@ -163,7 +177,7 @@ class Document_IndexController extends Zend_Controller_Action
     	$form = new Document_Form_Document();
     	$request = $this->getRequest ();
     	$response = array ();
-    	 
+    	$default_lang_id = Standard_Functions::getCurrentUser ()->default_language_id;
     	if ($this->_request->isPost ()) {
     		if($request->getParam ( "upload", "" ) != "") {
     			$adapter = new Zend_File_Transfer_Adapter_Http();
@@ -185,30 +199,30 @@ class Document_IndexController extends Zend_Controller_Action
     		}
     		
     		$form->removeElement("document");
-    		
+    		$allFlag = $this->_request->getParam("all",false);
     		if ($form->isValid ( $this->_request->getParams () )) {
     			$mapper = new Document_Model_Mapper_ModuleDocument();
     			$mapper->getDbTable()->getAdapter()->beginTransaction();
     			
     			try {
     				// Save Document
-    				$arrFormValues = $form->getValues();
+    				$allFormValues = $form->getValues();
     				$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
     				$user_id = Standard_Functions::getCurrentUser ()->user_id;
     				$date_time = Standard_Functions::getCurrentDateTime ();
     				$document_path = $request->getParam ("document_path", "");
-    				$arrFormValues["document_path"] = $document_path;
-    				$arrFormValues["size"] = filesize(Standard_Functions::getResourcePath(). "document/uploads/" . $document_path);
+    				$allFormValues["document_path"] = $document_path;
+    				$allFormValues["size"] = filesize(Standard_Functions::getResourcePath(). "document/uploads/" . $document_path);
     				$type = strtoupper(array_pop(explode(".", $document_path)));
-    				$arrFormValues["type"] = $type;
-    				
-    				$model = new Document_Model_ModuleDocument($arrFormValues);
-    				
+    				$allFormValues["type"] = $type;
+    			    $parent_id = $allFormValues["module_document_category_id"];
+    				$model = new Document_Model_ModuleDocument($allFormValues);
+    				if ($request->getParam ( "module_document_id", "" ) == "" || $request->getParam("parent") == "changed") {
+    				    $maxOrder = $mapper->getNextOrder ( $parent_id,$customer_id );
+    				    $model->setOrder ( $maxOrder + 1 );
+    				}
     				if($request->getParam ( "module_document_id", "" ) == "") {
     					// Add New
-    					$maxOrder = $mapper->getNextOrder($customer_id);
-    					
-    					$model->setOrder($maxOrder+1);
     					$model->setCustomerId ( $customer_id );
     					$model->setCreatedBy ( $user_id );
     					$model->setCreatedAt ( $date_time );
@@ -222,7 +236,7 @@ class Document_IndexController extends Zend_Controller_Action
     					$modelLanguages = $mapperLanguage->fetchAll("customer_id = ".$customer_id);
     					if(is_array($modelLanguages)) {
     						foreach($modelLanguages as $languages) {
-    							$modelDetails = new Document_Model_ModuleDocumentDetail($arrFormValues);
+    							$modelDetails = new Document_Model_ModuleDocumentDetail($allFormValues);
     							$modelDetails->setModuleDocumentId($document_id);
     							$modelDetails->setLanguageId ($languages->getLanguageId());
     							$modelDetails->setCreatedBy ( $user_id );
@@ -233,13 +247,46 @@ class Document_IndexController extends Zend_Controller_Action
     						}
     					}
     					
-    				} else {
+    				}elseif($allFlag){
+					    $model->setLastUpdatedBy ( $user_id );
+    					$model->setLastUpdatedAt ( $date_time);
+    					$model = $model->save ();
+						$customerLanguageMapper = new Admin_Model_Mapper_CustomerLanguage ();
+						$customerLanguageModel = $customerLanguageMapper->fetchAll ( "customer_id = " . $customer_id );
+						$documentDetailMapper = new Document_Model_Mapper_ModuleDocumentDetail();
+						$documentDetails = $documentDetailMapper->getDbTable()->fetchAll("module_document_id =".$allFormValues['module_document_id'])->toArray();
+						unset($allFormValues['module_document_detail_id'],$allFormValues['language_id']);
+						if(count($documentDetails) == count($customerLanguageModel)){
+						    foreach ($documentDetails as $documentDetail) {
+						        $documentDetail = array_intersect_key($allFormValues + $documentDetail, $documentDetail);
+						        $documentDetailModel = new Document_Model_ModuleDocumentDetail($documentDetail);
+						        $documentDetailModel = $documentDetailModel->save();
+						    }    
+						}else{
+						    $documentDetailMapper = new Document_Model_Mapper_ModuleDocumentDetail();
+						    $documentDetails = $documentDetailMapper->fetchAll("module_document_id =".$allFormValues['module_document_id']);
+						    foreach ($documentDetails as $documentDetail){
+						        $documentDetail->delete();
+						    }
+						    if (is_array ( $customerLanguageModel )) {
+						        foreach ( $customerLanguageModel as $languages ) {
+						            $documentDetailModel = new Document_Model_ModuleDocumentDetail($allFormValues);
+						            $documentDetailModel->setLanguageId ( $languages->getLanguageId () );
+						            $documentDetailModel->setCreatedBy ( $user_id );
+						            $documentDetailModel->setCreatedAt ( $date_time );
+						            $documentDetailModel->setLastUpdatedBy ( $user_id );
+						            $documentDetailModel->setLastUpdatedAt ( $date_time );
+						            $documentDetailModel = $documentDetailModel->save ();
+						        }
+						    }
+						}
+					} else {
     					// Update ExistingRecord
     					$model->setLastUpdatedBy ( $user_id );
     					$model->setLastUpdatedAt ( $date_time);
     					$model = $model->save ();
     					
-    					$modelDetails = new Document_Model_ModuleDocumentDetail($arrFormValues);
+    					$modelDetails = new Document_Model_ModuleDocumentDetail($allFormValues);
     					if(!$modelDetails || $modelDetails->getModuleDocumentDetailId()=="") {
 	    					$modelDetails->setCreatedBy ( $user_id );
 	    					$modelDetails->setCreatedAt ( $date_time );

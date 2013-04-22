@@ -2,6 +2,7 @@
 class SocialMedia_IndexController extends Zend_Controller_Action
 {
 	var $_module_id;
+    var $_customer_module_id;
 	
     public function init()
     {
@@ -11,6 +12,13 @@ class SocialMedia_IndexController extends Zend_Controller_Action
     	if(is_array($module)) {
     		$this->_module_id = $module[0]->getModuleId();
     	}
+        $customer_id = Standard_Functions::getCurrentUser ()->customer_id;
+        $customermoduleMapper = new Admin_Model_Mapper_CustomerModule();
+        $customermodule = $customermoduleMapper->fetchAll("customer_id=". $customer_id ." AND module_id=".$this->_module_id);
+        if(is_array($customermodule)) {
+            $customermodule = $customermodule[0];
+            $this->_customer_module_id = $customermodule->getCustomerModuleId();
+        }
     }
 
     public function indexAction()
@@ -21,6 +29,12 @@ class SocialMedia_IndexController extends Zend_Controller_Action
 					    			"controller" => "index",
 					    			"action" => "add"
 					    	), "default", true );
+        $this->view->publishlink = $this->view->url ( array (
+                "module" => "default",
+                "controller" => "configuration",
+                "action" => "publish",
+                "id" => $this->_customer_module_id
+        ), "default", true );
     	$this->view->reorderlink = $this->view->url ( array (
     			"module" => "social-media",
     			"controller" => "index",
@@ -208,6 +222,7 @@ class SocialMedia_IndexController extends Zend_Controller_Action
     public function saveAction()
     {
     	$form = new SocialMedia_Form_SocialMedia();
+    	$default_lang_id = Standard_Functions::getCurrentUser ()->default_language_id;
     	$request = $this->getRequest ();
     	$response = array ();
     	if ($this->_request->isPost ()) {
@@ -222,7 +237,7 @@ class SocialMedia_IndexController extends Zend_Controller_Action
     			if($adapter->getFileName("icon")!="")
     			{
     				$response = array (
-    						"success" => array_pop(explode('/',$adapter->getFileName("icon")))
+    						"success" => array_pop(explode('\\',$adapter->getFileName("icon")))
     				);
     			} else {
     				$response = array (
@@ -235,7 +250,7 @@ class SocialMedia_IndexController extends Zend_Controller_Action
     		}
     	
     		$form->removeElement("icon");
-    		
+    		$allFlag = $this->_request->getParam("all",false);
     		if ($form->isValid ( $this->_request->getParams () )) {
     			$mapper = new SocialMedia_Model_Mapper_ModuleSocialMedia();
     			$mapper->getDbTable()->getAdapter()->beginTransaction();
@@ -288,7 +303,63 @@ class SocialMedia_IndexController extends Zend_Controller_Action
     							$modelDetails = $modelDetails->save();
     						}
     					}
-    				} else {
+    				}elseif($allFlag){
+                        $model->setLastUpdatedBy ( $user_id );
+                        $model->setLastUpdatedAt ( $date_time );
+                        $model = $model->save ();
+                        $detailsMapper = new SocialMedia_Model_Mapper_ModuleSocialMediaDetail();
+                        $socialDetails = $detailsMapper->getDbTable()->fetchAll("module_social_media_id =".$arrFormValues['module_social_media_id'])->toArray();
+                        if($arrFormValues['module_social_media_detail_id'] != null){
+                            $currentDetails = $detailsMapper->getDbTable()->fetchAll("module_social_media_detail_id =".$arrFormValues['module_social_media_detail_id'])->toArray();
+                        }else{
+                            $currentDetails = $detailsMapper->getDbTable()->fetchAll("module_social_media_id ='".$arrFormValues['module_social_media_id']."' AND language_id =".$default_lang_id)->toArray();
+                        }
+                        if(is_array($currentDetails)){
+                            $arrFormValues['icon_path'] = $currentDetails[0]['icon_path'];    
+                        }
+                        $customerLanguageMapper = new Admin_Model_Mapper_CustomerLanguage ();
+                        $customerLanguageModel = $customerLanguageMapper->fetchAll ( "customer_id = " . $customer_id );
+                        unset($arrFormValues['module_social_media_detail_id'],$arrFormValues['language_id']);
+                        if(count($socialDetails) == count($customerLanguageModel)){
+                            foreach ($socialDetails as $socialDetail) {
+                                $socialDetail = array_intersect_key($arrFormValues + $socialDetail, $socialDetail);
+                                $socialDetailModel = new SocialMedia_Model_ModuleSocialMediaDetail($socialDetail);
+                                if($request->getParam("selLogo",0) != 0) {
+                                    $iconId = $request->getParam("selLogo",0);
+                                    $icon = new SocialMedia_Model_SocialMediaIcon();
+                                    $icon->populate($iconId);
+                                    $socialDetailModel->setIconPath("icons/".$icon->getIconPath());
+                                } else if($icon_path != "") {
+                                    $socialDetailModel->setIconPath("images/C".$customer_id."/".$icon_path);
+                                }
+                                $socialDetailModel = $socialDetailModel->save();
+                            }   
+                        }else{
+                            $socialDetails = $detailsMapper->fetchAll("module_social_media_id =".$arrFormValues['module_social_media_id']);
+                            foreach ($socialDetails as $socialDetail){
+                                $socialDetail->delete();
+                            }
+                            if(is_array($customerLanguageModel)) {
+                                foreach($customerLanguageModel as $languages) {
+                                    $modelDetails = new SocialMedia_Model_ModuleSocialMediaDetail($arrFormValues);
+                                    $modelDetails->setLanguageId($languages->getLanguageId());
+                                    if($request->getParam("selLogo",0) != 0) {
+        								$iconId = $request->getParam("selLogo",0);
+        								$icon = new SocialMedia_Model_SocialMediaIcon();
+        								$icon->populate($iconId);
+        								$modelDetails->setIconPath("icons/".$icon->getIconPath());
+                                    } else if($icon_path != "") {
+        								$modelDetails->setIconPath("images/C".$customer_id."/".$icon_path);
+                                    }	
+                                    $modelDetails->setCreatedBy ( $user_id );
+                                    $modelDetails->setCreatedAt ( $date_time );
+                                    $modelDetails->setLastUpdatedBy ( $user_id );
+                                    $modelDetails->setLastUpdatedAt ( $date_time );
+                                    $modelDetails = $modelDetails->save();
+                                }
+                            }
+                        }
+                    } else {
     					$model->setLastUpdatedBy ( $user_id );
     					$model->setLastUpdatedAt ( $date_time );
     					$model = $model->save ();

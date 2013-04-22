@@ -38,6 +38,12 @@ class Default_Form_UserGroup extends Standard_Form {
 		
 		//$this->getElement("modules")->setAttrib("required", "required");
 		
+		$this->addElement('checkbox','settings', array(
+			'label' => 'Settings:',
+			'value' => 1
+		));
+
+
 		$this->addElement ( 'submit', 'submit', array (
 				'ignore' => true,
 		) );

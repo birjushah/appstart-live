@@ -56,13 +56,14 @@ class Admin_VersionController extends Zend_Controller_Action{
 	                        unset($allFormValues["created_at"]);
 	                }
 	                $versionModel = new Admin_Model_Version ( $allFormValues );
+	                $allFlag = $this->_request->getParam("all",false);
 					if ($request->getParam ( "version_id", "" ) == "") {
-						// save push message
+						// save version message
 						$versionModel->setCreatedBy ( $system_user );
 						$versionModel->setLastUpdatedBy ( $system_user );
 						$versionModel->setLastUpdatedAt ( $date_time );
 						$versionModel = $versionModel->save ();
-						// save push message details
+						// save version details
 						$version_id = $versionModel->get ( 'version_id' );
 						$LanguageMapper = new Admin_Model_Mapper_Language ();
 						$LanguageModel = $LanguageMapper->fetchAll ();
@@ -73,6 +74,18 @@ class Admin_VersionController extends Zend_Controller_Action{
 								$versionDetailModel->setLanguageId ( $languages->getLanguageId ());
 								$versionDetailModel = $versionDetailModel->save ();
 							}
+						}
+					}elseif($allFlag){
+					    $versionModel->setLastUpdatedBy ( $system_user );
+						$versionModel->setLastUpdatedAt ( $date_time );
+						$versionModel = $versionModel->save ();
+						$versionDetailMapper = new Admin_Model_Mapper_VersionDetail();
+						$versionDetails = $versionDetailMapper->getDbTable()->fetchAll("version_id =".$allFormValues["version_id"])->toArray();
+						unset($allFormValues['version_detail_id'],$allFormValues['language_id']);
+						foreach ($versionDetails as $versionDetail){
+						    $versionDetail = array_intersect_key($allFormValues + $versionDetail, $versionDetail);
+						    $versionDetailModel = new Admin_Model_VersionDetail($versionDetail);
+						    $versionDetailModel = $versionDetailModel->save();
 						}
 					} else {
 						$versionModel->setLastUpdatedBy ( $system_user );

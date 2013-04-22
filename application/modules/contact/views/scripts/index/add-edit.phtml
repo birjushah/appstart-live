@@ -307,6 +307,7 @@ div.logo-box td {
 		<tr>
 			<td align="center">
 	        <?php echo $form->submit->renderViewHelper() ?>&nbsp;
+	        <?php echo $form->applyall->renderViewHelper()?>&nbsp;
 			<?php echo $form->reset->renderViewHelper()?>
 			</td>
 		</tr>
@@ -466,7 +467,30 @@ $(document).ready(function() {
 	    items.push($(this).find("td").val());
 	});
 	console.log(items);*/
-	$("#frmAddEditContact").validator().submit(function(e){
+	$("#applyall").on("click",function(e){
+		if(!e.isDefaultPrevented()){
+	    	var promptus = new prompt({
+	            	reference :"#frmAddEditContact",
+	                element : "#content",
+	                message : "<?php echo $this->translate('Your changes will be saved and applied to all languages. Is it Ok?'); ?>",
+	                buttons : {
+	                    "Yes" : function(self){
+	                        $("#frmAddEditContact").trigger("submit",{all:true});
+	                    },
+	                    "No"  : function(self){
+	                    	this.close();
+	                    },
+	                }
+	            });
+	        e.preventDefault();
+	    }
+	});
+	$("#frmAddEditContact").validator().submit(function(e,customObject){
+		customObject = customObject || {};
+		var queryAppend = "";
+		if(customObject.all){
+			queryAppend = "&all=true";
+		}
 		var XML = "<node>";
 		$(window.createdXML).each(function(key,value){
 			if(value != undefined){
@@ -522,7 +546,7 @@ $(document).ready(function() {
 				$.ajax({
 					type : "POST",
 					cache : false,
-					data : form.serialize()+'&xml='+XML,
+					data : form.serialize()+'&xml='+XML+queryAppend,
 					url : "<?php echo $form->getAction(); ?>",
 					success : function(json){
 						if(json["errors"] != undefined){
@@ -623,7 +647,7 @@ $(document).ready(function() {
        	$('#gMap').gmap3({ 
             action: 'addMarker',
             latLng:[$("#latitude").attr("value"),$("#longitude").attr("value")],
-			map: {center:true, zoom:7},
+			map: {center:true, zoom:14},
 			options:{
                 animation: google.maps.Animation.DROP
             },
@@ -650,7 +674,7 @@ $(document).ready(function() {
     				{
         				action:'addMarker',
     					latLng:item.geometry.location,
-    					map: {center:true, zoom:7},
+    					map: {center:true, zoom:14},
     					options:{
   				        	draggable: true,
   				        	animation: google.maps.Animation.DROP
@@ -679,7 +703,7 @@ $(document).ready(function() {
 			{
     			action:'addMarker',
 				latLng:[$("#latitude").attr("value"),$("#longitude").attr("value")],
-				map: {center:true, zoom:7},
+				map: {center:true, zoom:14},
 				options:{
 					draggable: true,
 					animation: google.maps.Animation.DROP

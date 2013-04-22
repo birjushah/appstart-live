@@ -1,7 +1,7 @@
 <?php
 	$form = $this->form;
 ?>
-<form class="box login" method="<?php echo $form->getMethod() ?>" 
+<form id="defaultlogin" class="box login" method="<?php echo $form->getMethod() ?>" 
 		action="<?php echo $this->url(array("module"=>"default","controller"=>"login","action"=>"index"))?>">
     <fieldset class="boxBody">
 	<?php
@@ -19,6 +19,7 @@
 	</fieldset>
 	<footer>
 	  <?php echo $form->remember->renderViewHelper()." ";?><?php echo $form->remember->renderLabel(); ?>
+	  <?php echo $form->offset->renderViewHelper(); ?>
 	  <?php echo $form->submit->renderViewHelper() ?>
 	</footer>
 </form>
@@ -26,6 +27,9 @@
 <script type="text/javascript">
 $(document).ready(function() {
 	$("#password").attr("value","<?php echo $this->password; ?>");
-	$("form").validator();
+	var offset = new Date().getTimezoneOffset();
+	$("form").validator().submit(function(){
+		$("#offset").attr("value",offset);
+	});
 });
 </script>

@@ -1,12 +1,20 @@
 <?php
 class ModuleImageGallery_IndexController extends Zend_Controller_Action {
 	var $_module_id;
+	var $_customer_module_id;
 	public function init() {
 		/* Initialize Action Controller Here.. */
 		$modulesMapper = new Admin_Model_Mapper_Module ();
 		$module = $modulesMapper->fetchAll ( "name ='module-image-gallery'" );
 		if (is_array ( $module )) {
 			$this->_module_id = $module [0]->getModuleId ();
+		}
+		$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
+		$customermoduleMapper = new Admin_Model_Mapper_CustomerModule();
+		$customermodule = $customermoduleMapper->fetchAll("customer_id=". $customer_id ." AND module_id=".$this->_module_id);
+		if(is_array($customermodule)) {
+			$customermodule = $customermodule[0];
+			$this->_customer_module_id = $customermodule->getCustomerModuleId();
 		}
 	}
 	public function indexAction() {
@@ -20,6 +28,12 @@ class ModuleImageGallery_IndexController extends Zend_Controller_Action {
 				"module" => "module-image-gallery",
 				"controller" => "index",
 				"action" => "reorder" 
+		), "default", true );
+		$this->view->publishlink = $this->view->url ( array (
+				"module" => "default",
+				"controller" => "configuration",
+				"action" => "publish",
+				"id" => $this->_customer_module_id
 		), "default", true );
 		$this->view->addcategory = $this->view->url ( array (
 				"module" => "module-image-gallery",
@@ -108,6 +122,13 @@ class ModuleImageGallery_IndexController extends Zend_Controller_Action {
 							}
 						}
 					}
+					$customermoduleMapper = new Admin_Model_Mapper_CustomerModule ();
+					$customermodule = $customermoduleMapper->fetchAll ( "customer_id=" . $customer_id . " AND module_id=" . $this->_module_id );
+					if (is_array ( $customermodule )) {
+					    $customermodule = $customermodule [0];
+					    $customermodule->setIsPublish ( "NO" );
+					    $customermodule->save ();
+					}
 					$mapper->getDbTable ()->getAdapter ()->commit ();
 					$response = array (
 							"success" => 'true',
@@ -140,7 +161,6 @@ class ModuleImageGallery_IndexController extends Zend_Controller_Action {
 								}
 							}
 						}
-						
 						$mapper->getDbTable ()->getAdapter ()->commit ();
 						$response = array (
 								"success" => true
@@ -263,6 +283,7 @@ class ModuleImageGallery_IndexController extends Zend_Controller_Action {
 		$form = new ModuleImageGallery_Form_ModuleImageGallery ();
 		$request = $this->getRequest ();
 		$response = array ();
+		$default_lang_id = Standard_Functions::getCurrentUser()->default_language_id;
 		if ($this->_request->isPost ()) {
 			if ($request->getParam ( "upload", "" ) != "") {
 				$image_name = $request->getParam ( "image_name", "" );
@@ -283,6 +304,7 @@ class ModuleImageGallery_IndexController extends Zend_Controller_Action {
 			}
 			$form->removeElement ( "image" );
 			$datas = $this->_request->getParam ( 'data' );
+			$allFlag = $this->_request->getParam("all",false);
 			foreach ( $datas as $data ) {
 				//print_r($data);
 				//die();
@@ -340,6 +362,67 @@ class ModuleImageGallery_IndexController extends Zend_Controller_Action {
 									}
 									$modelDetails = $modelDetails->save ();
 								}
+							}
+						}elseif($allFlag){
+							$model->setLastUpdatedBy ( $user_id );
+							$model->setLastUpdatedAt ( $date_time );
+							$model = $model->save ();
+							$mapperDetails = new ModuleImageGallery_Model_Mapper_ModuleImageGalleryDetail ($allFormValues);
+							if($allFormValues['module_image_gallery_detail_id'] != null){
+							    $currentmapperDetails = $mapperDetails->getDbTable()->fetchAll("module_image_gallery_detail_id=".$allFormValues['module_image_gallery_detail_id'])->toArray();
+							}else{
+							    $currentmapperDetails = $mapperDetails->getDbTable()->fetchAll("module_image_gallery_id ='".$allFormValues['module_image_gallery_id']."' AND language_id=".$default_lang_id)->toArray();
+							}
+							$mapperDetails = $mapperDetails->getDbTable()->fetchAll("module_image_gallery_id =".$allFormValues['module_image_gallery_id'])->toArray();
+							if(is_array($currentmapperDetails)){
+							    $allFormValues['image_path'] = $currentmapperDetails[0]['image_path'];
+							}
+							$mapperLanguage = new Admin_Model_Mapper_CustomerLanguage ();
+							$modelLanguages = $mapperLanguage->fetchAll ( "customer_id = " . $customer_id );
+							unset($allFormValues['module_image_gallery_detail_id'],$allFormValues['language_id']);
+							$is_uploaded_image = false;
+							if(count($modelLanguages) == count($mapperDetails)){
+							    foreach ($mapperDetails as $mapperDetail) {
+							        $mapperDetail = array_intersect_key($allFormValues + $mapperDetail, $mapperDetail);
+							        $imagegalleryDetailModel = new ModuleImageGallery_Model_ModuleImageGalleryDetail($mapperDetail);
+							        if (! is_dir ( $upload_dir )) {
+							            mkdir ( $upload_dir, 755 );
+							        }
+							        if ($image_path != "" && !$is_uploaded_image) {
+							            $filename = $this->moveUploadFile ( $source_dir, $upload_dir, $image_path );
+							            $imagegalleryDetailModel->setImagePath ( $filename );
+							            $is_uploaded_image = true;
+							        }elseif($image_path != ""){
+							            $imagegalleryDetailModel->setImagePath ( $filename );
+							        }
+							        $imagegalleryDetailModel->setKeywords ( $keywords );
+							        $imagegalleryDetailModel = $imagegalleryDetailModel->save();
+							    }    
+							}else{
+							    $mapperDetails = new ModuleImageGallery_Model_Mapper_ModuleImageGalleryDetail ($allFormValues);
+							    $mapperDetails = $mapperDetails->fetchAll("module_image_gallery_id =".$allFormValues['module_image_gallery_id']);
+							    foreach ($mapperDetails as $mapperDetail){
+							        $mapperDetail->delete();
+							    }
+							    if (is_array ( $modelLanguages )) {
+							        $is_uploaded_image = false;
+							        foreach ( $modelLanguages as $languages ) {
+							            $modelDetails = new ModuleImageGallery_Model_ModuleImageGalleryDetail ( $allFormValues );
+							            $modelDetails->setKeywords ( $keywords );
+							            $modelDetails->setLanguageId ( $languages->getLanguageId () );
+							            if (! is_dir ( $upload_dir )) {
+							                mkdir ( $upload_dir, 755 );
+							            }
+							            if (! $is_uploaded_image && $image_path != "") {
+							                $filename = $this->moveUploadFile ( $source_dir, $upload_dir, $image_path );
+							                $modelDetails->setImagePath ( $filename );
+							                $is_uploaded_image = true;
+							            } else if ($image_path != "") {
+							                $modelDetails->setImagePath ( $filename );
+							            }
+							            $modelDetails = $modelDetails->save ();
+							        }
+							    }
 							}
 						} else {
 							// update image
@@ -583,7 +666,7 @@ class ModuleImageGallery_IndexController extends Zend_Controller_Action {
 		$this->_response->appendBody ( $jsonGrid );
 	}
 	private function moveUploadFile($source_dir, $dest_dir, $filename) {
-		$source_file_name = $filename;
+	    $source_file_name = $filename;
 		$expension = array_pop ( explode ( ".", $filename ) );
 		try {
 			$i = 1;
@@ -607,7 +690,7 @@ class ModuleImageGallery_IndexController extends Zend_Controller_Action {
 	public function generateThumb($src, $dest, $destWidth = 0, $destHeight = 0) {
 		/* read the source image */
 		$stype = array_pop ( explode ( ".", $src ) );
-		switch ($stype) {
+		switch (strtolower($stype)) {
 			case 'gif' :
 				$source_image = imagecreatefromgif ( $src );
 				break;
@@ -619,7 +702,6 @@ class ModuleImageGallery_IndexController extends Zend_Controller_Action {
 				$source_image = imagecreatefrompng ( $src );
 				break;
 		}
-		
 		$width = imagesx ( $source_image );
 		$height = imagesy ( $source_image );
 
@@ -641,9 +723,8 @@ class ModuleImageGallery_IndexController extends Zend_Controller_Action {
 		imagealphablending ( $source_image, true );
 		/* copy source image at a resized size */
 		imagecopyresampled ( $virtual_image, $source_image, 0, 0, 0, 0, $desired_width, $desired_height, $width, $height );
-		
 		/* create the physical thumbnail image to its destination */
-		switch ($stype) {
+		switch (strtolower($stype)) {
 			case 'gif' :
 				imagegif ( $virtual_image, $dest );
 				break;

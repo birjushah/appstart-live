@@ -1,12 +1,20 @@
 <?php
 class Website1_IndexController extends Zend_Controller_Action {
 	var $_module_id;
+	var $_customer_module_id;
 	public function init() {
 		/* Initialize Action Controller Here.. */
 		$modulesMapper = new Admin_Model_Mapper_Module ();
 		$module = $modulesMapper->fetchAll ( "name ='website-1'" );
 		if (is_array ( $module )) {
 			$this->_module_id = $module [0]->getModuleId ();
+		}
+		$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
+		$customermoduleMapper = new Admin_Model_Mapper_CustomerModule();
+		$customermodule = $customermoduleMapper->fetchAll("customer_id=". $customer_id ." AND module_id=".$this->_module_id);
+		if(is_array($customermodule)) {
+			$customermodule = $customermodule[0];
+			$this->_customer_module_id = $customermodule->getCustomerModuleId();
 		}
 	}
 	public function indexAction() {
@@ -15,6 +23,12 @@ class Website1_IndexController extends Zend_Controller_Action {
 				"module" => "website-1",
 				"controller" => "index",
 				"action" => "add" 
+		), "default", true );
+		$this->view->publishlink = $this->view->url ( array (
+				"module" => "default",
+				"controller" => "configuration",
+				"action" => "publish",
+				"id" => $this->_customer_module_id
 		), "default", true );
 		$this->view->reorderlink = $this->view->url ( array (
 				"module" => "website-1",
@@ -43,6 +57,7 @@ class Website1_IndexController extends Zend_Controller_Action {
 		$this->_helper->layout ()->disableLayout ();
 		$this->_helper->viewRenderer->setNoRender ();
 		$form = new Website1_Form_Website1();
+		$default_lang_id = Standard_Functions::getCurrentUser ()->default_language_id;
 		$request = $this->getRequest();
 		$response = array();
 		if($this->_request->isPost()){
@@ -64,6 +79,7 @@ class Website1_IndexController extends Zend_Controller_Action {
 				exit ();
 			}
 			$form->removeElement("website_logo");
+			$allFlag = $this->_request->getParam("all",false);
 			if($form->isValid($this->_request->getParams())){
 				try{
 					$allFormValues = $form->getValues();
@@ -102,6 +118,54 @@ class Website1_IndexController extends Zend_Controller_Action {
 								}
 								$websiteDetailModel = $websiteDetailModel->save ();
 							}
+						}
+					}elseif($allFlag){
+					    $websiteModel->setLastUpdatedBy ( $user_id );
+						$websiteModel->setLastUpdatedAt ( $date_time );
+						$websiteModel = $websiteModel->save ();
+						$customerLanguageMapper = new Admin_Model_Mapper_CustomerLanguage ();
+						$customerLanguageModel = $customerLanguageMapper->fetchAll ( "customer_id = " . $customer_id );
+						$websiteDetailMapper = new Website1_Model_Mapper_ModuleWebsiteDetail1();
+						if($allFormValues['module_website_detail_1_id'] != null){
+						    $currentWebsiteDetails = $websiteDetailMapper->getDbTable()->fetchAll("module_website_detail_1_id =".$allFormValues['module_website_detail_1_id'])->toArray();
+						}else{
+						    $currentWebsiteDetails = $websiteDetailMapper->getDbTable()->fetchAll("module_website_1_id ='".$allFormValues['module_website_1_id']."' AND language_id =".$default_lang_id)->toArray();
+						}
+						if(is_array($currentWebsiteDetails)){
+						    $allFormValues['website_logo'] = $currentWebsiteDetails[0]['website_logo'];
+						}
+						$websiteDetails = $websiteDetailMapper->getDbTable()->fetchAll("module_website_1_id =".$allFormValues['module_website_1_id'])->toArray();
+						unset($allFormValues['module_website_detail_1_id'],$allFormValues['language_id']);
+						if(count($websiteDetails) == count($customerLanguageModel)){
+						    foreach ($websiteDetails as $websiteDetail) {
+						        $websiteDetail = array_intersect_key($allFormValues + $websiteDetail, $websiteDetail);
+						        $websiteDetailModel = new Website1_Model_ModuleWebsiteDetail1($websiteDetail);
+						        if ($logo_path != "") {
+						            $websiteDetailModel->setWebsiteLogo ($logo_path);
+						        }
+						        $websiteDetailModel = $websiteDetailModel->save();
+						    }    
+						}else{
+						    $websiteDetailMapper = new Website1_Model_Mapper_ModuleWebsiteDetail1();
+						    $websiteDetails = $websiteDetailMapper->fetchAll("module_website_1_id =".$allFormValues['module_website_1_id']);
+						    foreach ($websiteDetails as $websiteDetail){
+						        $websiteDetail->delete();
+						    }
+						    if (is_array ( $customerLanguageModel )) {
+						        $is_uploaded_image = false;
+						        foreach ( $customerLanguageModel as $languages ) {
+						            $websiteDetailModel = new Website1_Model_ModuleWebsiteDetail1($allFormValues);
+						            $websiteDetailModel->setLanguageId ( $languages->getLanguageId () );
+						            if ($logo_path != "") {
+						                $websiteDetailModel->setWebsiteLogo ($logo_path);
+						            }
+						            $websiteDetailModel->setCreatedBy ( $user_id );
+						            $websiteDetailModel->setCreatedAt ( $date_time );
+						            $websiteDetailModel->setLastUpdatedBy ( $user_id );
+						            $websiteDetailModel->setLastUpdatedAt ( $date_time );
+						            $websiteDetailModel = $websiteDetailModel->save ();
+						        }
+						    }
 						}
 					}else {
 						$websiteModel->setLastUpdatedBy ( $user_id );

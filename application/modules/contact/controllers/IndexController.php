@@ -1,12 +1,20 @@
 <?php 
 class Contact_IndexController extends Zend_Controller_Action {
 	var $_module_id;
+	var $_customer_module_id;
 	public function init() {
 		/* Initialize action controller here */
 		$modulesMapper = new Admin_Model_Mapper_Module ();
 		$module = $modulesMapper->fetchAll ( "name ='contact'" );
 		if (is_array ( $module )) {
 			$this->_module_id = $module [0]->getModuleId ();
+		}
+		$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
+		$customermoduleMapper = new Admin_Model_Mapper_CustomerModule();
+		$customermodule = $customermoduleMapper->fetchAll("customer_id=". $customer_id ." AND module_id=".$this->_module_id);
+		if(is_array($customermodule)) {
+			$customermodule = $customermodule[0];
+			$this->_customer_module_id = $customermodule->getCustomerModuleId();
 		}
 	}
 	public function indexAction() {
@@ -15,6 +23,12 @@ class Contact_IndexController extends Zend_Controller_Action {
 				"module" => "contact",
 				"controller" => "index",
 				"action" => "add" 
+		), "default", true );
+		$this->view->publishlink = $this->view->url ( array (
+				"module" => "default",
+				"controller" => "configuration",
+				"action" => "publish",
+				"id" => $this->_customer_module_id
 		), "default", true );
 		$this->view->reorderlink = $this->view->url ( array (
 				"module" => "contact",
@@ -184,7 +198,7 @@ class Contact_IndexController extends Zend_Controller_Action {
 		$form = new Contact_Form_Contact ();
 		$request = $this->getRequest ();
 		$response = array ();
-		
+		$default_lang_id = Standard_Functions::getCurrentUser ()->default_language_id;
 		if ($this->_request->isPost ()) {
 			$source_dir = Standard_Functions::getResourcePath () . "contact/images/";
 			$upload_dir = Standard_Functions::getResourcePath () . "contact/thumb/";
@@ -207,7 +221,7 @@ class Contact_IndexController extends Zend_Controller_Action {
 				exit ();
 			}
 			$form->removeElement ( "logo" );
-			
+			$allFlag = $this->_request->getParam("all",false);
 			if ($form->isValid ( $this->_request->getParams () )) {
 				try {
 					$timings = $request->getParam("xml","");
@@ -250,6 +264,61 @@ class Contact_IndexController extends Zend_Controller_Action {
 								
 								$modelDetails = $modelDetails->save ();
 							}
+						}
+					}elseif($allFlag){
+						$model->setLastUpdatedBy ( $user_id );
+						$model->setLastUpdatedAt ( $date_time );
+						$model = $model->save ();
+						$mapperLanguage = new Admin_Model_Mapper_CustomerLanguage ();
+						$modelLanguages = $mapperLanguage->fetchAll ( "customer_id = " . $customer_id );
+						$mapperDetails = new Contact_Model_Mapper_ContactDetail ( $arrFormValues );
+						$mapperDetailsData = $mapperDetails->getDbTable()->fetchAll("contact_id =".$arrFormValues['contact_id'])->toArray();
+						if($arrFormValues['contact_detail_id'] != ""){
+						    $currentmapperDetailsData = $mapperDetails->getDbTable()->fetchAll("contact_detail_id =".$arrFormValues['contact_detail_id'])->toArray();
+						}else{
+						    $currentmapperDetailsData = $mapperDetails->getDbTable()->fetchAll("contact_id ='".$arrFormValues['contact_id']."' AND language_id =".$default_lang_id)->toArray();
+						}
+						if(is_array($currentmapperDetailsData)){
+						    $arrFormValues['logo'] = $currentmapperDetailsData[0]['logo'];    
+						}
+						unset($arrFormValues['contact_detail_id'],$arrFormValues['language_id']);
+						if(count($mapperDetails) == count($modelLanguages)){
+						    foreach ($mapperDetailsData as $mapperDetailData) {
+						        $mapperDetailData = array_intersect_key($arrFormValues + $mapperDetailData, $mapperDetailData);
+						        $contactDetailModel = new Contact_Model_ContactDetail($mapperDetailData);
+						        if ($logo_path == "deleted" ) {
+						            $contactDetailModel->setLogo ("");
+						        }
+						        if ($logo_path != "" && $logo_path != "deleted" && $logo_path != "/appstart/public/") {
+						            $contactDetailModel->setLogo ($logo_path);
+						        }
+						        $contactDetailModel = $contactDetailModel->save();
+						    }   
+						}else{
+						    $mapperDetails = new Contact_Model_Mapper_ContactDetail ( $arrFormValues );
+						    $mapperDetailsDatas = $mapperDetails->fetchAll("contact_id =".$arrFormValues['contact_id']);
+						    foreach ($mapperDetailsDatas as $mapperDetailData){
+						        $mapperDetailData->delete();
+						    }
+						    if (is_array ( $modelLanguages )) {
+						        $is_uploaded_image = false;
+						        foreach ( $modelLanguages as $languages ) {
+						            $modelDetails = new Contact_Model_ContactDetail ( $arrFormValues );
+						            $modelDetails->setLanguageId ( $languages->getLanguageId () );
+						            $modelDetails->setTimings ( $timings );
+    						        if ($logo_path == "deleted" ) {
+            							$modelDetails->setLogo ("");
+            						}elseif ($logo_path != "" && $logo_path != "deleted" && $logo_path != "/appstart/public/"){
+            						    $modelDetails->setLogo ($logo_path);
+            						}
+						            $modelDetails->setCreatedBy ( $user_id );
+						            $modelDetails->setCreatedAt ( $date_time );
+						            $modelDetails->setLastUpdatedBy ( $user_id );
+						            $modelDetails->setLastUpdatedAt ( $date_time );
+						    
+						            $modelDetails = $modelDetails->save ();
+						        }
+						    }        
 						}
 					} else {
 						// Update record]

@@ -1,5 +1,4 @@
 <?php
-
 class Default_IndexController extends Zend_Controller_Action
 {
 
@@ -43,4 +42,3 @@ class Default_IndexController extends Zend_Controller_Action
 		return $this->_helper->json ( $version );
 	}
 }
-

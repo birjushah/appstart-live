@@ -63,6 +63,16 @@ class Document_Form_Document extends Standard_Form {
 		$title->setAttrib("required", "required");
 		$this->addElement ( $title);
 		
+		//Icon
+		$icon = $this->createElement ( 'file', 'icon' );
+		$icon->setLabel ( 'Icon:' )->setDestination ( Standard_Functions::getResourcePath () . "document/uploaded-icons" )->addValidator ( 'Size', false, 102400 )->addValidator ( 'Extension', false, 'jpg,png,gif' );
+		$this->addElement ( $icon );
+		
+		$this->addElement ( 'checkbox', 'status', array (
+				'label' => 'Active',
+				'value' => '1' 
+		) );
+		
 		// Description
 		$description = $this->createElement ( "textarea", "description", array (
 				'label' => 'Description',
@@ -111,6 +121,13 @@ class Document_Form_Document extends Standard_Form {
 		$submit = $this->addElement ( 'submit', 'submit', array (
 				'ignore' => true,
 				'class' => "button" 
+		) );
+		
+		// Submit For ALL button
+		$allpyall = $this->addElement ( 'button', 'applyalldoc', array (
+		        'ignore' => true,
+		        'class' => "button",
+		        'label' => 'submit to all'
 		) );
 		
 		// REset button

@@ -82,7 +82,7 @@ $(document).ready(function() {
 					success:function(data){
 						if(!data.errors)
 						{
-							promptus.showSuccessMessage("User Group saved successfully.");
+							promptus.showSuccessMessage("User saved successfully.");
 		                	setTimeout(function(){
 		                		promptus.close();
 		                		location.href = "<?php echo $this->url(array("module"=>"default","controller"=>"user","action"=>"index"),null,true); ?>";

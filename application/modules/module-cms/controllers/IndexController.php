@@ -1,12 +1,20 @@
 <?php
 class ModuleCms_IndexController extends Zend_Controller_Action {
 	var $_module_id;
+	var $_customer_module_id;
 	public function init() {
 		/* Initialize Action Controller Here.. */
 		$modulesMapper = new Admin_Model_Mapper_Module ();
 		$module = $modulesMapper->fetchAll ( "name ='module-cms'" );
 		if (is_array ( $module )) {
 			$this->_module_id = $module [0]->getModuleId ();
+		}
+		$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
+		$customermoduleMapper = new Admin_Model_Mapper_CustomerModule();
+		$customermodule = $customermoduleMapper->fetchAll("customer_id=". $customer_id ." AND module_id=".$this->_module_id);
+		if(is_array($customermodule)) {
+		    $customermodule = $customermodule[0];
+		    $this->_customer_module_id = $customermodule->getCustomerModuleId();
 		}
 	}
 	public function indexAction() {
@@ -15,6 +23,12 @@ class ModuleCms_IndexController extends Zend_Controller_Action {
 				"module" => "module-cms",
 				"controller" => "index",
 				"action" => "add" 
+		), "default", true );
+		$this->view->publishlink = $this->view->url ( array (
+		        "module" => "default",
+		        "controller" => "configuration",
+		        "action" => "publish",
+		        "id" => $this->_customer_module_id
 		), "default", true );
 		$this->view->reorderlink = $this->view->url ( array (
 				"module" => "module-cms",
@@ -167,6 +181,7 @@ class ModuleCms_IndexController extends Zend_Controller_Action {
 		$this->_helper->viewRenderer->setNoRender ();
 		$form = new ModuleCms_Form_ModuleCms ();
 		$request = $this->getRequest ();
+		$default_lang_id = Standard_Functions::getCurrentUser ()->default_language_id;
 		$response = array ();
 		if ($this->_request->isPost ()) {
 			if ($request->getParam ( "upload", "" ) != "") {
@@ -187,6 +202,7 @@ class ModuleCms_IndexController extends Zend_Controller_Action {
 				exit ();
 			}
 			$form->removeElement("thumb");
+			$allFlag = $this->_request->getParam("all",false);
 			if ($form->isValid ( $this->_request->getParams () )) {
 				try {
 					$allFormValues = $form->getValues ();
@@ -235,6 +251,51 @@ class ModuleCms_IndexController extends Zend_Controller_Action {
 								$modelDetails = $modelDetails->save ();
 							}
 						}
+					}elseif($allFlag){
+					    // update cms
+					    $model->setLastUpdatedBy ( $user_id );
+					    $model->setLastUpdatedAt ( $date_time );
+					    $model = $model->save ();
+					    $customerLanguageMapper = new Admin_Model_Mapper_CustomerLanguage ();
+					    $customerLanguageModel = $customerLanguageMapper->fetchAll ( "customer_id = " . $customer_id );
+					    $cmsDetailMapper = new ModuleCms_Model_Mapper_ModuleCmsDetail();
+					    if($allFormValues['module_cms_detail_id'] != null){
+					        $currentCmsDetails = $cmsDetailMapper->getDbTable()->fetchAll("module_cms_detail_id =".$allFormValues['module_cms_detail_id'])->toArray();
+					    }else{
+					        $currentCmsDetails = $cmsDetailMapper->getDbTable()->fetchAll("module_cms_id ='".$allFormValues['module_cms_id']."' AND language_id =".$default_lang_id)->toArray();
+					    }
+					    if(is_array($currentCmsDetails)){
+					        $allFormValues['thumb'] = $currentCmsDetails[0]['thumb'];
+					    }
+					    $cmsDetails = $cmsDetailMapper->getDbTable()->fetchAll("module_cms_id =".$allFormValues['module_cms_id'])->toArray();
+					    unset($allFormValues['module_cms_detail_id'],$allFormValues['language_id']);
+					    if(count($cmsDetails) == count($customerLanguageModel)){
+					        foreach ($cmsDetails as $cmsDetail) {
+					            $cmsDetail = array_intersect_key($allFormValues + $cmsDetail, $cmsDetail);
+					            $cmsDetailModel = new ModuleCms_Model_ModuleCmsDetail($cmsDetail);
+					            if ($thumb_path != "") {
+					                $cmsDetailModel->setThumb ($thumb_path);
+					            }
+					            $cmsDetailModel = $cmsDetailModel->save();
+					        }
+					    }else{
+					        $cmsDetailMapper = new ModuleCms_Model_Mapper_ModuleCmsDetail();
+					        $cmsDetails = $cmsDetailMapper->fetchAll("module_cms_id =".$allFormValues['module_cms_id']);
+					        foreach ($cmsDetails as $cmsDetail){
+					            $cmsDetail->delete();
+					        }
+					        if (is_array ( $customerLanguageModel )) {
+					            $is_uploaded_image = false;
+					            foreach ( $customerLanguageModel as $languages ) {
+					                $cmsDetailModel = new ModuleCms_Model_ModuleCmsDetail($allFormValues);
+					                $cmsDetailModel->setLanguageId ( $languages->getLanguageId () );
+					                if ($thumb_path != "") {
+					                    $cmsDetailModel->setThumb ($thumb_path);
+					                }
+					                $cmsDetailModel = $cmsDetailModel->save ();
+					            }
+					        }
+					    }
 					} else {
 						// update cms
 						$model->setLastUpdatedBy ( $user_id );
@@ -386,7 +447,7 @@ class ModuleCms_IndexController extends Zend_Controller_Action {
 			$delete = '<a href="' . $deleteUrl . '" class="button-grid greay grid_delete" >'.$this->view->translate('Delete').'</a>';
 			$sap = '';
 			$image_path = $row[4]["cd.thumb"];
-			$image_uri = "resource/module-cms/thumb/";
+			$image_uri = "resource/module-cms/images/";
 			$ext_image_path = array_pop ( explode ( ".", $image_path ) );
 			if ($image_path!="" && file_exists ( $image_uri . str_replace ( "." . $ext_image_path, "_thumb." . $ext_image_path, $image_path ) )) {
 				$image_path = str_replace ( "." . $ext_image_path, "_thumb." . $ext_image_path, $image_path );

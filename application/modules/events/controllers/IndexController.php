@@ -2,7 +2,7 @@
 class Events_IndexController extends Zend_Controller_Action
 {
 	var $_module_id;
-	
+	var $_customer_module_id;
     public function init()
     {
 		/* Initialize action controller here */
@@ -10,6 +10,13 @@ class Events_IndexController extends Zend_Controller_Action
     	$module = $modulesMapper->fetchAll("name ='events'");
     	if(is_array($module)) {
     		$this->_module_id = $module[0]->getModuleId();
+    	}
+    	$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
+    	$customermoduleMapper = new Admin_Model_Mapper_CustomerModule();
+    	$customermodule = $customermoduleMapper->fetchAll("customer_id=". $customer_id ." AND module_id=".$this->_module_id);
+    	if(is_array($customermodule)) {
+    	    $customermodule = $customermodule[0];
+    	    $this->_customer_module_id = $customermodule->getCustomerModuleId();
     	}
     }
 
@@ -21,6 +28,12 @@ class Events_IndexController extends Zend_Controller_Action
 					    			"controller" => "index",
 					    			"action" => "add"
 					    	), "default", true );
+    	$this->view->publishlink = $this->view->url ( array (
+    	        "module" => "default",
+    	        "controller" => "configuration",
+    	        "action" => "publish",
+    	        "id" => $this->_customer_module_id
+    	), "default", true );
     	$this->view->reorderlink = $this->view->url ( array (
     			"module" => "events",
     			"controller" => "index",
@@ -165,25 +178,32 @@ class Events_IndexController extends Zend_Controller_Action
     		} else {
     			// Record For Language Not Found
     			$dataDetails = $details->getDbTable()->fetchAll("module_events_id = ".$events_id." AND language_id = ".$default_lang_id)->toArray();
+    			$default_event_detail_id = $dataDetails[0]["module_events_detail_id"];
     			$dataDetails[0]["module_events_detail_id"] = "";
     			$dataDetails[0]["language_id"] = $lang_id;
     		}
     		
     		if(isset($dataDetails[0]) && is_array($dataDetails[0])) {
                 $locationDetails = new Events_Model_Mapper_ModuleEventsLocation();
-                $locations = $locationDetails->getDbTable()->fetchAll("module_events_detail_id =". $dataDetails[0]["module_events_detail_id"])->toArray();
+                if($dataDetails[0]["module_events_detail_id"] != ""){
+                    $locations = $locationDetails->getDbTable()->fetchAll("module_events_detail_id =". $dataDetails[0]["module_events_detail_id"])->toArray();
+                }else{
+                    $locations = $locationDetails->getDbTable()->fetchAll("module_events_detail_id =". $default_event_detail_id)->toArray();
+                }
                 $location = array();
-                foreach($locations as $locations){
-                    $temp = array(
-                        'address' => $locations['address'],
-                        'plz' => $locations['plz'],
-                        'city' => $locations['city'],
-                        'country' => $locations['country'],
-                        'location' => $locations['location'],
-                        'latitude' => $locations['latitude'],
-                        'longitude' => $locations['longitude']
-                    );
-                    array_push($location, $temp);
+                if(is_array($locations)){
+                    foreach($locations as $locations){
+                        $temp = array(
+                                'address' => $locations['address'],
+                                'plz' => $locations['plz'],
+                                'city' => $locations['city'],
+                                'country' => $locations['country'],
+                                'location' => $locations['location'],
+                                'latitude' => $locations['latitude'],
+                                'longitude' => $locations['longitude']
+                        );
+                        array_push($location, $temp);
+                    }    
                 }
                 //print_r($dataDetails[0]);
                 //die();
@@ -220,8 +240,8 @@ class Events_IndexController extends Zend_Controller_Action
     	// action body
     	$form = new Events_Form_Events();
     	$request = $this->getRequest ();
-    	$response = array ();
-    	 
+    	$response = array (); 
+    	$default_lang_id = Standard_Functions::getCurrentUser ()->default_language_id;
     	if ($this->_request->isPost ()) {
     		if($request->getParam ( "upload", "" ) != "") {
     			$adapter = new Zend_File_Transfer_Adapter_Http();
@@ -243,7 +263,7 @@ class Events_IndexController extends Zend_Controller_Action
     		}
     		
     		$form->removeElement("image");
-    		
+    		$allFlag = $this->_request->getParam("all",false);
     		if ($form->isValid ( $this->_request->getParams () )) {
     			
     			$mapper = new Events_Model_Mapper_ModuleEvents();
@@ -334,6 +354,117 @@ class Events_IndexController extends Zend_Controller_Action
                                 }
     						}
     					}
+    				}elseif($allFlag){
+    				    $locationMapper = new Events_Model_Mapper_ModuleEventsLocation();
+    				    $eventDetailMapper = new Events_Model_Mapper_ModuleEventsDetail();
+    				    $eventDetails = $eventDetailMapper->fetchAll("module_events_id =".$arrFormValues['module_events_id']);
+    				    foreach ($eventDetails as $eventDetail){
+    				        $locations = $locationMapper->fetchAll("module_events_detail_id =".$eventDetail->getModuleEventsDetailId());
+    				        foreach ($locations as $location){
+    				            $location->delete();
+    				        }
+    				    }
+    				    $model->setLastUpdatedBy ( $user_id );
+    				    $model->setLastUpdatedAt ( $date_time);
+    				    $model = $model->save ();
+    				    $customerLanguageMapper = new Admin_Model_Mapper_CustomerLanguage ();
+    				    $customerLanguageModel = $customerLanguageMapper->fetchAll ( "customer_id = " . $customer_id );
+    				    $eventdetailMapper = new Events_Model_Mapper_ModuleEventsDetail();
+    				    $eventdetails = $eventdetailMapper->getDbTable()->fetchAll("module_events_id =".$arrFormValues["module_events_id"])->toArray();
+    				    if($arrFormValues["module_events_detail_id"] != null){
+    				        $currentevents = $eventdetailMapper->getDbTable()->fetchAll("module_events_detail_id =".$arrFormValues["module_events_detail_id"])->toArray();
+    				    }else{
+    				        $currentevents = $eventdetailMapper->getDbTable()->fetchAll("module_events_id ='".$arrFormValues["module_events_id"]."' AND language_id =".$default_lang_id)->toArray();
+    				    }
+    				    if(is_array($currentevents)){
+    				        $arrFormValues['image'] = $currentevents[0]["image"]; 
+    				    }
+    				    unset($arrFormValues['module_events_detail_id'],$arrFormValues['language_id']);
+    				    if(count($eventdetails) == count($customerLanguageModel)){
+    				        foreach ($eventdetails as $eventdetail) {
+    				            $eventdetail = array_intersect_key($arrFormValues + $eventdetail, $eventdetail);
+    				            $eventDetailModel = new Events_Model_ModuleEventsDetail($eventdetail);
+    				            if($image_path != ""){
+    								$eventDetailModel->setImage($image_path);
+    							}
+    				            $eventDetailModel = $eventDetailModel->save();
+    				            //Updating locations
+    				            $detail_id = $eventDetailModel->get("module_events_detail_id");
+    				            $location = array();
+    				            for($i=0;$i<count($arrFormValues[address]);$i++){
+    				                $tempLocationArray = array(
+    				                        'location' => $arrFormValues[location][$i],
+    				                        'address' => $arrFormValues[address][$i],
+    				                        'plz' => $arrFormValues[plz][$i],
+    				                        'city' => $arrFormValues[city][$i],
+    				                        'country' => $arrFormValues[country][$i],
+    				                        'latitude' => $arrFormValues[latitude][$i],
+    				                        'longitude' => $arrFormValues[longitude][$i]
+    				                );
+    				                array_push($location,$tempLocationArray);
+    				            }
+    				            $modelLocation = new Events_Model_ModuleEventsLocation();
+    				            foreach($location as $location){
+    				                $modelLocation = new Events_Model_ModuleEventsLocation();
+    				                $modelLocation->setModuleEventsDetailId($detail_id);
+    				                $modelLocation->setAddress($location['address']);
+    				                $modelLocation->setPlz($location['plz']);
+    				                $modelLocation->setCity($location['city']);
+    				                $modelLocation->setCountry($location['country']);
+    				                $modelLocation->setLocation($location['location']);
+    				                $modelLocation->setLatitude($location['latitude']);
+    				                $modelLocation->setLongitude($location['longitude']);
+    				                $modelLocation->save();
+    				            }
+    				        }
+    				    }else{
+    				        $eventDetailMapper = new Events_Model_Mapper_ModuleEventsDetail();
+    				        $eventDetails = $eventDetailMapper->fetchAll("module_events_id =".$arrFormValues['module_events_id']);
+    				        foreach ($eventDetails as $eventDetail){
+    				            $eventDetail->delete();
+    				        }
+    				        if (is_array ( $customerLanguageModel )) {
+    				            $is_uploaded_image = false;
+    				            foreach ( $customerLanguageModel as $languages ) {
+    				                $eventDetailModel = new Events_Model_ModuleEventsDetail($arrFormValues);
+    				                $eventDetailModel->setLanguageId ( $languages->getLanguageId () );
+    				                if($image_path != ""){
+    								    $eventDetailModel->setImage($image_path);
+    							    }
+    				                $eventDetailModel->setCreatedBy ( $user_id );
+    				                $eventDetailModel->setCreatedAt ( $date_time );
+    				                $eventDetailModel->setLastUpdatedBy ( $user_id );
+    				                $eventDetailModel->setLastUpdatedAt ( $date_time );
+    				                $eventDetailModel = $eventDetailModel->save ();
+    				                $detail_id = $eventDetailModel->get("module_events_detail_id");
+    				                $location = array();
+    				                for($i=0;$i<count($arrFormValues[address]);$i++){
+    				                    $tempLocationArray = array(
+    				                            'location' => $arrFormValues[location][$i],
+    				                            'address' => $arrFormValues[address][$i],
+    				                            'plz' => $arrFormValues[plz][$i],
+    				                            'city' => $arrFormValues[city][$i],
+    				                            'country' => $arrFormValues[country][$i],
+    				                            'latitude' => $arrFormValues[latitude][$i],
+    				                            'longitude' => $arrFormValues[longitude][$i]
+    				                    );
+    				                    array_push($location,$tempLocationArray);
+    				                }
+    				                foreach($location as $location){
+    				                    $modelLocation = new Events_Model_ModuleEventsLocation();
+    				                    $modelLocation->setModuleEventsDetailId($detail_id);
+    				                    $modelLocation->setAddress($location['address']);
+    				                    $modelLocation->setPlz($location['plz']);
+    				                    $modelLocation->setCity($location['city']);
+    				                    $modelLocation->setCountry($location['country']);
+    				                    $modelLocation->setLocation($location['location']);
+    				                    $modelLocation->setLatitude($location['latitude']);
+    				                    $modelLocation->setLongitude($location['longitude']);
+    				                    $modelLocation->save();
+    				                }
+    				            }
+    				        }
+    				    }
     				} else {
     					// Edit Event
     					$model->setLastUpdatedBy ( $user_id );

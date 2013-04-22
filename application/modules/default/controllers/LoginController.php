@@ -1,13 +1,12 @@
 <?php
 class Default_LoginController extends Zend_Controller_Action {
 	public function init() {
-		
+	
 	}
 	public function indexAction() {
 		// action body
 		$request = $this->getRequest ();
 		$form = new Default_Form_Login ();
-		
 		if ($this->getRequest ()->isPost ()) {
 			if ($form->isValid ( $request->getPost () )) {
 				// set up the auth adapter
@@ -30,6 +29,7 @@ class Default_LoginController extends Zend_Controller_Action {
 							'username',
                             'name',
                             'user_group_id',
+                            'user_group'
 					) );
 					
 					$groupMapper = new Default_Model_Mapper_UserGroup();
@@ -43,6 +43,7 @@ class Default_LoginController extends Zend_Controller_Action {
 							$identity->customer_id = 0;
 						}
 						$identity->group_id = $identity->user_group_id;
+						$identity->user_group = $group->name;
 						
 						$languageMapper = new Admin_Model_Mapper_CustomerLanguage();
 						$language = $languageMapper->fetchAll("customer_id = ".$group->getCustomerId()." AND is_default=1");
@@ -52,6 +53,10 @@ class Default_LoginController extends Zend_Controller_Action {
 						} else {
 							$identity->default_language_id = 1;
 							$identity->active_language_id = 1;
+						}
+						$offset = $request->getParam("offset",false);
+						if($offset){
+							$identity->offset = $offset;	
 						}
 						$storage = $auth->getStorage ();
 						$storage->write ( $identity );
@@ -123,7 +128,7 @@ class Default_LoginController extends Zend_Controller_Action {
 				{
 					$userMapper = new Default_Model_Mapper_User();
 					$user = $userMapper->find($customer->getUserId());
-					
+
 					$auth = Zend_Auth::getInstance ();
 					$identity = $auth->getIdentity();
 					$identity->user_id = $user->getUserId();
@@ -131,6 +136,11 @@ class Default_LoginController extends Zend_Controller_Action {
 					$identity->name = $user->getName();
 					$identity->group_id = $identity->user_group_id = $user->getUserGroupId();
 					$identity->customer_id = $customer->getCustomerId();
+
+					$groupMapper = new Default_Model_Mapper_UserGroup();
+					$group = $groupMapper->find($identity->user_group_id);
+
+					$identity->user_group = $group->getName();
 					
 					$languageMapper = new Admin_Model_Mapper_CustomerLanguage();
 					$language = $languageMapper->fetchAll("customer_id = ".$customer->getCustomerId()." AND is_default=1");
@@ -141,7 +151,10 @@ class Default_LoginController extends Zend_Controller_Action {
 						$identity->default_language_id = 1;
 						$identity->active_language_id = 1;
 					}
-					
+					$offset = $this->_request->getParam ( "offset", false );
+					if($offset){
+						$identity->offset = $offset;	
+					}
 					$storage = $auth->getStorage ();
 					$storage->write ( $identity );
 				}

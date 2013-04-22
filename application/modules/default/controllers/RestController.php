@@ -15,6 +15,10 @@ class Default_RestController extends Standard_Rest_Controller {
 				$this->_sync();
 			}else if($service == "gcm") {
 				$this->_gcm();
+			}else if($service == "deletegcmuser") {
+				$this->_deletegcmuser();
+			}else if($service == "apns") {
+				$this->_apns();
 			} else {
 				$this->_sendError("Invalid service");
 			}
@@ -129,12 +133,12 @@ class Default_RestController extends Standard_Rest_Controller {
 											}
 										}elseif($tempDetail['background_type'] == 0){
 											if($tempDetail['background_color'] != null){
-												$tempDetail["background_color"] = "#".$tempDetail['background_color'];
+												$tempDetail["background_color"] = $tempDetail['background_color'];
 											}else{
 												$tempDetail["background_color"] = "";
 											} 
 										}else{
-											$tempDetail["background_type"] =	 "";	
+											$tempDetail["background_type"] = "";	
 										}
 										$details[] = $tempDetail;
 									}
@@ -216,6 +220,50 @@ class Default_RestController extends Standard_Rest_Controller {
 			}catch(Exception $ex){
 				$this->_sendError($ex->getMessage());
 			}
+		}
+	}
+
+	protected function _apns(){
+		$customer_id = $this->_request->getParam("customer_id",null);
+		$device_id = $this->_request->getParam("device_id",null);
+		if($customer_id===null) {
+			$this->_sendError("Invalid request");
+		}else{
+			try{
+				if($device_id != "" && $customer_id != "" && $device_id != "000000000000000"){
+					$iphoneuserModel = new Default_Model_IphoneUser();
+					$iphoneuserMapper = new Default_Model_Mapper_IphoneUser();
+					$iphoneuserExists = $iphoneuserMapper->getDbTable()->fetchAll("device_id =".$device_id)->toArray();
+					if($iphoneuserExists){
+						$iphoneuserModel->setIphoneUserId($iphoneuserExists[0]["iphone_user_id"]);
+					}
+					$iphoneuserModel->setCustomerId($customer_id);
+					$iphoneuserModel->setDeviceId($device_id);
+					$iphoneuserModel->save();
+				}
+			}catch(Exception $ex){
+				$this->_sendError($ex->getMessage());
+			}
+		}
+	}
+
+	protected function _deletegcmuser(){
+		$customer_id = $this->_request->getParam("customer_id",null);
+		$device_id = $this->_request->getParam("device_id",null);
+		if($customer_id==null || $device_id==null){
+			$this->_sendError("Invalid Request");
+		}else{
+			try{
+				$clouduserModel = new Default_Model_Mapper_CloudUser();
+				$clouduser = $clouduserModel->fetchAll("device_id ='".$device_id."' AND customer_id =".$customer_id);
+				if(is_array($clouduser)){
+					foreach ($clouduser as $clouduser) {
+						$clouduser->delete();
+					}
+				}
+			}catch(Exception $ex){
+				$this->_sendError($ex->getMessage());
+			}	
 		}
 	}
 }

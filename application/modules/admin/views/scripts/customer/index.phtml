@@ -127,4 +127,10 @@ $(document).on("submit","#frmFilter",function(){
 	grid.fnDraw();
 	return false;
 });
+$(document).one("click",".grid_dashboard",function(){
+    var offset = new Date().getTimezoneOffset();
+    var href = $(this).attr("href");
+    newhref = href+offset;
+    $(this).attr("href",newhref);
+});
 </script>

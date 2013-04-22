@@ -86,6 +86,14 @@ class Admin_Form_Version extends Standard_Form{
 		$this->addElement('submit', 'submit', array(
 				'ignore'   => true
 		));
+		
+		// Submit For ALL button
+		$allpyall = $this->addElement ( 'button', 'applyall', array (
+		        'ignore' => true,
+		        'class' => "button",
+		        'label' => 'submit to all'
+		) );
+		
 		// Add the reset button
 		$this->addElement('reset', 'reset', array(
 				'ignore'   => true

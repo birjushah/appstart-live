@@ -175,13 +175,13 @@ div.iconBox, #background-sel-container{
 							        </div>
 						        	<div class="float-left" id="b-color">
 							        	<div class="float-left color-details">
-							        		<input type="radio" name="sel-background" value="0">
+							        		<input type="radio" name="sel-background" id="sel-color" value="0">
 							        	</div>
 							        	<div class="float-left color-details">
 							        		<span>Color:</span>
 							        	</div>
 							        	<div class="float-left">
-											<input name="background_color" id="background_color" id="sel-color" type="text" value="000000">
+											<input name="background_color" id="background_color" type="text" value="000000">
 										</div>
 									</div>
 								</div>
@@ -193,7 +193,7 @@ div.iconBox, #background-sel-container{
 						</tr>
 					</tbody>
 				</table>
-				<div class="customer_submit"><?php echo $moduleForm->submit->renderViewHelper().$moduleForm->cancel->renderViewHelper();?></div>
+				<div class="customer_submit"><?php echo $moduleForm->submit->renderViewHelper().$moduleForm->applyall->renderViewHelper().$moduleForm->cancel->renderViewHelper();?></div>
 			</form>
 		</div>
 	</div>
@@ -391,7 +391,7 @@ var grid ="";
                         	if(json.success != undefined){ 
                             	// Success Show Record To Edit.
                             	data = json.success;
-								dropdown = json.dropdown;
+								dropdown = json.dropdown;								
 								icons = json.icons;
 								selectedIcon = icons.selected;
 									$("#iconDiv").html("") ;
@@ -408,18 +408,19 @@ var grid ="";
 											"</label>"+
 											"<input type=radio "+checked+" name=selIcon id=icon_"+i+" value="+icon+">"+
 										"</div>"
-										)
+										);
 									});
                             	$("#customer_module_id").attr("value",data["cm_customer_module_id"]);
                             	$("#language_id").attr("value",data["d_language_id"]);
                             	$("#icon_path").attr("value",data["cm_icon"]);
                             	$("#screen_name").attr("value",data["d_screen_name"]);
-                            	if(data["d_background_color"] != null){
+                            	if(data["d_background_color"] != ""){
                             		$("#background_color").attr("value",data["d_background_color"]);
                             	}else{
-                            		$("#background_color").attr("value",'FFFFFF');
+                            		$("#background_color").attr("value",'');
                             	}                           	
-                            	//$('#background_color').trigger('keyup'); 
+                            	//$('#background_color').trigger('keyup');
+                            	$('#myDropdown').ddslick('destroy'); 
                             	$('#myDropdown').ddslick({
                                 	data:dropdown,
                         			width:300,                      			
@@ -434,11 +435,13 @@ var grid ="";
                             	if(data["cm_icon"] != ""){
                             		$("#img-icon").attr("src","<?php echo $this->baseUrl()."/resource/default/images/icon/"; ?>" + data["cm_icon"]);
                             	}
-								//$("#img-background").attr("src","<?php //echo $this->baseUrl()."/background/"; ?>" + data["d_background_image"]);
                             	if(data["d_background_type"]==0){
-                            		$(":radio[value=0]").attr("checked","checked");	
+                            		$("#sel-color").attr("checked","checked");
+                            		$("input[name=background_type]").attr("value","0");	
                             	}else{
-                            		$(":radio[value=1]").attr("checked","checked");
+                            		$("#sel-image").attr("checked","checked");
+                            		$("input[name=background_type]").attr("value","1");
+                            		$("input[id=background_color]").attr("disabled","disabled");
                             	}
                             	if(data["cm_visibility"]==1) {
                             		$("#visibility").attr("checked","checked");
@@ -446,7 +449,7 @@ var grid ="";
                             		$("#visibility").removeAttr("checked");
                             	}
                             	$("input[name=sel-background]").on("change",function(){
-                            		if($(this).val() == 1){
+                            		if($(this).attr("id") == "sel-image"){
                             			$("input[name=background_type]").attr("value","1");
                             			$("input[id=background_color]").attr("disabled","disabled");
                             		}else{
@@ -501,8 +504,35 @@ var grid ="";
 	      		e.preventDefault();
 	    	}
 	    });
-
-		$("#frmModuleConfiguration").validator().submit(function(e){
+		$("#applyall").on("click",function(e){
+			if(!e.isDefaultPrevented()){
+		    	var promptus = new prompt({
+		            	reference :"#frmModuleConfiguration",
+		                element : $("#config-tabs"),
+		                message : "<?php echo $this->translate('Your changes will be saved and applied to all languages. Is it Ok?'); ?>",
+		                buttons : {
+		                    "Yes" : function(self){
+		                        $("#frmModuleConfiguration").trigger("submit",{all:true});
+		                    },
+		                    "No"  : function(self){
+		                    	this.close();
+		                    },
+		                }
+		            });
+		        e.preventDefault();
+		    }
+		});
+		$("#frmModuleConfiguration").validator().submit(function(e,customObject){
+			customObject = customObject || {};
+			var queryAppend = "";
+			if(customObject.all){
+				queryAppend = "&all=true";
+			}
+			if($("input[name=background_type]").val() == 0){
+				$("#background_image").attr("value","");
+			}else{
+				$("#background_color").attr("value","");
+			}	
 			if(!e.isDefaultPrevented()){
 				var self = this;
 				var promptus = false;
@@ -546,7 +576,7 @@ var grid ="";
 					$.ajax({
 						type : "POST",
 						cache : false,
-						data : $(self).serialize(),
+						data : $(self).serialize() + queryAppend,
 						dataType: 'json',
 						url : "<?php echo $this->url(array("module"=>"default","controller"=>"configuration","action"=>"save-module"),"default",true);?>",
 						success : function(json){
@@ -659,9 +689,6 @@ var grid ="";
 		$("#data-grid").show();
     	$("#data-form").hide();
 	}
-	$(document).on('change',"#font_color",function(){
-		alert($(this).val());
-	});
 	$(document).on("change","input:radio[name=selIcon]",function(){
 		if($('input:radio[name=selIcon]:checked').val() == 0)
 		{

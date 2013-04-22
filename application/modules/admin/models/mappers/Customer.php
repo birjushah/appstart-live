@@ -90,6 +90,7 @@ class Admin_Model_Mapper_Customer extends Standard_ModelMapper {
 				$userGroup->setOptions ( array (
 						'customer_id' => $customer->getCustomerId (),
 						'name' => 'Administrator',
+						'settings' => 1,
 						'created_at' => $currentDateTime 
 				) );
 				$userGroup = $userGroup->save ();

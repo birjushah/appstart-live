@@ -82,6 +82,13 @@ class HomeWallpaper_Form_HomeWallpaper extends Standard_Form {
 				'class' => "button" 
 		) );
 		
+		// Submit For ALL button
+		$allpyall = $this->addElement ( 'button', 'applyall', array (
+		        'ignore' => true,
+		        'class' => "button",
+		        'label' => 'submit to all'
+		) );
+		
 		// REset button
 		$reset = $this->addElement ( 'reset', 'reset', array (
 				'ignore' => true,

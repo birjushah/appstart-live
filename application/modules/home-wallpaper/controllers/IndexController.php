@@ -1,13 +1,20 @@
 <?php
 class HomeWallpaper_IndexController extends Zend_Controller_Action {
 	var $_module_id;
-	
+	var $_customer_module_id;
 	public function init() {
 		/* Initialize action controller here */
 		$modulesMapper = new Admin_Model_Mapper_Module();
 		$module = $modulesMapper->fetchAll("name ='home-wallpaper'");
 		if(is_array($module)) {
 			$this->_module_id = $module[0]->getModuleId();
+		}
+		$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
+		$customermoduleMapper = new Admin_Model_Mapper_CustomerModule();
+		$customermodule = $customermoduleMapper->fetchAll("customer_id=". $customer_id ." AND module_id=".$this->_module_id);
+		if(is_array($customermodule)) {
+		    $customermodule = $customermodule[0];
+		    $this->_customer_module_id = $customermodule->getCustomerModuleId();
 		}
 	}
 	public function indexAction() {
@@ -16,6 +23,12 @@ class HomeWallpaper_IndexController extends Zend_Controller_Action {
 				"module" => "home-wallpaper",
 				"controller" => "index",
 				"action" => "add" 
+		), "default", true );
+		$this->view->publishlink = $this->view->url ( array (
+		        "module" => "default",
+		        "controller" => "configuration",
+		        "action" => "publish",
+		        "id" => $this->_customer_module_id
 		), "default", true );
 		$this->view->reorderlink = $this->view->url ( array (
 				"module" => "home-wallpaper",
@@ -138,7 +151,7 @@ class HomeWallpaper_IndexController extends Zend_Controller_Action {
 			} else {
 				// Record For Language Not Found
 				$dataDetails = $homeWallpaperDetailMapper->getDbTable ()->fetchAll ( "home_wallpaper_id = " . $home_wallpaper_id . " AND language_id = " . $default_lang_id )->toArray ();
-				$dataDetails [0] ["home_wallpaper_id"] = "";
+				$dataDetails [0] ["home_wallpaper_detail_id"] = "";
 				$dataDetails [0] ["language_id"] = $language_id;
 			}
 			if (isset ( $dataDetails [0] ) && is_array ( $dataDetails [0] )) {
@@ -147,21 +160,24 @@ class HomeWallpaper_IndexController extends Zend_Controller_Action {
 				
 				$image_path = array();
 				$homeWallpaperImageMapper = new HomeWallpaper_Model_Mapper_HomeWallpaperImage();
-				$homeWallpaperImageModels = $homeWallpaperImageMapper->fetchAll("home_wallpaper_detail_id=".$dataDetails [0]["home_wallpaper_detail_id"]);
-				foreach($homeWallpaperImageModels as $homeWallpaperImage) {
-					$resolution_id = $homeWallpaperImage->getResolutionId();
-					$img_uri = "resource/home-wallpaper/wallpapers/C" . $customerId."/R".$resolution_id;
-					$filename = $homeWallpaperImage->get("image_path");
-					$ext = array_pop(explode(".",$filename));
-					$filename = str_replace(".".$ext, "_thumb.".$ext, $filename);
-					if($filename != ""){
-						$image_path[$resolution_id] = $this->view->baseUrl($img_uri ."/" . $filename);
-					}else{
-						$image_path[$resolution_id] = "";
-					}
+				if($dataDetails [0]["home_wallpaper_detail_id"] != null){
+				    $homeWallpaperImageModels = $homeWallpaperImageMapper->fetchAll("home_wallpaper_detail_id=".$dataDetails [0]["home_wallpaper_detail_id"]);
+				}
+				if(is_array($homeWallpaperImageModels)){
+				    foreach($homeWallpaperImageModels as $homeWallpaperImage) {
+				        $resolution_id = $homeWallpaperImage->getResolutionId();
+				        $img_uri = "resource/home-wallpaper/wallpapers/C" . $customerId."/R".$resolution_id;
+				        $filename = $homeWallpaperImage->get("image_path");
+				        $ext = array_pop(explode(".",$filename));
+				        $filename = str_replace(".".$ext, "_thumb.".$ext, $filename);
+				        if($filename != ""){
+				            $image_path[$resolution_id] = $this->view->baseUrl($img_uri ."/" . $filename);
+				        }else{
+				            $image_path[$resolution_id] = "";
+				        }
+				    }    
 				}
 				$this->view->image_path = $image_path;
-				
 			}
 			foreach ( $form->getElements () as $element ) {
 				if ($element->getDecorator ( 'Label' )) {
@@ -191,14 +207,14 @@ class HomeWallpaper_IndexController extends Zend_Controller_Action {
 		$form = new HomeWallpaper_Form_HomeWallpaper ();
 		$request = $this->getRequest ();
 		$response = array ();
-		
+		$default_lang_id = Standard_Functions::getCurrentUser ()->default_language_id;
 		if ($this->_request->isPost ()) {
 			if ($request->getParam ( "upload", "" ) != "") {
 				$response = $this->fileUplaod ();
 				echo Zend_Json::encode ( $response );
 				exit ();
 			}
-			
+			$allFlag = $this->_request->getParam("all",false);
 			if ($form->isValid ( $this->_request->getParams () )) {
 				try {
 					$allFormValues = $form->getValues ();
@@ -210,7 +226,7 @@ class HomeWallpaper_IndexController extends Zend_Controller_Action {
 					$homeWallpaperModel = new HomeWallpaper_Model_HomeWallpaper ( $allFormValues );
 					if ($request->getParam ( "home_wallpaper_id", "" ) == "") {
 						// Adding new record
-						$maxOrder = $homeWallpaperMapper->getNextOrder ( $customerId );
+					    $maxOrder = $homeWallpaperMapper->getNextOrder ( $customerId );
 						$homeWallpaperModel->setOrder ( $maxOrder + 1 );
 						$homeWallpaperModel->setCreatedBy ( Standard_Functions::getCurrentUser ()->user_id );
 						$homeWallpaperModel->setCreatedAt ( Standard_Functions::getCurrentDateTime () );
@@ -249,6 +265,9 @@ class HomeWallpaper_IndexController extends Zend_Controller_Action {
 										$source_dir = Standard_Functions::getResourcePath () . "home-wallpaper/tmp/images/R".$resolution_id."/";
 										$upload_dir = Standard_Functions::getResourcePath () . "home-wallpaper/wallpapers/C" . $customerId."/R".$resolution_id."/";
 										$filename = $this->moveUploadFile ( $source_dir , $upload_dir , $filename );
+										$storedfilename[$resolution_id] = $filename;
+									}elseif ($storedfilename[$resolution_id]){
+									    $filename = $storedfilename[$resolution_id];
 									}
 									$homeWallpaperImageModel = new HomeWallpaper_Model_HomeWallpaperImage();
 									$homeWallpaperImageModel->setHomeWallpaperDetailId($homeWallpaperDetailId);
@@ -259,6 +278,112 @@ class HomeWallpaper_IndexController extends Zend_Controller_Action {
 								$is_uploaded = true;
 							}
 						}
+					}elseif($allFlag){
+					    $homeWallpaperModel->setLastUpdatedBy ( $user_id );
+					    $homeWallpaperModel->setLastUpdatedAt ( $date_time );
+					    $homeWallpaperModel = $homeWallpaperModel->save ();
+					    $homeWallpaperImageModel = new HomeWallpaper_Model_HomeWallpaperImage();
+					    $customerLanguageMapper = new Admin_Model_Mapper_CustomerLanguage ();
+					    $languages = $customerLanguageMapper->fetchAll ( "customer_id = " . $customerId );
+					    $homeWallpaperImageMapper = new HomeWallpaper_Model_Mapper_HomeWallpaperImage();
+					    $homeWallpaperDetailMapper = new HomeWallpaper_Model_Mapper_HomeWallpaperDetail();
+					    $homewallpaperdetails = $homeWallpaperDetailMapper->getDbTAble()->fetchAll("home_wallpaper_id =".$allFormValues['home_wallpaper_id'])->toArray();
+					    $is_uploaded = false;
+					    if (! is_dir ( Standard_Functions::getResourcePath () . "home-wallpaper/wallpapers/C" . $customerId )) {
+					        mkdir ( Standard_Functions::getResourcePath () . "home-wallpaper/wallpapers/C" . $customerId, 755 );
+					    }
+					    if($allFormValues['home_wallpaper_detail_id'] != null){
+					        $currentimagedetails = $homeWallpaperImageMapper->getDbTable()->fetchAll("home_wallpaper_detail_id =".$allFormValues['home_wallpaper_detail_id'])->toArray();
+					    }else{
+					        $currenthomewallpaperdetails = $homeWallpaperDetailMapper->getDbTable()->fetchAll("home_wallpaper_id ='".$allFormValues['home_wallpaper_id']."' AND language_id =".$default_lang_id)->toArray();
+					        $currentimagedetails = $homeWallpaperImageMapper->getDbTable()->fetchAll("home_wallpaper_detail_id =".$currenthomewallpaperdetails[0]['home_wallpaper_detail_id'])->toArray();   
+					    }
+					    if(is_array($currentimagedetails)){
+					        $allImages = array();
+					        foreach ($currentimagedetails as $currentimagedetail) {
+					            $allImages[$currentimagedetail['resolution_id']] = $currentimagedetail['image_path'];
+					        }
+					    }
+					    unset($allFormValues['home_wallpaper_detail_id'],$allFormValues['language_id']);
+					    if(count($languages) == count($homewallpaperdetails)){
+					        foreach ($homewallpaperdetails as $homewallpaperdetail){
+					            $homewallpaperdetail = array_intersect_key($allFormValues + $homewallpaperdetail, $homewallpaperdetail);
+					            $homewallpaperdetailModel = new HomeWallpaper_Model_HomeWallpaperDetail($homewallpaperdetail);
+					            $homewallpaperimageMapper = new HomeWallpaper_Model_Mapper_HomeWallpaperImage();
+					            $imagedetails = $homewallpaperimageMapper->fetchAll("home_wallpaper_detail_id =".$homewallpaperdetail['home_wallpaper_detail_id']);
+					            foreach ($imagedetails as $imagedetail){
+					                $resolution_id = $imagedetail->get("resolution_id");
+					                $filename = $request->getParam ( "image_".$resolution_id."_path" );
+					                if(!$is_uploaded && $filename != "" && $filename != "deleted" ) {
+					                    // Move Uploaded Files
+                                        $source_dir = Standard_Functions::getResourcePath () . "home-wallpaper/tmp/images/R".$resolution_id."/";
+                                        $upload_dir = Standard_Functions::getResourcePath () . "home-wallpaper/wallpapers/C" . $customerId."/R".$resolution_id."/";
+                                        $filename = $this->moveUploadFile ( $source_dir , $upload_dir , $filename );
+                                        $storedname[$resolution_id] = $filename;
+					                }elseif($storedname[$resolution_id] && $filename != "deleted"){
+					                    $filename = $storedname[$resolution_id];
+					                }elseif($filename == "deleted"){
+					                    $filename = "";
+					                }elseif($allImages[$resolution_id]){
+					                    $filename = $allImages[$resolution_id];
+					                }
+					                $imagedetail->setImagePath($filename);
+					                $imagedetail->save();
+					            }
+					            $is_uploaded = true;
+					            $homewallpaperdetailModel = $homewallpaperdetailModel->save();
+					        }
+					    }else{
+					        $homewallpaperdetails = $homeWallpaperDetailMapper->fetchAll("home_wallpaper_id =".$allFormValues['home_wallpaper_id']);
+					        foreach ($homewallpaperdetails as $homewallpaperdetail){
+					            $imagedetails = $homeWallpaperImageMapper->fetchAll("home_wallpaper_detail_id =".$homewallpaperdetail->getHomeWallpaperDetailId());
+					            foreach ($imagedetails as $imagedetail){
+					                $imagedetail->delete();
+					            }
+					            $homewallpaperdetail->delete();
+					        }
+					        if (is_array ( $languages )) {
+					            $is_uploaded = false;
+					            if (! is_dir ( Standard_Functions::getResourcePath () . "home-wallpaper/wallpapers/C" . $customerId )) {
+					                mkdir ( Standard_Functions::getResourcePath () . "home-wallpaper/wallpapers/C" . $customerId, 755 );
+					            }
+    					        foreach ( $languages as $language ) {
+    					            $homeWallpaperDetailModel = new HomeWallpaper_Model_HomeWallpaperDetail ( $allFormValues );
+    					            $homeWallpaperDetailModel->setLanguageId ( $language->getLanguageId () );
+    					            $homeWallpaperDetailModel->setCreatedBy ( Standard_Functions::getCurrentUser ()->user_id );
+    					            $homeWallpaperDetailModel->setCreatedAt ( Standard_Functions::getCurrentDateTime () );
+    					            $homeWallpaperDetailModel->setLastUpdatedBy ( Standard_Functions::getCurrentUser ()->user_id );
+    					            $homeWallpaperDetailModel->setLastUpdatedAt ( Standard_Functions::getCurrentDateTime () );
+    					            $homeWallpaperDetailModel = $homeWallpaperDetailModel->save ();
+    					            $homeWallpaperDetailId = $homeWallpaperDetailModel->getHomeWallpaperDetailId();
+    					            $mapperResolution = new Admin_Model_Mapper_Resolution();
+    					            $modelResolutions = $mapperResolution->fetchAll();
+    					            foreach ($modelResolutions as $modelResolution){
+    					                $resolution_id = $modelResolution->getResolutionId();
+    					                $homeWallpaperImageModel = new HomeWallpaper_Model_HomeWallpaperImage();
+    					                $homeWallpaperImageModel->setHomeWallpaperDetailId($homeWallpaperDetailId);
+    					                $homeWallpaperImageModel->setResolutionId($resolution_id);
+    					                $filename = $request->getParam ( "image_".$resolution_id."_path" );
+    					                if(!$is_uploaded && $filename != "" && $filename != "deleted" ) {
+    					                    // Move Uploaded Files
+					                        $source_dir = Standard_Functions::getResourcePath () . "home-wallpaper/tmp/images/R".$resolution_id."/";
+					                        $upload_dir = Standard_Functions::getResourcePath () . "home-wallpaper/wallpapers/C" . $customerId."/R".$resolution_id."/";
+					                        $filename = $this->moveUploadFile ( $source_dir , $upload_dir , $filename );
+					                        $storedname[$resolution_id] = $filename;
+    					                }elseif($storedname[$resolution_id] && $filename != "deleted"){
+					                        $filename = $storedname[$resolution_id];
+					                    }elseif($filename == "deleted"){
+    					                    $filename = "";
+    					                }elseif($allImages[$resolution_id]){
+    					                    $filename = $allImages[$resolution_id];
+    					                }
+    					                $homeWallpaperImageModel->setImagePath($filename);
+    					                $homeWallpaperImageModel->save();
+    					            }
+    					            $is_uploaded = true;
+    					        }
+					        }  
+					    }
 					} else {
 						// Update homewallpaper record
 						$homeWallpaperModel->setLastUpdatedBy ( $user_id );
@@ -285,7 +410,6 @@ class HomeWallpaper_IndexController extends Zend_Controller_Action {
 								$source_dir = Standard_Functions::getResourcePath () . "home-wallpaper/tmp/images/R".$resolution_id."/";
 								$upload_dir = Standard_Functions::getResourcePath () . "home-wallpaper/wallpapers/C" . $customerId."/R".$resolution_id."/";
 								$filename = $this->moveUploadFile ( $source_dir , $upload_dir , $filename );
-								
 								$homeWallpaperImage->setImagePath($filename);
 								$homeWallpaperImage->save();
 							}elseif($filename == "deleted"){
@@ -340,7 +464,6 @@ class HomeWallpaper_IndexController extends Zend_Controller_Action {
 				mkdir ( $dest_dir, 755 );
 			}
 			while(!file_exists($source_dir . $source_file_name)) {}
-			
 			if (copy ( $source_dir . $source_file_name, $dest_dir . $filename )) {
 				unlink ( $source_dir . $source_file_name );
 			}
@@ -354,7 +477,7 @@ class HomeWallpaper_IndexController extends Zend_Controller_Action {
 	public function generateThumb($src, $dest, $destWidth = 0, $destHeight = 0) {
 		/* read the source image */
 		$stype = array_pop ( explode ( ".", $src ) );
-		switch ($stype) {
+		switch (strtolower($stype)) {
 			case 'gif' :
 				$source_image = imagecreatefromgif ( $src );
 				break;
@@ -389,7 +512,7 @@ class HomeWallpaper_IndexController extends Zend_Controller_Action {
 		imagecopyresampled ( $virtual_image, $source_image, 0, 0, 0, 0, $desired_width, $desired_height, $width, $height );
 		
 		/* create the physical thumbnail image to its destination */
-		switch ($stype) {
+		switch (strtolower($stype)) {
 			case 'gif' :
 				imagegif ( $virtual_image, $dest );
 				break;
@@ -418,7 +541,7 @@ class HomeWallpaper_IndexController extends Zend_Controller_Action {
 			
 			if ($adapter->getFileName ( $element ) != "") {
 				$response = array (
-						"success" => array_pop ( explode ( '/', $adapter->getFileName ( $element ) ) ) 
+						"success" => array_pop ( explode ( '\\', $adapter->getFileName ( $element ) ) ) 
 				);
 			} else {
 				$response = array (

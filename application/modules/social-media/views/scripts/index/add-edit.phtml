@@ -108,6 +108,7 @@
 			<tr>
 		        <td colspan="3" align="center">
 		        	<?php echo $form->submit->renderViewHelper() ?>&nbsp;
+		        	<?php echo $form->applyall->renderViewHelper()?>&nbsp;
 					<?php echo $form->reset->renderViewHelper() ?>
 				</td>
 			</tr>
@@ -141,7 +142,31 @@ $(document).ready(function() {
 		$("#icon").attr("disabled","disabled");
 	}
 	
-	$("#frmAddEditSocialMedia").validator().submit(function(e){
+	$("#applyall").on("click",function(e){
+		if(!e.isDefaultPrevented()){
+	    	var promptus = new prompt({
+	            	reference :"#frmAddEditSocialMedia",
+	                element : "#content",
+	                message : "<?php echo $this->translate('Your changes will be saved and applied to all languages. Is it Ok?'); ?>",
+	                buttons : {
+	                    "Yes" : function(self){
+	                        $("#frmAddEditSocialMedia").trigger("submit",{all:true});
+	                    },
+	                    "No"  : function(self){
+	                    	this.close();
+	                    },
+	                }
+	            });
+	        e.preventDefault();
+	    }
+	});
+
+	$("#frmAddEditSocialMedia").validator().submit(function(e,customObject){
+		customObject = customObject || {};
+		var queryAppend = "";
+		if(customObject.all){
+			queryAppend = "&all=true";
+		}
 		var form = $(this);
 		if(!e.isDefaultPrevented()){
 			var promptus = false;
@@ -185,7 +210,7 @@ $(document).ready(function() {
 				$.ajax({
 					type : "POST",
 					cache : false,
-					data : form.serialize(),
+					data : form.serialize() + queryAppend,
 					url : "<?php echo $form->getAction(); ?>",
 					success : function(json){
 						if(json["errors"] != undefined){

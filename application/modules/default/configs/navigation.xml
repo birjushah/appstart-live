@@ -32,6 +32,24 @@
 					<action>index</action>
 		            <order>1000</order>
 		            <resource>user-group</resource>
+		            <pages>
+		            	<add>
+							<label>Add user-group</label>
+							<module>default</module>			
+							<controller>user-group</controller>
+							<action>add</action>
+							<resource>user-group</resource>
+							<visible>false</visible>
+						</add>
+						<edit>
+							<label>Edit user-group</label>
+							<module>default</module>			
+							<controller>user-group</controller>
+							<action>edit</action>
+							<resource>user-group</resource>
+							<visible>false</visible>
+						</edit>
+					</pages>
 		    	</UserGroup>
 		    	<User>
 		    		<label>Users</label>
@@ -40,6 +58,24 @@
 					<action>index</action>
 		            <order>1001</order>
 		            <resource>user</resource>
+		            <pages>
+		            	<add>
+							<label>Add users</label>
+							<module>default</module>			
+							<controller>user</controller>
+							<action>add</action>
+							<resource>user</resource>
+							<visible>false</visible>
+						</add>
+						<edit>
+							<label>Edit users</label>
+							<module>default</module>			
+							<controller>user</controller>
+							<action>edit</action>
+							<resource>user</resource>
+							<visible>false</visible>
+						</edit>
+					</pages>
 		    	</User>
 		    	<Configuration>
 		    		<label>Configuration</label>

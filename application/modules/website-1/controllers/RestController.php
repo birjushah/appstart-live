@@ -59,7 +59,7 @@ class Website1_RestController extends Standard_Rest_Controller {
 								foreach($websiteDetailModel as $website_detail) {
 									$websiteDetail = $website_detail->toArray();
 									if(isset($websiteDetail["website_logo"])) {
-										$websiteDetail["website_logo"] = "resource/website/logos/".$websiteDetail["website_logo"];
+										$websiteDetail["website_logo"] = "resource/website-1/logos/".$websiteDetail["website_logo"];
 									}
 								}
 							}

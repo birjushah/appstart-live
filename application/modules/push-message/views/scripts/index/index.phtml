@@ -76,7 +76,7 @@ $(document).ready(function() {
         	var promptus = new prompt({
                     	reference : self,
                         element : ".dataTables_wrapper",
-                        message : "<?php echo $this->translate('Are you sure you want to delete this Message?'); ?>",
+                        message : "<?php echo $this->translate('Module will be published automatically. Message will be deleted. Are you ok with it?'); ?>",
                         buttons : {
                             "Yes" : function(self){
                                 var prompt = this;
@@ -118,6 +118,7 @@ $(document).ready(function() {
             e.preventDefault();
         }
     });
+    
     $('.togglefilter').on("click",function(){
 		$('#filterBox').toggle();
 		$(this).toggleClass('flip-vertical');

@@ -14,7 +14,7 @@ class Default_Plugin_Authentication extends Zend_Controller_Plugin_Abstract {
 		$action = $request->getActionName ();
 		if (strtolower ( $request->getModuleName () ) != "admin") {
 			
-			if($resource != "forgot" && $resource != "error" && $action!="admin-login" && $resource!="rest") {
+			if($resource != "forgot" && $resource != "error" && $action!="admin-login" && $resource!="rest" && $resource!="download") {
 				if (! $this->_auth->hasIdentity () && $resource != "forgot" && $action != "check-login" ) {
 					$request->setModuleName("default")->setControllerName ( 'login' )->setActionName ( 'index' );
 				} else if ((! isset ( $this->_auth->getStorage ()->read ()->group_id ) || $this->_auth->getStorage ()->read ()->group_id == 0) && $resource != "forgot" && $action != "check-login") {

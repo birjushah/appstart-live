@@ -38,12 +38,15 @@ class Default_Plugin_Acl extends Zend_Acl {
 				
 				// Add static permissins
 				$this->allow($role->getUserGroupId(),"index");
-				$this->allow($role->getUserGroupId(),"settings");
-				$this->allow($role->getUserGroupId(),"user-group");
-				$this->allow($role->getUserGroupId(),"user");
 				$this->allow($role->getUserGroupId(),"profile");
+				$this->allow($role->getUserGroupId(),"settings");
+				if($role->getSettings()==1) {
+					$this->allow($role->getUserGroupId(),"user-group");
+					$this->allow($role->getUserGroupId(),"user");
+					$this->allow($role->getUserGroupId(),"configuration");
+				}			
+				
 				$this->allow($role->getUserGroupId(),"error");
-				$this->allow($role->getUserGroupId(),"configuration");
 				
 				// Set Permissions
 				/*$groupmodulesMapper = new Default_Model_Mapper_UserGroupModule();

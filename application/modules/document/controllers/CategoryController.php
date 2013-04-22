@@ -2,7 +2,7 @@
 class Document_CategoryController extends Zend_Controller_Action
 {
 	var $_module_id;
-
+	var $_customer_module_id;
 	public function init()
 	{
 		/* Initialize action controller here */
@@ -10,6 +10,13 @@ class Document_CategoryController extends Zend_Controller_Action
 		$module = $modulesMapper->fetchAll("name ='document'");
 		if(is_array($module)) {
 			$this->_module_id = $module[0]->getModuleId();
+		}
+		$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
+		$customermoduleMapper = new Admin_Model_Mapper_CustomerModule();
+		$customermodule = $customermoduleMapper->fetchAll("customer_id=". $customer_id ." AND module_id=".$this->_module_id);
+		if(is_array($customermodule)) {
+		    $customermodule = $customermodule[0];
+		    $this->_customer_module_id = $customermodule->getCustomerModuleId();
 		}
 	}
 	public function indexAction()
@@ -19,6 +26,12 @@ class Document_CategoryController extends Zend_Controller_Action
 				"module" => "document",
 				"controller" => "category",
 				"action" => "add"
+		), "default", true );
+		$this->view->publishlink = $this->view->url ( array (
+		        "module" => "default",
+		        "controller" => "configuration",
+		        "action" => "publish",
+		        "id" => $this->_customer_module_id
 		), "default", true );
 		$this->view->reorderlink = $this->view->url ( array (
 				"module" => "document",
@@ -80,6 +93,7 @@ class Document_CategoryController extends Zend_Controller_Action
 			$language_id = Standard_Functions::getCurrentUser ()->active_language_id;
 			$this->view->categoryTree = self::_getCategoryTree ( $customer_id, $language_id);
 			$parent_id = $data["parent_id"];
+			$this->view->orignalParent = $parent_id;
 			$detailMapper = new Document_Model_Mapper_ModuleDocumentCategoryDetail();
 			if($parent_id != 0){
 				$details = $detailMapper->getDbTable()->fetchAll("language_id = ".$language_id." AND module_document_category_id =" .$parent_id)->toArray();
@@ -145,25 +159,27 @@ class Document_CategoryController extends Zend_Controller_Action
 		$form = new Document_Form_DocumentCategory();
 		$request = $this->getRequest ();
 		$response = array ();
+		$default_lang_id = Standard_Functions::getCurrentUser ()->default_language_id;
+		$allFlag = $this->_request->getParam("all",false);
 		if ($this->_request->isPost ()) {
 			if ($form->isValid ( $this->_request->getParams () )) {
 				$mapper = new Document_Model_Mapper_ModuleDocumentCategory();
 				$mapper->getDbTable()->getAdapter()->beginTransaction();
 				 
 				try {
-					$arrFormValues = $form->getValues();
+				    $arrFormValues = $form->getValues();
 					$parent_id = $arrFormValues['parent_id'];
 					$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
 					$user_id = Standard_Functions::getCurrentUser ()->user_id;
 					$date_time = Standard_Functions::getCurrentDateTime ();
 					
 					$model = new Document_Model_ModuleDocumentCategory($arrFormValues);
-					
+					if ($request->getParam ( "module_document_category_id", "" ) == "" || $request->getParam("parent") == "changed") {
+					    $maxOrder = $mapper->getNextOrder ( $parent_id,$customer_id );
+					    $model->setOrder ( $maxOrder + 1 );
+					}
 					if($request->getParam ( "module_document_category_id", "" ) == "") {
 						// Add Category
-						$maxOrder = $mapper->getNextOrder($customer_id);
-						
-						$model->setOrder($maxOrder+1);
 						$model->setCustomerId ( $customer_id );
 						$model->setCreatedBy ( $user_id );
 						$model->setCreatedAt ( $date_time );
@@ -186,6 +202,39 @@ class Document_CategoryController extends Zend_Controller_Action
 								$modelDetails->setLastUpdatedAt ( $date_time );
 								$modelDetails = $modelDetails->save();
 							}
+						}
+					}elseif($allFlag){
+					    $model->setLastUpdatedBy ( $user_id );
+						$model->setLastUpdatedAt ( $date_time );
+						$model = $model->save ();
+						$customerLanguageMapper = new Admin_Model_Mapper_CustomerLanguage ();
+						$customerLanguageModel = $customerLanguageMapper->fetchAll ( "customer_id = " . $customer_id );
+						$categoryDetailMapper = new Document_Model_Mapper_ModuleDocumentCategoryDetail();
+						$categoryDetails = $categoryDetailMapper->getDbTable()->fetchAll("module_document_category_id =".$arrFormValues['module_document_category_id'])->toArray();
+						unset($arrFormValues['module_document_category_detail_id'],$arrFormValues['language_id']);
+						if(count($categoryDetails) == count($customerLanguageModel)){
+						    foreach ($categoryDetails as $categoryDetail) {
+						        $categoryDetail = array_intersect_key($arrFormValues + $categoryDetail, $categoryDetail);
+						        $categoryDetailModel = new Document_Model_ModuleDocumentCategoryDetail($categoryDetail);
+						        $categoryDetailModel = $categoryDetailModel->save();
+						    }    
+						}else{
+						    $categoryDetailMapper = new Document_Model_Mapper_ModuleDocumentCategoryDetail();
+						    $categoryDetails = $categoryDetailMapper->fetchAll("module_document_category_id =".$arrFormValues['module_document_category_id']);
+						    foreach ($categoryDetails as $categoryDetail){
+						        $categoryDetail->delete();
+						    }
+						    if (is_array ( $customerLanguageModel )) {
+						        foreach ( $customerLanguageModel as $languages ) {
+						            $categoryDetailModel = new Document_Model_ModuleDocumentCategoryDetail($arrFormValues);
+						            $categoryDetailModel->setLanguageId ( $languages->getLanguageId () );
+						            $categoryDetailModel->setCreatedBy ( $user_id );
+						            $categoryDetailModel->setCreatedAt ( $date_time );
+						            $categoryDetailModel->setLastUpdatedBy ( $user_id );
+						            $categoryDetailModel->setLastUpdatedAt ( $date_time );
+						            $categoryDetailModel = $categoryDetailModel->save ();
+						        }
+						    }
 						}
 					} else {
 						// Edit Category
