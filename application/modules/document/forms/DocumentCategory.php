@@ -67,6 +67,11 @@ class Document_Form_DocumentCategory extends Standard_Form {
 				'value'      => '1'
 		));
 		
+		//Icon
+		$icon = $this->createElement ( 'file', 'icon' );
+		$icon->setLabel ( 'Icon:' )->setDestination ( Standard_Functions::getResourcePath () . "document/uploaded-icons" )->addValidator ( 'Size', false, 102400 )->addValidator ( 'Extension', false, 'jpg,png,gif' );
+		$this->addElement ( $icon );
+		
 		// Submit button
 		$submit = $this->addElement ( 'submit', 'submit', array (
 				'ignore' => true,

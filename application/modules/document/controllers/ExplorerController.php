@@ -11,6 +11,17 @@ class Document_ExplorerController extends Zend_Controller_Action
 		if(is_array($module)) {
 			$this->_module_id = $module[0]->getModuleId();
 		}
+		$image_dir = Standard_Functions::getResourcePath(). "document/preset-icons";
+		if(is_dir($image_dir)){
+		    $direc = opendir($image_dir);
+		    $iconpack = array();
+		    while($icon = readdir($direc)){
+		        if(is_file($image_dir."/".$icon) && getimagesize($image_dir."/".$icon)){
+		            $iconpack[] = $icon;
+		        }
+		    }
+		}
+		$this->_iconpack = $iconpack;
 	}
 
 	public function indexAction()
@@ -133,6 +144,8 @@ class Document_ExplorerController extends Zend_Controller_Action
 	{
 		$this->_helper->layout ()->disableLayout ();
 		$this->_helper->viewRenderer->setNoRender ();
+		$image_dir = $this->view->baseUrl("resource/document/preset-icons");
+		$resource_dir = $this->view->baseUrl("resource/document/uploaded-icons");
 		$response = array();
 		$id = $this->_request->getParam("id",null);
 		$language_id = $this->_request->getParam("language_id",null);
@@ -152,7 +165,8 @@ class Document_ExplorerController extends Zend_Controller_Action
 						))->joinLeft(array ("dcd" => "module_document_category_detail"),
 								"dcd.module_document_category_id = dc.module_document_category_id AND dcd.language_id = ".$language_id,
 								array ("dcd.module_document_category_detail_id" => "module_document_category_detail_id",
-										"dcd.title" => "title"
+										"dcd.title" => "title",
+								        "dcd.icon" => "icon",
 								))->where("dc.module_document_category_id=".$node[1])->order("dc.order");
 				$categories = $mapper->getDbTable()->fetchAll($select)->toArray();
 				if(is_array($categories) && isset($categories[0])) {
@@ -162,6 +176,14 @@ class Document_ExplorerController extends Zend_Controller_Action
 					$data["language_id"] = $language_id;
 					$data["module_document_category_detail_id"] = $categories[0]["dcd.module_document_category_detail_id"];
 					$data["module_document_category_id"] = $categories[0]["dc.module_document_category_id"];
+					$data["icon"] = $categories[0]["dcd.icon"];
+					if($data['icon'] != null){
+					    if(count(explode('/',$data['icon'])) > 1){
+					        $data["caticonpath"] = $resource_dir.$data['icon'];
+					    }else{
+					        $data["caticonpath"] = $image_dir."/".$data['icon'];
+					    }
+					}
 				}
 			} else if($node[0]=="file") {
 				$mapper = new Document_Model_Mapper_ModuleDocument();
@@ -194,8 +216,17 @@ class Document_ExplorerController extends Zend_Controller_Action
 					$data["description"] = $document[0]["dd.description"];
 					$data["document_path"] = $document[0]["dd.document_path"];
 					$data["keywords"] = $document[0]["dd.keywords"];
+					if($data[0]['icon'] != null){
+					    if(count(explode('/',$data[0]['icon'])) > 1){
+					        $data["dociconpath"] = $resource_dir.$data[0]['icon'];
+					    }else{
+					        $data["dociconpath"] = $image_dir."/".$data[0]['icon'];
+					    }
+					}
 				}
 			}
+			$data["iconpack"] = $this->_iconpack;
+			$data["resourceurl"] = $image_dir;
 			$response["success"] = true;
 			$response["data"] = $data;
 		} else {

@@ -10,6 +10,7 @@
 <script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqueryui/js/jquery.layout-latest.min.js"); ?>"></script>
 <script type="text/javascript" src="<?php echo $this->baseUrl("libs/jstree/_lib/jquery.hotkeys.js"); ?>"></script>
 <script type="text/javascript" src="<?php echo $this->baseUrl("libs/jstree/jquery.jstree.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/mustache/mustache.js") ?>"></script>
 <style type="text/css">
 .explorer {
 	display:block;
@@ -229,6 +230,38 @@ a.disabled {
 			        	<?php echo $formCategory->title->renderViewHelper()?>
 					</td>
 				</tr>
+				
+				<tr>
+				<td valign="top">
+					<label><?php echo $this->translate('Icon:')?></label>
+				</td>
+				<td valign="top">
+					<div id="lstcatLogo" class="logo-box">
+        				
+					</div>
+				</td>
+			</tr>
+			<tr>
+		        <td>&nbsp;</td>
+			    <td>
+		        	<div class="logo-box">
+		        		<table>
+						<tr>
+							<td>
+					        	<img class="editcatimg" alt="" src="" style="width: 64px;" />
+				        	</td>
+				        	<td>
+								<input type="radio" id="selcatLogo_0" name="selcatLogo" value="0" style="margin-left: 10px;" />
+								<label for="selcatLogo_0"><?php echo $this->translate('Upload:')?></label>
+								<input id="caticon" type="file" name="icon" /> (Size: 120px &#215; 120px )
+					        	<input id="icon_cat_path" type="hidden" name="icon_path" value="" />
+				        	</td>
+			        	</tr>
+			        	</table>
+					</div>
+				</td>
+			</tr>
+				
 				<tr>
 			    	<td><?php echo $formCategory->status->renderLabel() ?></td>
 			        <td>
@@ -260,6 +293,38 @@ a.disabled {
 		        	<?php echo $form->title->renderViewHelper()?>
 				</td>
 			</tr>
+			
+			<tr>
+				<td valign="top">
+					<label><?php echo $this->translate('Icon:')?></label>
+				</td>
+				<td valign="top">
+					<div id="lstdocLogo" class="logo-box">
+        				
+					</div>
+				</td>
+			</tr>
+			<tr>
+		        <td>&nbsp;</td>
+			    <td>
+		        	<div class="logo-box">
+		        		<table>
+						<tr>
+							<td>
+					        	<img class="editdocimg" alt="" src="" style="width: 64px;" />
+				        	</td>
+				        	<td>
+								<input type="radio" id="seldocLogo_0" name="seldocLogo" value="0" style="margin-left: 10px;" />
+								<label for="seldocLogo_0"><?php echo $this->translate('Upload:')?></label>
+								<input id="docicon" type="file" name="icon" /> (Size: 120px &#215; 120px )
+					        	<input id="icon_doc_path" type="hidden" name="icon_path" value="" />
+				        	</td>
+			        	</tr>
+			        	</table>
+					</div>
+				</td>
+			</tr>
+			
 			<tr>
 		    	<td><?php echo $form->description->renderLabel() ?></td>
 		        <td>
@@ -296,11 +361,35 @@ a.disabled {
 	</table>
 </form>
 </div>
+<script type="text/template" id="icondiv">
+<div>
+    <label for=sel{{toggle}}Logo_{{value}}>
+        <img src={{path}}/{{value}} width=64 />
+    </label>
+    <input type=radio id=sel{{toggle}}Logo_{{value}} name=sel{{toggle}}Logo value={{value}} />
+</div>
+</script>
 <script type="text/javascript">
 window.current_parent = null;
 window._clipboard = new Array();
 window._clipboard_action = null;
 $(document).ready(function(){
+	$("input:radio[name=selcatLogo]").live("change",function(){
+		if($('input:radio[name=selcatLogo]:checked').val() == 0)
+		{
+			$("#caticon").removeAttr("disabled");
+		} else {
+			$("#caticon").attr("disabled","disabled");
+		}			
+	});
+	$("input:radio[name=seldocLogo]").live("change",function(){
+		if($('input:radio[name=seldocLogo]:checked').val() == 0)
+		{
+			$("#docicon").removeAttr("disabled");
+		} else {
+			$("#docicon").attr("disabled","disabled");
+		}			
+	});
 	$("div.explorer").layout({ 
 		applyDefaultStyles: true,
 		north__resizable: false,
@@ -558,6 +647,33 @@ $(document).ready(function(){
 	            });
 	            next();
 			}).queue(function(next){
+				if($('input:radio[name=selcatLogo]:checked').val() == 0 && $('#caticon').attr("value")!="") {
+					$.ajaxFileUpload({
+						url:'<?php echo $formCategory->getAction(); ?>',
+						secureuri:false,
+						fileElementId:'icon',
+						dataType: 'json',
+						data:{iconupload :'true'},
+						success: function (data, status)
+						{
+							if(data.success != undefined) {
+								$("#icon_cat_path").attr("value",data.success);
+								next();
+							}
+						},
+						error: function (data, status, e)
+						{
+							promptus.showErrorMessage("<?php echo $this->translate('Error uploading icon.')?>");
+							setTimeout(function(){
+								promptus.close();
+							}, 2000);
+							
+						}
+					});
+				} else {
+					next();
+				}
+			}).queue(function(next){
 				$.ajax({
 					type : "POST",
 					cache : false,
@@ -608,6 +724,33 @@ $(document).ready(function(){
 	                }
 	            });
 	            next();
+			}).queue(function(next){
+				if($('input:radio[name=seldocLogo]:checked').val() == 0 && $('#docicon').attr("value")!="") {
+					$.ajaxFileUpload({
+						url:'<?php echo $form->getAction(); ?>',
+						secureuri:false,
+						fileElementId:'icon',
+						dataType: 'json',
+						data:{iconupload:'true'},
+						success: function (data, status)
+						{
+							if(data.success != undefined) {
+								$("#docicon").attr("value",data.success);
+								next();
+							}
+						},
+						error: function (data, status, e)
+						{
+							promptus.showErrorMessage("<?php echo $this->translate('Error uploading icon.')?>");
+							setTimeout(function(){
+								promptus.close();
+							}, 2000);
+							
+						}
+					});
+				} else {
+					next();
+				}
 			}).queue(function(next){
 				if($('#document').attr("value")!="") {
 					$.ajaxFileUpload({
@@ -904,6 +1047,7 @@ function edit(language) {
 	if($(".selected").length==1) {
 		var elemId = $(".selected").attr("id");
 		var id = elemId.replace("content_","");
+		var template = $("#icondiv").html();
 		if(id.indexOf("node_")!=-1) {
 			// Edit Folder
 			var edit_data = {id:id,language_id: language};
@@ -936,13 +1080,27 @@ function edit(language) {
 						} else {
 							$("#frmAddEditDocumentCategory").find("#status").removeAttr("checked");
 						}
-						
+						var iconarray = json.data.iconpack;
+						for(x in iconarray){
+							var iconData = {
+								path: json.data.resourceurl,
+								value: iconarray[x],
+								toggle: 'cat'	
+							};
+							var output = Mustache.render(template,iconData);
+							$("#lstcatLogo").append(output);
+						}
+						if(json.data.caticonpath != ""){
+							$(".editcatimg").attr("src",json.data.caticonpath);
+							$("#selcatLogo_0").removeAttr("disabled");
+							$("#selcatLogo_0").attr("checked","checked");	
+						}
 						$("#div-folder").dialog({
 							modal: true,
-							width: 350,
+							width: 630,
 							resizable: false,
 							title: "Edit Folder"
-						});
+						});                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
 						next();
 					},
 					error : next
@@ -986,6 +1144,17 @@ function edit(language) {
 							$("#frmAddEditDocument").find("#status").attr("checked","checked");
 						} else {
 							$("#frmAddEditDocument").find("#status").removeAttr("checked");
+						}
+
+						var iconarray = json.data.iconpack;
+						for(x in iconarray){
+							var iconData = {
+								path: json.data.resourceurl,
+								value: iconarray[x],
+								toggle: 'doc'	
+							};
+							var output = Mustache.render(template,iconData);
+							$("#lstdocLogo").append(output);
 						}
 						
 						$("#div-document").dialog({

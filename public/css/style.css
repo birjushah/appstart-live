@@ -959,12 +959,12 @@ div.logo-box {
     padding: 4px;
     width: 490px;
 }
-#lstLogo {
+#lstLogo,#lstcatLogo,#lstdocLogo {
 	height: 95px;
     overflow-x: hidden;
     overflow-y: scroll;
 }
-#lstLogo div{
+#lstLogo div,#lstcatLogo div,#lstdocLogo div{
 	width:66px;
 	margin: 2px;
 	padding:2px;
@@ -973,7 +973,7 @@ div.logo-box {
 	display: inline-block;
 	text-align: center;
 }
-#lstLogo label{
+#lstLogo label,#lstcatLogo label,#lstdocLogo label{
 	display: block;
 }
 #lstLogo div.icons {
