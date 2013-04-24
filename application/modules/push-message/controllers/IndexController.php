@@ -9,6 +9,17 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 		if(is_array($module)) {
 			$this->_module_id = $module[0]->getModuleId();
 		}
+		$image_dir = Standard_Functions::getResourcePath(). "push-message/preset-icons";
+		if(is_dir($image_dir)){
+		    $direc = opendir($image_dir);
+		    $iconpack = array();
+		    while($icon = readdir($direc)){
+		        if(is_file($image_dir."/".$icon) && getimagesize($image_dir."/".$icon)){
+		            $iconpack[] = $icon;
+		        }
+		    }
+		}
+		$this->_iconpack = $iconpack;
 	}
 	public function indexAction() {
 		$this->view->addlink = $this->view->url ( array (
@@ -197,6 +208,7 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 		$this->view->assign ( array (
 				"partial" => "index/partials/add.phtml" 
 		) );
+		$this->view->iconpack = $this->_iconpack;
 		$this->render ( "add-edit" );
 	}
 	public function editAction() {
@@ -228,6 +240,13 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 				
 			}
 			if (isset ( $dataDetails [0] ) && is_array ( $dataDetails [0] )) {
+			    if($dataDetails[0]['icon'] != null){
+			        if(count(explode('/',$dataDetails[0]['icon'])) > 1){
+			            $this->view->icon_src = $dataDetails[0]['icon'];
+			        }else{
+			            $this->view->icon_src = "preset-icons/".$dataDetails[0]['icon'];
+			        }
+			    }
 				$dataDetails[0]['message_date'] = Standard_Functions::getLocalDateTime ($dataDetails[0]['message_date']);
 				$form->populate ( $dataDetails [0] );
 			}
@@ -245,6 +264,7 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 		$this->view->assign ( array (
 				"partial" => "index/partials/edit.phtml" 
 		) );
+		$this->view->iconpack = $this->_iconpack;
 		$this->render ( "add-edit" );
 	}
 	public function saveAction() {
@@ -253,6 +273,25 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 		$response = array ();
 		$default_lang_id = Standard_Functions::getCurrentUser ()->default_language_id;
 		if ($this->_request->isPost ()) {
+		    if($request->getParam ( "iconupload", "" ) != "") {
+		        $adapter = new Zend_File_Transfer_Adapter_Http();
+		        $adapter->setDestination(Standard_Functions::getResourcePath(). "push-message/uploaded-icons");
+		        $adapter->receive();
+		        if($adapter->getFileName("icon")!="")
+		        {
+		        				$response = array (
+		        				        "success" => array_pop(explode('\\',$adapter->getFileName("icon")))
+		        				);
+		        } else {
+		        				$response = array (
+		        				        "errors" => "Error Occured"
+		        				);
+		        }
+		    
+		        echo Zend_Json::encode($response);
+		        exit;
+		    }
+		    $form->removeElement("icon");
 			if ($form->isValid ( $this->_request->getParams () )) {
 				try {
 					$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
@@ -270,6 +309,15 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 	                        $allFormValues["message_date"] = Standard_Functions::getServerDateTime ($allFormValues['message_date']);
 	                }else{
 	                    unset($allFormValues["message_date"]);
+	                }
+	                if($request->getParam("selLogo","0")){
+	                    $selIcon = $request->getParam("selLogo","0");
+	                }
+	                $icon_path = $request->getParam("icon_path","");
+	                if($selIcon != 0){
+	                    $allFormValues["icon"] = $selIcon;
+	                }elseif ($icon_path != ""){
+	                    $allFormValues["icon"] = "uploaded-icons/".$icon_path;
 	                }
 	                $allFlag = $this->_request->getParam("all",false);
 					if ($request->getParam ( "push_message_id", "" ) == "") {
@@ -304,6 +352,16 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 						$customerLanguageModel = $customerLanguageMapper->fetchAll ( "customer_id = " . $customer_id );
 						$pushDetailMapper = new PushMessage_Model_Mapper_PushMessageDetail();
 						$pushDetails = $pushDetailMapper->getDbTable()->fetchAll("push_message_id =".$allFormValues['push_message_id'])->toArray();
+						if($allFormValues['push_message_detail_id'] != null){
+						    $currentDetails = $pushDetailMapper->getDbTable()->fetchAll("push_message_detail_id =".$allFormValues['push_message_detail_id'])->toArray();
+						}else{
+						    $currentDetails = $pushDetailMapper->getDbTable()->fetchAll("push_message_id ='".$allFormValues['push_message_id']."' AND language_id =".$default_lang_id)->toArray();
+						}
+						if(is_array($currentDetails)){
+						    if(!$allFormValues['icon']){
+						        $allFormValues['icon'] = $currentDetails[0]['icon'];
+						    }
+						}
 						unset($allFormValues['push_message_detail_id'],$allFormValues['language_id']);
 						if(count($pushDetails) == count($customerLanguageModel)){
 						    foreach ($pushDetails as $pushDetail) {

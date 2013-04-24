@@ -97,6 +97,11 @@ class PushMessage_Form_PushMessage extends Standard_Form{
 		) );
 		$message->setAttrib("required", "required");
 		$this->addElement ($message);
+		
+		//Icon
+		$icon = $this->createElement ( 'file', 'icon' );
+		$icon->setLabel ( 'Icon:' )->setDestination ( Standard_Functions::getResourcePath () . "push-message/uploaded-icons" )->addValidator ( 'Size', false, 102400 )->addValidator ( 'Extension', false, 'jpg,png,gif' );
+		$this->addElement ( $icon );
 
 		// Submit button
 		$submit = $this->addElement ( 'submit', 'submit', array (

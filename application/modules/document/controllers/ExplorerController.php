@@ -145,7 +145,7 @@ class Document_ExplorerController extends Zend_Controller_Action
 		$this->_helper->layout ()->disableLayout ();
 		$this->_helper->viewRenderer->setNoRender ();
 		$image_dir = $this->view->baseUrl("resource/document/preset-icons");
-		$resource_dir = $this->view->baseUrl("resource/document/uploaded-icons");
+		$resource_dir = $this->view->baseUrl("resource/document/");
 		$response = array();
 		$id = $this->_request->getParam("id",null);
 		$language_id = $this->_request->getParam("language_id",null);
@@ -203,7 +203,8 @@ class Document_ExplorerController extends Zend_Controller_Action
 													"dd.title" => "title",
 													"dd.description" => "description",
 													"dd.document_path" => "document_path",
-													"dd.keywords" => "keywords"))->
+													"dd.keywords" => "keywords",
+											        "dd.icon" => "icon"))->
 									where("d.module_document_id=".$node[1])->order("d.order");
 				$document = $mapper->getDbTable()->fetchAll($select)->toArray();
 				if(is_array($document) && isset($document[0])) {
@@ -216,11 +217,12 @@ class Document_ExplorerController extends Zend_Controller_Action
 					$data["description"] = $document[0]["dd.description"];
 					$data["document_path"] = $document[0]["dd.document_path"];
 					$data["keywords"] = $document[0]["dd.keywords"];
-					if($data[0]['icon'] != null){
-					    if(count(explode('/',$data[0]['icon'])) > 1){
-					        $data["dociconpath"] = $resource_dir.$data[0]['icon'];
+					$data["icon"] = $document[0]["dd.icon"];
+					if($data['icon'] != null){
+					    if(count(explode('/',$data['icon'])) > 1){
+					        $data["dociconpath"] = $resource_dir.$data['icon'];
 					    }else{
-					        $data["dociconpath"] = $image_dir."/".$data[0]['icon'];
+					        $data["dociconpath"] = $image_dir."/".$data['icon'];
 					    }
 					}
 				}

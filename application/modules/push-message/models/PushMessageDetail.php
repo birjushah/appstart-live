@@ -6,4 +6,5 @@ class PushMessage_Model_PushMessageDetail extends Standard_Model{
 	private $_title;
 	private $_description;
 	private $_message_date;
+	private $_icon;
 } 
