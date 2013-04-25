@@ -1,3 +1,7 @@
+<script type="text/javascript">
+window.imagesUploaded = <?php echo $this->imagesUploaded?$this->imagesUploaded:0;?>;
+window.imagesLimit = <?php echo $this->imagesLimit?$this->imagesLimit:0;?>;
+</script>
 <form id="frmFilter">
 	<div id="filterBox">
 		<table
@@ -59,7 +63,38 @@
 <script type="text/javascript">
 var grid ="";
 $(document).ready(function() {
+    $('a[href="<?php echo $this->addlink;?>"]').on('click',function(e){
+		if(!e.isDefaultPrevented()){
+			if(window.imagesUploaded >= window.imagesLimit){
+				 promptus = new prompt({
+	                reference : self,
+	                element : ".dataTables_wrapper"
+	            });
+	            promptus.showErrorMessage("You have reached maximum upload image limit of " +window.imagesLimit+ ".Please delete some images and try again");
+	            setTimeout(function(){
+            		promptus.close();
+                }, 3000);
+				e.preventDefault();
+			}
+		}
+	});
 
+	$('a[href="<?php echo $this->bulkupload;?>"]').on('click',function(e){
+		if(!e.isDefaultPrevented()){
+			if(window.imagesUploaded == window.imagesLimit){
+				 promptus = new prompt({
+	                reference : self,
+	                element : ".dataTables_wrapper"
+	            });
+	            promptus.showErrorMessage("You have reached maximum upload image limit of " +window.imagesLimit+ ".Please delete some images and try again");
+	            setTimeout(function(){
+            		promptus.close();
+                }, 3000);
+				e.preventDefault();
+			}
+		}
+	});
+    
 	grid = dataTable({
 		aaSorting: [[ 5, "asc" ]],
 		"aoColumns": [
@@ -103,6 +138,7 @@ $(document).ready(function() {
                                         success: function(json){
                                             if(json.success != undefined){ 
                                             	prompt.showSuccessMessage("<?php echo $this->translate('Image deleted successfully.'); ?>");
+                                            	window.imagesUploaded--;
                                             	setTimeout(function(){
                                             		prompt.close();
                                                 	grid.fnDraw();
@@ -181,6 +217,7 @@ $(document).ready(function() {
     });
 
     $(document).on("click","#delete",function(e){
+    	window.deletedId = ($(".image_id:checked").length);
         var self = this;
         if($(".image_id:checked").length == 0) {
             promptus = new prompt({
@@ -216,6 +253,7 @@ $(document).ready(function() {
                                         success: function(json){
                                             if(json.success != undefined){ 
                                                 prompt.showSuccessMessage("<?php echo $this->translate('images deleted successfully.'); ?>");
+                                                window.imagesUploaded = window.imagesUploaded - window.deletedId;
                                                 setTimeout(function(){
                                                     prompt.close();
                                                     grid.fnDraw();

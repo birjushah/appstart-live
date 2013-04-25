@@ -1,3 +1,11 @@
+<script>
+window.imagesUploaded = <?php echo $this->imagesUploaded?$this->imagesUploaded:0;?>;
+window.imagesLimit = <?php echo $this->imagesLimit?$this->imagesLimit:0;?>;
+window.allowedUploadImages = window.imagesLimit-window.imagesUploaded;
+if(window.allowedUploadImages < 0){
+	window.allowedUploadImages = 0;
+}
+</script>
 <style type="text/css">
 div.logo-box {
 	width: auto;
@@ -51,7 +59,19 @@ div.logo-box {
 <script type="text/javascript">
 $(document).ready(function() {
 	$("#button").on("click",function(e){
+		var uploadAttempt = $('input[type=file]').get(0).files.length;
 		var promptus = false;
+		if(uploadAttempt > window.allowedUploadImages){
+			 promptus = new prompt({
+              reference :  $("#content"),
+              element : "#content"
+          });
+          promptus.showErrorMessage("You have reached maximum upload image limit of " +window.imagesLimit+ ".You can upload "+window.allowedUploadImages+" more image(s).");
+          setTimeout(function(){
+      		promptus.close();
+          }, 3000);
+			e.preventDefault();
+		}
 		if(!e.isDefaultPrevented()){
 			$(document).queue(function(next){
 				promptus = new prompt({
@@ -108,6 +128,12 @@ $(document).ready(function() {
 								$("#btnSave").removeAttr("disabled");
 							});
 							$("#divImages").append('<div class="clear"></div>');
+						}else{
+							promptus.showErrorMessage("<?php echo $this->translate('Error uploading Images.')?>"+data.errors);
+							setTimeout(function(){
+								promptus.close();
+							}, 4000);
+							return false;	
 						}
 						promptus.close();
 					},

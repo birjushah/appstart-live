@@ -120,4 +120,15 @@ class Standard_Functions {
 		$datetime = $localdatetime->format('Y-m-d H:i:s');
 		return $datetime;
 	}
+	
+	public static function getUploadLimits(){
+	    $limit = array();
+	    $customer_id = self::getCurrentUser()->customer_id;
+	    $mapper = new Admin_Model_Mapper_CustomerConfiguration();
+	    $limitArray = $mapper->getDbTable()->fetchAll("customer_id =".$customer_id)->toArray();
+	    $limit['image-gallery'] = ($limitArray[0]['imagegallery_limit'] > 0) ? $limitArray[0]['imagegallery_limit']:20 ;
+	    $limit['home-wallpaper'] = ($limitArray[0]['homewallpaper_limit'] > 0) ? $limitArray[0]['homewallpaper_limit']:20 ;
+	    $limit['document'] = ($limitArray[0]['document_limit'] > 0) ? $limitArray[0]['document_limit']:20 ;
+	    return $limit;
+	}
 }

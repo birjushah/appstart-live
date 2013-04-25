@@ -2,6 +2,8 @@
 class ModuleImageGallery_IndexController extends Zend_Controller_Action {
 	var $_module_id;
 	var $_customer_module_id;
+	var $_total_uploaded_images;
+	var $_upload_image_limit;
 	public function init() {
 		/* Initialize Action Controller Here.. */
 		$modulesMapper = new Admin_Model_Mapper_Module ();
@@ -16,6 +18,20 @@ class ModuleImageGallery_IndexController extends Zend_Controller_Action {
 			$customermodule = $customermodule[0];
 			$this->_customer_module_id = $customermodule->getCustomerModuleId();
 		}
+		//getting the uploaded images
+		$mapper = new ModuleImageGallery_Model_Mapper_ModuleImageGallery();
+		$customer_id = Standard_Functions::getCurrentUser()->customer_id;
+		$DBExpr = new Zend_Db_Expr("COUNT(module_image_gallery_id)");
+		$select = $mapper->getDbTable()->select(false)
+		->setIntegrityCheck(false)
+		->from('module_image_gallery',array('count'=>$DBExpr ))
+		->where("customer_id =".$customer_id);
+		$stack = $mapper->getDbTable()->fetchRow($select)->toArray();
+		$this->_total_uploaded_images = $stack['count'];
+		
+		//Getting Image Limit for customer
+		$limit = Standard_Functions::getUploadLimits();
+		$this->_upload_image_limit = $limit['image-gallery'];
 	}
 	public function indexAction() {
 		$active_lang_id = Standard_Functions::getCurrentUser ()->active_language_id;
@@ -47,10 +63,15 @@ class ModuleImageGallery_IndexController extends Zend_Controller_Action {
 		), "default", true );
 		$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
 		$categories = $this->_getCategories ( $customer_id );
+		
+		//Send the image limit and total uploaded image
+		$this->view->imagesUploaded = $this->_total_uploaded_images;
+		$this->view->imagesLimit = $this->_upload_image_limit;
 		$this->view->categories = $categories;
 	}
 	public function bulkUploadAction() {
-		$request = $this->getRequest ();
+	    $allowed_upload = $this->_upload_image_limit - $this->_total_uploaded_images;
+	    $request = $this->getRequest ();
 		$active_lang_id = Standard_Functions::getCurrentUser ()->active_language_id;
 		if ($this->_request->isPost ()) {
 			$response = array ();
@@ -73,71 +94,77 @@ class ModuleImageGallery_IndexController extends Zend_Controller_Action {
 				try {
 					$adapter = new Zend_File_Transfer_Adapter_Http ();
 					$adapter->setDestination ( Standard_Functions::getResourcePath () . "module-image-gallery/images" );
-					foreach ( $adapter->getFileInfo () as $info ) {
-						if ($adapter->receive ()) {
-							$image_path = $info ["name"];
-							
-							$model = new ModuleImageGallery_Model_ModuleImageGallery ();
-							$maxOrder = $mapper->getNextOrder ( $category_id );
-							$model->setOrder ( $maxOrder + 1 );
-							$model->setModuleImageGalleryCategoryId ( $category_id );
-							$model->setCustomerId ( $customer_id );
-							$model->setCreatedBy ( $user_id );
-							$model->setCreatedAt ( $date_time );
-							$model->setLastUpdatedBy ( $user_id );
-							$model->setLastUpdatedAt ( $date_time );
-							$model->setStatus ( 1 );
-							$model = $model->save ();
-							
-							// Save image Details
-							$module_image_gallery_id = $model->get ( "module_image_gallery_id" );
-							$result ["module_image_gallery_id"] = $module_image_gallery_id;
-							$mapperLanguage = new Admin_Model_Mapper_CustomerLanguage ();
-							$modelLanguages = $mapperLanguage->fetchAll ( "customer_id = " . $customer_id );
-							if (is_array ( $modelLanguages )) {
-								$is_uploaded_image = false;
-								foreach ( $modelLanguages as $languages ) {
-									$modelDetails = new ModuleImageGallery_Model_ModuleImageGalleryDetail ();
-									$modelDetails->setModuleImageGalleryId ( $module_image_gallery_id );
-									$modelDetails->setLanguageId ( $languages->getLanguageId () );
-									if (! is_dir ( $upload_dir )) {
-										mkdir ( $upload_dir, 755 );
-									}
-									if (! $is_uploaded_image && $image_path != "") {
-										$filename = $this->moveUploadFile ( $source_dir, $upload_dir, $image_path );
-										$modelDetails->setImagePath ( $filename );
-										$ext_image_path = array_pop ( explode ( ".", $image_path ) );
-										if ($image_path != "") {
-											$image_path = str_replace ( "." . $ext_image_path, "_thumb." . $ext_image_path, $image_path );
-										}
-										$result ["image_path"] = $this->view->baseUrl ( "resource/module-image-gallery/thumb/" . $customer_id . "/" . $image_path );
-										$response [] = $result;
-										
-										$is_uploaded_image = true;
-									} else if ($image_path != "") {
-										$modelDetails->setImagePath ( $filename );
-									}
-									$modelDetails = $modelDetails->save ();
-								}
-							}
-						}
+					if(count($adapter->getFileInfo()) <= $allowed_upload){
+					    foreach ( $adapter->getFileInfo () as $info ) {
+					        if ($adapter->receive ()) {
+					            $image_path = $info ["name"];
+					            	
+					            $model = new ModuleImageGallery_Model_ModuleImageGallery ();
+					            $maxOrder = $mapper->getNextOrder ( $category_id );
+					            $model->setOrder ( $maxOrder + 1 );
+					            $model->setModuleImageGalleryCategoryId ( $category_id );
+					            $model->setCustomerId ( $customer_id );
+					            $model->setCreatedBy ( $user_id );
+					            $model->setCreatedAt ( $date_time );
+					            $model->setLastUpdatedBy ( $user_id );
+					            $model->setLastUpdatedAt ( $date_time );
+					            $model->setStatus ( 1 );
+					            $model = $model->save ();
+					            	
+					            // Save image Details
+					            $module_image_gallery_id = $model->get ( "module_image_gallery_id" );
+					            $result ["module_image_gallery_id"] = $module_image_gallery_id;
+					            $mapperLanguage = new Admin_Model_Mapper_CustomerLanguage ();
+					            $modelLanguages = $mapperLanguage->fetchAll ( "customer_id = " . $customer_id );
+					            if (is_array ( $modelLanguages )) {
+					                $is_uploaded_image = false;
+					                foreach ( $modelLanguages as $languages ) {
+					                    $modelDetails = new ModuleImageGallery_Model_ModuleImageGalleryDetail ();
+					                    $modelDetails->setModuleImageGalleryId ( $module_image_gallery_id );
+					                    $modelDetails->setLanguageId ( $languages->getLanguageId () );
+					                    if (! is_dir ( $upload_dir )) {
+					                        mkdir ( $upload_dir, 755 );
+					                    }
+					                    if (! $is_uploaded_image && $image_path != "") {
+					                        $filename = $this->moveUploadFile ( $source_dir, $upload_dir, $image_path );
+					                        $modelDetails->setImagePath ( $filename );
+					                        $ext_image_path = array_pop ( explode ( ".", $image_path ) );
+					                        if ($image_path != "") {
+					                            $image_path = str_replace ( "." . $ext_image_path, "_thumb." . $ext_image_path, $image_path );
+					                        }
+					                        $result ["image_path"] = $this->view->baseUrl ( "resource/module-image-gallery/thumb/" . $customer_id . "/" . $image_path );
+					                        $response [] = $result;
+					    
+					                        $is_uploaded_image = true;
+					                    } else if ($image_path != "") {
+					                        $modelDetails->setImagePath ( $filename );
+					                    }
+					                    $modelDetails = $modelDetails->save ();
+					                }
+					            }
+					        }
+					    }
+					    $customermoduleMapper = new Admin_Model_Mapper_CustomerModule ();
+					    $customermodule = $customermoduleMapper->fetchAll ( "customer_id=" . $customer_id . " AND module_id=" . $this->_module_id );
+					    if (is_array ( $customermodule )) {
+					        $customermodule = $customermodule [0];
+					        $customermodule->setIsPublish ( "NO" );
+					        $customermodule->save ();
+					    }
+					    $mapper->getDbTable ()->getAdapter ()->commit ();
+					    $response = array (
+					            "success" => 'true',
+					            "result" => $response
+					    );
+					}else{
+					    $response = array (
+					            "errors" => "Maximum upload image reached.You can only upload ".$allowed_upload." more images"
+					    );
 					}
-					$customermoduleMapper = new Admin_Model_Mapper_CustomerModule ();
-					$customermodule = $customermoduleMapper->fetchAll ( "customer_id=" . $customer_id . " AND module_id=" . $this->_module_id );
-					if (is_array ( $customermodule )) {
-					    $customermodule = $customermodule [0];
-					    $customermodule->setIsPublish ( "NO" );
-					    $customermodule->save ();
-					}
-					$mapper->getDbTable ()->getAdapter ()->commit ();
-					$response = array (
-							"success" => 'true',
-							"result" => $response
-					);
 				} catch ( Exception $ex ) {
 					$mapper->getDbTable ()->getAdapter ()->rollBack ();
 					$response = array (
-							"errors" => "Error Occured"
+							"errors" => "Error "
 					);
 				}
 				echo Zend_Json::encode ( $response );
@@ -191,6 +218,8 @@ class ModuleImageGallery_IndexController extends Zend_Controller_Action {
 				}
 			}
 		}
+		$this->view->imagesUploaded = $this->_total_uploaded_images;
+		$this->view->imagesLimit = $this->_upload_image_limit;
 		$this->view->categories = $options;
 	}
 	public function addAction() {
@@ -205,9 +234,12 @@ class ModuleImageGallery_IndexController extends Zend_Controller_Action {
 		$this->view->assign ( array (
 				"partial" => "index/partials/add.phtml" 
 		) );
+		
 		$this->view->form = $form;
 		$mode = "add";
 		$this->view->mode = $mode;
+		$this->view->imagesUploaded = $this->_total_uploaded_images;
+		$this->view->imagesLimit = $this->_upload_image_limit;
 		$this->render ( "add-edit" );
 	}
 	public function editAction() {
@@ -292,7 +324,7 @@ class ModuleImageGallery_IndexController extends Zend_Controller_Action {
 				$adapter->receive ();
 				if ($adapter->getFileName ( $image_name ) != "") {
 					$response = array (
-							"success" => array_pop ( explode ('/' , $adapter->getFileName ( $image_name ) ) ) 
+							"success" => array_pop ( explode ('\\' , $adapter->getFileName ( $image_name ) ) ) 
 					);
 				} else {
 					$response = array (
@@ -306,8 +338,6 @@ class ModuleImageGallery_IndexController extends Zend_Controller_Action {
 			$datas = $this->_request->getParam ( 'data' );
 			$allFlag = $this->_request->getParam("all",false);
 			foreach ( $datas as $data ) {
-				//print_r($data);
-				//die();
 				if ($form->isValid ( $data )) {
 					try {
 						$allFormValues = $form->getValues ();

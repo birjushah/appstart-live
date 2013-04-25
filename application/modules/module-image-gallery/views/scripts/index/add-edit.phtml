@@ -2,6 +2,10 @@
 $form = $this->form; 
 $mode = $this->mode;
 ?>
+<script>
+window.imagesUploaded = <?php echo $this->imagesUploaded?$this->imagesUploaded:0;?>;
+window.imagesLimit = <?php echo $this->imagesLimit?$this->imagesLimit:0;?>;
+</script>
 <script type="text/javascript" src="<?php echo $this->baseUrl("libs/tinymce/js/tiny_mce.js"); ?>"></script>
 <script type="text/javascript">
 callTinymce('description1');
@@ -221,18 +225,30 @@ $("#applyall").on("click",function(e){
     }
 });
 function submitForm(e,customObject){
+	var promptus = false;
 	customObject = customObject || {};
 	var queryAppend = "";
 	if(customObject.all){
 		queryAppend = "&all=true";
 	}
 	var form = $("#frmAddEditimageGallery");
+	if(window.imagesUploaded >= window.imagesLimit){
+		 promptus = new prompt({
+            reference : "#frmAddEditimageGallery",
+            element : "#content"
+        });
+        promptus.showErrorMessage("You have reached maximum upload image limit of " +window.imagesLimit+ ".Please delete some images and try again");
+        setTimeout(function(){
+    		promptus.close();
+        },2000);
+		e.preventDefault();
+	}
 	if(!e.isDefaultPrevented()){
 		var promptus = false;
 		$(document).queue(function(next){
 			promptus = new prompt({
             	reference : form,
-                element : "#content",
+                element : ".dataTables_wrapper",
                 beforeShow : function(){
 	                this.alternateMessage = this.showLoadingMessage("<?php echo $this->translate('Saving Image..')?>");
                 }
@@ -257,6 +273,12 @@ function submitForm(e,customObject){
 						success: function (data, status) {
 							if(data.success != undefined) {
 								$("#image_path"+newKey).attr("value",data.success);
+							}else{
+								promptus.showErrorMessage("<?php echo $this->translate('Error uploading Image.')?>"+data.errors);
+								setTimeout(function(){
+									promptus.close();
+								}, 2000);
+								return false;
 							}
 						},
 						error: function (data, status, e) {
