@@ -72,35 +72,16 @@ class Default_Form_GeneralConfiguration extends Standard_Form {
 		
 		$this->addElement ( $theme_color_color );
 		
-		//Image Gallery Limit
-		$imagelimit = $this->createElement ( "text", "image_limit", array (
-				'label' => 'Image Limit:',
-				'size' => '15',
-				'filters' => array (
-						'StringTrim' 
-				) 
-		) );
-		$this->addElement ( $imagelimit );
-		
-		//Home Wallpaper Limit
-		$wallpaperlimit = $this->createElement ( "text", "wallpaper_limit", array (
-		        'label' => 'HomeWallpaper Limit:',
+		// Sepaprator Color
+		$separator = $this->createElement ( "text", "separator_color", array (
+		        'label' => 'Line Separator Color:',
 		        'size' => '15',
 		        'filters' => array (
 		                'StringTrim'
 		        )
 		) );
-		$this->addElement ($wallpaperlimit);
 		
-		//Document Limit
-		$documentlimit = $this->createElement ( "text", "document_limit", array (
-		        'label' => 'Document Limit:',
-		        'size' => '15',
-		        'filters' => array (
-		                'StringTrim'
-		        )
-		) );
-		$this->addElement ( $documentlimit );
+		$this->addElement ( $separator );
 		
 		// Submit Button
 		$submit = $this->createElement ( 'submit', 'submit', array (

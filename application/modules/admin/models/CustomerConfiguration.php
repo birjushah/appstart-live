@@ -7,6 +7,10 @@ class Admin_Model_CustomerConfiguration extends Standard_Model {
 	private $_font_size;
 	private $_spacing;
 	private $_theme_color;
+	private $_separator_color;
+	private $_imagegallery_limit;
+	private $_document_limit;
+	private $_homewallpaper_limit;
 	private $_last_updated_by;
 	private $_last_updated_at;
 	private $_created_by;

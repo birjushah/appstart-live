@@ -468,6 +468,7 @@ class Default_ConfigurationController extends Zend_Controller_Action {
 			$order = $this->_request->getParam ( "order" );
 			
 			$mapper = new Admin_Model_Mapper_CustomerModule ();
+			
 			$mapper->getDbTable ()->getAdapter ()->beginTransaction ();
 			try {
 				foreach ( $order as $key => $value ) {
@@ -505,19 +506,21 @@ class Default_ConfigurationController extends Zend_Controller_Action {
 		$data = $homeWallpaperMapper->getDbTable ()->fetchAll ( $select );
 		$slice = $data->toArray ();
 		foreach ( $slice as $key=>$value ) {
-			$mapper = new HomeWallpaper_Model_Mapper_HomeWallpaperImage ();
-			$detail = $mapper->fetchAll( array("home_wallpaper_detail_id = " . $slice[$key] ['value'],"image_path!=''"),"0","1" );
-			if(is_array($detail)){
-				$image_path = $detail[0]->toArray();
-				$resolution_id = $image_path["resolution_id"];
-				$img_uri = "resource/home-wallpaper/wallpapers/C" . $customer_id."/R".$resolution_id;
-				$slice[$key]["imageSrc"] = $this->view->baseUrl($img_uri ."/" . $image_path['image_path']);
-				if($preSelectedImage==$value["value"]){
-					$slice[$key]["selected"] = true;
-				}	
-				else 
-					$slice[$key]["selected"] = false;	 				
-			}
+		    if($slice[$key] ['value'] != null){
+		        $mapper = new HomeWallpaper_Model_Mapper_HomeWallpaperImage ();
+		        $detail = $mapper->fetchAll( array("home_wallpaper_detail_id = " . $slice[$key] ['value'],"image_path!=''"),"0","1" );
+		        if(is_array($detail)){
+		            $image_path = $detail[0]->toArray();
+		            $resolution_id = $image_path["resolution_id"];
+		            $img_uri = "resource/home-wallpaper/wallpapers/C" . $customer_id."/R".$resolution_id;
+		            $slice[$key]["imageSrc"] = $this->view->baseUrl($img_uri ."/" . $image_path['image_path']);
+		            if($preSelectedImage==$value["value"]){
+		                $slice[$key]["selected"] = true;
+		            }
+		            else
+		                $slice[$key]["selected"] = false;
+		        }    
+		    }
 		}
 		return $slice;
 	}

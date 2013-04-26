@@ -138,10 +138,24 @@ class Admin_Model_Mapper_Customer extends Standard_ModelMapper {
 					throw new Zend_Exception ( "User Group Not Found" );
 				}
 			}
+			$customerModuleMapper = new Admin_Model_Mapper_CustomerModule ();
+			//We will get the active modules first so that there order is intact after adding new modules
+			$active_modules = $customerModuleMapper->getDbTable ()->fetchAll("customer_id ='".$customer->getCustomerId ()."' AND status=1")->toArray();
+			$activeModuleIds = array();
+			foreach ($active_modules as $acive_module){
+			    $activeModuleIds[] = $acive_module['customer_module_id'];
+			}
+				
+			//Finding the max order,in case we have to add new modules
+			$DBExpr = new Zend_Db_Expr("MAX(order_number)");
+			$select = $customerModuleMapper->getDbTable()->select(false)
+            			->setIntegrityCheck(false)
+            			->from('customer_module',array('count'=>$DBExpr ))
+            			->where("customer_id =".$customer_id);
+			$totalorder = $customerModuleMapper->getDbTable()->fetchRow($select)->toArray();
 			
 			// For Customer_Module
 			$customerModule = new Admin_Model_CustomerModule ();
-			
 			$templateModuleMapper = new Admin_Model_Mapper_TemplateModule ();
 			$templateModulesQuote = $templateModuleMapper->getDbTable ()->getAdapter ()->quoteInto ( " template_id = ? ", $options ["template_id"] );
 			$templateModules = $this->_getTemplateModules ( $templateModulesQuote, true );
@@ -155,14 +169,13 @@ class Admin_Model_Mapper_Customer extends Standard_ModelMapper {
 			), $userGroupModuleQuote );
 	
 			// For Customer Module
-			$customerModuleMapper = new Admin_Model_Mapper_CustomerModule ();
 			$customerModuleQuote = $customerModuleMapper->getDbTable ()->getAdapter ()->quoteInto ( "customer_id = ?", $customer->getCustomerId () );
 			$customerModuleMapper->getDbTable ()->update ( array (
 					"status" => 0 
 			), $customerModuleQuote );
 
 			$userId = $user->getUserId ();
-			$customerModuleOrder = 1;
+			$customerModuleOrder = $totalorder['count'];
 			if ($templateModules) {		
 				foreach ( $templateModules as $templateModuleRow ) {
 					$userGroupModule = new Default_Model_UserGroupModule ();
@@ -210,6 +223,9 @@ class Admin_Model_Mapper_Customer extends Standard_ModelMapper {
 						$customerModuleOptions["icon"] = $customerModuleModels[0]->getIcon();
 						$customerModuleOptions["visibility"] = $customerModuleModels[0]->getVisibility();
 						$customerModuleOptions["is_publish"] = $customerModuleModels[0]->getIsPublish();
+						if(in_array($customerModuleModels[0]->getCustomerModuleId(), $activeModuleIds)){
+						    $customerModuleOptions["order_number"] = $customerModuleModels[0]->getOrderNumber();
+						}
 					}
 					$customerModule->setOptions ( $customerModuleOptions );
 					$customerModule = $customerModule->save ();

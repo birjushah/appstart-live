@@ -307,7 +307,6 @@ class Admin_CustomerController extends Zend_Controller_Action {
 		if ($customerConfigurationForm->isValid ( $params )) {
 			
 			$refinedParams = $customerConfigurationForm->getValues ();
-			
 			$customerConfigurationMapper = new Admin_Model_Mapper_CustomerConfiguration ();
 			try {
 				$customerConfigurationData = $customerConfigurationMapper->saveCustomerConfiguration ( $refinedParams, $mode );

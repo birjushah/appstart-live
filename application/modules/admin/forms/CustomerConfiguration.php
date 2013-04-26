@@ -71,6 +71,47 @@ class Admin_Form_CustomerConfiguration extends Standard_Form {
 		) );
 		$this->addElement ( $theme_color_color );
 		
+		// Sepaprator Color
+		$separator = $this->createElement ( "text", "separator_color", array (
+		        'label' => 'Line Separator Color:',
+		        'size' => '15',
+		        'filters' => array (
+		                'StringTrim'
+		        )
+		) );
+		
+		$this->addElement ( $separator );
+		
+		// Image Gallery Limit
+		$imagegallerylimit = $this->createElement ( "text", "imagegallery_limit", array (
+		        'label' => 'Image Gallery Limit:',
+		        'size' => '15',
+		        'filters' => array (
+		                'StringTrim'
+		        )
+		) );
+		$this->addElement ( $imagegallerylimit );
+		
+		// Document Limit
+		$documentlimit = $this->createElement ( "text", "document_limit", array (
+		        'label' => 'Document Limit:',
+		        'size' => '15',
+		        'filters' => array (
+		                'StringTrim'
+		        )
+		) );
+		$this->addElement ( $documentlimit );
+		
+		// Home Wallpaper Limit
+		$homewallpaperlimit = $this->createElement ( "text", "homewallpaper_limit", array (
+		        'label' => 'Home Wallpaper Limit:',
+		        'size' => '15',
+		        'filters' => array (
+		                'StringTrim'
+		        )
+		) );
+		$this->addElement ( $homewallpaperlimit );
+		
 		// Submit Button
 		$submit = $this->createElement ( 'submit', 'submit', array (
 				'ignore' => true 

@@ -59,6 +59,13 @@ class Document_RestController extends Standard_Rest_Controller {
 							if($categoryDetailModel) {
 								foreach($categoryDetailModel as $category_detail) {
 									$details = $category_detail->toArray();
+									if(isset($details["icon"]) && $details["icon"] != null){
+									    if(count(explode("/", $details["icon"])) > 1){
+									        $details["icon"] = "resource/document/".$details["icon"];
+									    }else{
+									        $details["icon"] = "resource/document/preset-icons/".$details["icon"];
+									    }    
+									}
 									$categoryDetails[] = $details;
 								}
 							}
@@ -81,6 +88,13 @@ class Document_RestController extends Standard_Rest_Controller {
 									$details = $document_detail->toArray();
 									if(isset($details["document_path"])) {
 										$details["document_path"] = "resource/document/uploads/".$details["document_path"];
+									}
+									if(isset($details["icon"]) && $details["icon"] != null) {
+									    if(count(explode("/", $details["icon"])) > 1){
+									        $details["icon"] = "resource/document/".$details["icon"];
+									    }else{
+									        $details["icon"] = "resource/document/preset-icons/".$details["icon"];
+									    }
 									}
 									$documentDetails[] = $details;
 								}

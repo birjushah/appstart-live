@@ -57,7 +57,15 @@ class PushMessage_RestController extends Standard_Rest_Controller {
 							$pushmessageDetailModel = $pushmessageDetailMapper->fetchAll("push_message_id=".$pushmessage->getPushMessageId());
 							if($pushmessageDetailModel) {
 								foreach($pushmessageDetailModel as $pushmessage_detail) {
-									$pushmessageDetail[] = $pushmessage_detail->toArray();
+									$details = $pushmessage_detail->toArray();
+									if(isset($details["icon"]) && $details["icon"] != null){
+									    if(count(explode("/", $details["icon"])) > 1){
+                                            $details["icon"] = "resource/push-message/".$details["icon"];
+									    }else{
+									        $details["icon"] = "resource/push-message/preset-icons/".$details["icon"];
+									    }
+									}
+									$pushmessageDetail[] = $details;
 								}
 							}
 							

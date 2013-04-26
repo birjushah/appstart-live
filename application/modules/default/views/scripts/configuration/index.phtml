@@ -95,6 +95,10 @@ div.iconBox, #background-sel-container{
 						<td><?php echo $generalConfigurationForm->theme_color->renderLabel(); ?></td>
 						<td><?php echo $generalConfigurationForm->theme_color->renderViewHelper()?></td>
 					</tr>
+					<tr>
+						<td><?php echo $generalConfigurationForm->separator_color->renderLabel(); ?></td>
+						<td><?php echo $generalConfigurationForm->separator_color->renderViewHelper()?></td>
+					</tr>
 				</tbody>
 			</table>
 			<div class="customer_submit"><?php echo $generalConfigurationForm->submit->renderViewHelper().$generalConfigurationForm->reset->renderViewHelper();?></div>
@@ -236,7 +240,7 @@ div.iconBox, #background-sel-container{
 <script type="text/javascript">
 var grid ="";
 	$(document).ready(function(){
-		$("#font_color,#theme_color").colorpicker({
+		$("#font_color,#theme_color,#separator_color").colorpicker({
 			parts: 'draggable',
 			showOn: 'both',
 			regional: 'en',
@@ -647,13 +651,13 @@ var grid ="";
                                         data: serializeOrder(),
                                         success: function(json){
                                             if(json.success != undefined){ 
-                                            	prompt.showSuccessMessage("<?php echo $this->translate('website reordered successfully.'); ?>");
+                                            	prompt.showSuccessMessage("<?php echo $this->translate('Modules reordered successfully.'); ?>");
                                             	setTimeout(function(){
                                             		prompt.close();
                                                 }, 1000);
                                                 location.href = location.href;
                                             } else if(json.errors != undefined){
-                                                var errorMessage = "<?php echo $this->translate('Unable to reorder website:'); ?><br />";
+                                                var errorMessage = "<?php echo $this->translate('Unable to reorder Modules:'); ?><br />";
                                                 errorMessage += json.errors.message;
                                             	prompt.showErrorMessage(errorMessage);
                                             	setTimeout(function(){

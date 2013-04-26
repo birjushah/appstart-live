@@ -115,6 +115,22 @@ $customerConfigurationForm = $this->customerConfigurationForm;
 						<td><?php echo $customerConfigurationForm->theme_color->renderLabel() ?></td>
 						<td><?php echo $customerConfigurationForm->theme_color->renderViewHelper()?></td>
 					</tr>
+					<tr>
+						<td><?php echo $customerConfigurationForm->separator_color->renderLabel() ?></td>
+						<td><?php echo $customerConfigurationForm->separator_color->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $customerConfigurationForm->imagegallery_limit->renderLabel() ?></td>
+						<td><?php echo $customerConfigurationForm->imagegallery_limit->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $customerConfigurationForm->document_limit->renderLabel() ?></td>
+						<td><?php echo $customerConfigurationForm->document_limit->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $customerConfigurationForm->homewallpaper_limit->renderLabel() ?></td>
+						<td><?php echo $customerConfigurationForm->homewallpaper_limit->renderViewHelper()?></td>
+					</tr>
 				</tbody>
 			</table>
 			<div class="customer_submit"><?php echo $customerConfigurationForm->submit->renderViewHelper().$customerForm->reset->renderViewHelper();?></div>
@@ -123,7 +139,7 @@ $customerConfigurationForm = $this->customerConfigurationForm;
 </div>
 <script type="text/javascript">
 	$(document).ready(function(){
-		$("#font_color,#theme_color").colorpicker({
+		$("#font_color,#theme_color,#separator_color").colorpicker({
 			parts: 'draggable',
 			showOn: 'both',
 			regional: 'en',
