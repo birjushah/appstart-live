@@ -1,4 +1,8 @@
 <?php $form = $this->form; ?>
+<script>
+window.imagesUploaded = <?php echo $this->imagesUploaded?$this->imagesUploaded:0;?>;
+window.imagesLimit = <?php echo $this->imagesLimit?$this->imagesLimit:0;?>;
+</script>
 <div id="filterBox">
       <table style="width:100%;border:0;border-spacing:0;border-collapse:collapse;">
         <tr>
@@ -119,8 +123,19 @@ $(document).ready(function() {
     	$("#"+id).remove();
     	$("#image_"+id).attr("value","");
     });
-
+    
 	$("#frmAddEditHomeWallpaper").validator().submit(function(e,customObject){
+		if(window.imagesUploaded >= window.imagesLimit){
+			 promptus = new prompt({
+	          reference : "#frmAddEditHomeWallpaper",
+	          element : "#content"
+	      });
+	      promptus.showErrorMessage("You have reached maximum upload wallpaper limit of " +window.imagesLimit+ ".Please delete some images and try again");
+	      setTimeout(function(){
+	  		promptus.close();
+	      },2000);
+			e.preventDefault();
+		}
 		customObject = customObject || {};
 		var queryAppend = "";
 		if(customObject.all){

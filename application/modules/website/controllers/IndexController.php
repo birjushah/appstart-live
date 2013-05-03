@@ -2,6 +2,7 @@
 class Website_IndexController extends Zend_Controller_Action {
 	var $_module_id;
 	var $_customer_module_id;
+	var $_iconpack;
 	public function init() {
 		/* Initialize Action Controller Here.. */
 		$modulesMapper = new Admin_Model_Mapper_Module ();
@@ -15,7 +16,9 @@ class Website_IndexController extends Zend_Controller_Action {
 		if(is_array($customermodule)) {
 			$customermodule = $customermodule[0];
 			$this->_customer_module_id = $customermodule->getCustomerModuleId();
-		} 
+		}
+		$iconpack = Standard_Functions::getIconset("push-message");
+		$this->_iconpack = $iconpack;
 	}
 	public function indexAction() {
 		$active_lang_id = Standard_Functions::getCurrentUser ()->active_language_id;
@@ -50,6 +53,7 @@ class Website_IndexController extends Zend_Controller_Action {
 		$form->setAction($action);
 		$form->setMethod ( 'POST' );
 		$this->view->form = $form;
+		$this->view->iconpack = $this->_iconpack;
 		$this->render("add-edit");
 	}
 	
@@ -61,24 +65,25 @@ class Website_IndexController extends Zend_Controller_Action {
 		$request = $this->getRequest();
 		$response = array();
 		if($this->_request->isPost()){
-			if ($request->getParam ( "upload", "" ) != "") {
-				$adapter = new Zend_File_Transfer_Adapter_Http ();
-				$adapter->setDestination ( Standard_Functions::getResourcePath () . "website/logos" );
-				$adapter->receive ();
-				if ($adapter->getFileName ( "website_logo" ) != "") {
-					$response = array (
-							"success" => array_pop ( explode ( '/', $adapter->getFileName ( "website_logo" ) ) ) 
-					);
-				} else {
-					$response = array (
-							"errors" => "Error Occured" 
-					);
-				}
-				echo Zend_Json::encode ( $response );
-				// $this->_helper->json ( $response );
-				exit ();
-			}
-			$form->removeElement("website_logo");
+			 if($request->getParam ( "iconupload", "" ) != "") {
+		        $adapter = new Zend_File_Transfer_Adapter_Http();
+		        $adapter->setDestination(Standard_Functions::getResourcePath(). "website/uploaded-icons");
+		        $adapter->receive();
+		        if($adapter->getFileName("icon")!="")
+		        {
+		        				$response = array (
+		        				        "success" => array_pop(explode('\\',$adapter->getFileName("icon")))
+		        				);
+		        } else {
+		        				$response = array (
+		        				        "errors" => "Error Occured"
+		        				);
+		        }
+		    
+		        echo Zend_Json::encode($response);
+		        exit;
+		    }
+		    $form->removeElement("icon");
 			$allFlag = $this->_request->getParam("all",false);
 			if($form->isValid($this->_request->getParams())){
 				try{
@@ -89,7 +94,15 @@ class Website_IndexController extends Zend_Controller_Action {
 					$websiteMapper = new Website_Model_Mapper_ModuleWebsite ();
 					$websiteMapper->getDbTable ()->getAdapter ()->beginTransaction ();
 					$websiteModel = new Website_Model_ModuleWebsite( $allFormValues );
-					$logo_path = $request->getParam ( "logo_path", "" );
+		            if($request->getParam("selLogo","0")){
+	                    $selIcon = $request->getParam("selLogo","0");
+	                }
+	                $icon_path = $request->getParam("icon_path","");
+	                if($selIcon != 0){
+	                    $allFormValues["icon"] = $selIcon;
+	                }elseif ($icon_path != ""){
+	                    $allFormValues["icon"] = "uploaded-icons/".$icon_path;
+	                }
 					if ($request->getParam ( "module_website_id", "" ) == "") {
 						// save Website
 						$maxOrder = $websiteMapper->getNextOrder ( $customer_id );
@@ -114,9 +127,6 @@ class Website_IndexController extends Zend_Controller_Action {
 								$websiteDetailModel->setCreatedAt ( $date_time );
 								$websiteDetailModel->setLastUpdatedBy ( $user_id );
 								$websiteDetailModel->setLastUpdatedAt ( $date_time );
-								if ($logo_path != "") {
-									$websiteDetailModel->setWebsiteLogo ($logo_path);
-								}
 								$websiteDetailModel = $websiteDetailModel->save ();
 							}
 						}
@@ -133,7 +143,9 @@ class Website_IndexController extends Zend_Controller_Action {
 						    $currentWebsiteDetails = $websiteDetailMapper->getDbTable()->fetchAll("module_website_id ='".$allFormValues['module_website_id']."' AND language_id =".$default_lang_id)->toArray();
 						}
 						if(is_array($currentWebsiteDetails)){
-						    $allFormValues['website_logo'] = $currentWebsiteDetails[0]['website_logo'];
+						    if(!$allFormValues['icon']){
+						        $allFormValues['icon'] = $currentWebsiteDetails[0]['icon'];
+						    }
 						}
 						$websiteDetails = $websiteDetailMapper->getDbTable()->fetchAll("module_website_id =".$allFormValues['module_website_id'])->toArray();
 						unset($allFormValues['module_website_detail_id'],$allFormValues['language_id']);
@@ -141,9 +153,6 @@ class Website_IndexController extends Zend_Controller_Action {
 						    foreach ($websiteDetails as $websiteDetail) {
 						        $websiteDetail = array_intersect_key($allFormValues + $websiteDetail, $websiteDetail);
 						        $websiteDetailModel = new Website_Model_ModuleWebsiteDetail($websiteDetail);
-						        if ($logo_path != "") {
-						            $websiteDetailModel->setWebsiteLogo ($logo_path);
-						        }
 						        $websiteDetailModel = $websiteDetailModel->save();
 						    }    
 						}else{
@@ -157,9 +166,6 @@ class Website_IndexController extends Zend_Controller_Action {
 						        foreach ( $customerLanguageModel as $languages ) {
 						            $websiteDetailModel = new Website_Model_ModuleWebsiteDetail($allFormValues);
 						            $websiteDetailModel->setLanguageId ( $languages->getLanguageId () );
-						            if ($logo_path != "") {
-						                $websiteDetailModel->setWebsiteLogo ($logo_path);
-						            }
 						            $websiteDetailModel->setCreatedBy ( $user_id );
 						            $websiteDetailModel->setCreatedAt ( $date_time );
 						            $websiteDetailModel->setLastUpdatedBy ( $user_id );
@@ -178,9 +184,6 @@ class Website_IndexController extends Zend_Controller_Action {
 						$websiteDetailModel->setCreatedAt ( $date_time );
 						$websiteDetailModel->setLastUpdatedBy ( $user_id );
 						$websiteDetailModel->setLastUpdatedAt ( $date_time );
-						if ($logo_path != "") {
-							$websiteDetailModel->setWebsiteLogo ($logo_path);
-						}
 						$websiteDetailModel = $websiteDetailModel->save ();
 					}
 					$customermoduleMapper = new Admin_Model_Mapper_CustomerModule();
@@ -324,9 +327,13 @@ class Website_IndexController extends Zend_Controller_Action {
 			}
 			if (isset ( $dataDetails [0] ) && is_array ( $dataDetails [0] )) {
 				$form->populate ( $dataDetails [0] );
-				$image_path = $dataDetails[0]['website_logo'];
-				$image_uri = "resource/website/logos/";
-				$this->view->image_thumb = $this->view->baseUrl($image_uri.$image_path); 
+			    if($dataDetails[0]['icon'] != null){
+			        if(count(explode('/',$dataDetails[0]['icon'])) > 1){
+			            $this->view->icon_src = $dataDetails[0]['icon'];
+			        }else{
+			            $this->view->icon_src = "preset-icons/".$dataDetails[0]['icon'];
+			        }
+			    }
 			}
 			$action = $this->view->url ( array (
 					"module" => "website",
@@ -342,6 +349,7 @@ class Website_IndexController extends Zend_Controller_Action {
 		$this->view->assign ( array (
 				"partial" => "index/partials/edit.phtml"
 		) );
+		$this->view->iconpack = $this->_iconpack;
 		$this->render ( "add-edit" );
 	}
 	

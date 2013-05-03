@@ -131,4 +131,18 @@ class Standard_Functions {
 	    $limit['document'] = ($limitArray[0]['document_limit'] > 0) ? $limitArray[0]['document_limit']:20 ;
 	    return $limit;
 	}
+	
+	public static function getIconset($module){
+	    $image_dir = Standard_Functions::getResourcePath().$module."/preset-icons";
+	    if(is_dir($image_dir)){
+	        $direc = opendir($image_dir);
+	        $iconpack = array();
+	        while($icon = readdir($direc)){
+	            if(is_file($image_dir."/".$icon) && getimagesize($image_dir."/".$icon)){
+	                $iconpack[] = $icon;
+	            }
+	        }
+	    }
+	    return $iconpack;
+	}
 }

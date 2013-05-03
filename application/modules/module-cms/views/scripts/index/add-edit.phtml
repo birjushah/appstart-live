@@ -183,7 +183,8 @@ $(document).ready(function() {
 		items[0]={id:0,label:'Parent',selected:false};
 		source[0] = items[0];	
 		// build hierarchical source.
-		for (i = 0; i < data.length; i++) {
+	    console.log(data);
+		for (var i = 0; i < data.length; i++) {
 			var item = data[i];
 			var label = item["text"];
 			var parentid = item["parentId"];
@@ -195,6 +196,15 @@ $(document).ready(function() {
 					items[parentid].items = [];
 				}
 				items[parentid].items[items[parentid].items.length] = item;
+				$.each(source,function(key,value){
+					if(value && value.item && value.item.parentId == item["id"]){
+						if(!item.items){
+							item.items = [];
+						}
+						item.items[item.items.length] = source[key];
+						delete source[key];
+					}
+				});
 				items[id] = item;
 			}
 			else {
@@ -202,7 +212,7 @@ $(document).ready(function() {
 				source[id] = items[id];
 			}
 		}		
-		//console.log(source);
+		console.log(source);
 		return source;
 	}
 	$("#dropDownButton").jqxDropDownButton({ width: 150, height: 25 });

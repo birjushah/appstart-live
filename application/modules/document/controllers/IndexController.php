@@ -4,6 +4,8 @@ class Document_IndexController extends Zend_Controller_Action
 	var $_module_id;
 	var $_customer_module_id;
 	var $_iconpack;
+	var $_total_uploaded_document;
+	var $_upload_document_limit;
     public function init()
     {
 		/* Initialize action controller here */
@@ -30,6 +32,21 @@ class Document_IndexController extends Zend_Controller_Action
     	    }
     	}
     	$this->_iconpack = $iconpack;
+    	
+    	//getting the uploaded images
+    	$mapper = new Document_Model_Mapper_ModuleDocument();
+    	$customer_id = Standard_Functions::getCurrentUser()->customer_id;
+    	$DBExpr = new Zend_Db_Expr("COUNT(module_document_id)");
+    	$select = $mapper->getDbTable()->select(false)
+    	->setIntegrityCheck(false)
+    	->from('module_document',array('count'=>$DBExpr ))
+    	->where("customer_id =".$customer_id);
+    	$stack = $mapper->getDbTable()->fetchRow($select)->toArray();
+    	$this->_total_uploaded_document = $stack['count'];
+    	
+    	//Getting Image Limit for customer
+    	$limit = Standard_Functions::getUploadLimits();
+    	$this->_upload_document_limit = $limit['document'];
     }
 
     public function indexAction()
@@ -61,6 +78,9 @@ class Document_IndexController extends Zend_Controller_Action
     			"controller" => "explorer",
     			"action" => "index"
     	), "default", true);
+    	
+    	$this->view->documentUploaded = $this->_total_uploaded_document;
+    	$this->view->documentlimit = $this->_upload_document_limit;
     }
     
     public function addAction()
@@ -92,6 +112,8 @@ class Document_IndexController extends Zend_Controller_Action
     			"partial" => "index/partials/add.phtml"
     	) );
     	$this->view->iconpack = $this->_iconpack;
+    	$this->view->documentUploaded = $this->_total_uploaded_document;
+    	$this->view->documentlimit = $this->_upload_document_limit;
     	$this->render ( "add-edit" );
     }
     
@@ -172,6 +194,8 @@ class Document_IndexController extends Zend_Controller_Action
     	$this->view->assign ( array (
     			"partial" => "index/partials/edit.phtml"
     	) );
+        $this->view->documentUploaded = $this->_total_uploaded_document;
+        $this->view->documentlimit = $this->_upload_document_limit;
     	$this->view->iconpack = $this->_iconpack;
     	$this->render ( "add-edit" );
     }
@@ -189,10 +213,11 @@ class Document_IndexController extends Zend_Controller_Action
     							'cd' => 'module_document_category_detail'),
     							"cd.module_document_category_id  = c.module_document_category_id AND cd.language_id = " . $language_id,
     							array ('text' => 'cd.title') );
-    					$select = $select->where ( 'c.customer_id = ' . $customer_id );
-    					$data = $categoryMapper->getDbTable ()->fetchAll ( $select );
-    					return Zend_Json::encode ( $data->toArray () );
+		$select = $select->where ( 'c.customer_id = ' . $customer_id );
+		$data = $categoryMapper->getDbTable ()->fetchAll ( $select );
+		return Zend_Json::encode ( $data->toArray () );
     }
+    
     public function saveAction()
     {
         $form = new Document_Form_Document();
@@ -207,7 +232,7 @@ class Document_IndexController extends Zend_Controller_Action
     			if($adapter->getFileName("document")!="")
     			{
     				$response = array (
-    						"success" => array_pop(explode('\\',$adapter->getFileName("document")))
+    						"success" => array_pop(explode('/',$adapter->getFileName("document")))
     				);
     			} else {
     				$response = array (
@@ -225,7 +250,7 @@ class Document_IndexController extends Zend_Controller_Action
     		    if($adapter->getFileName("icon")!="")
     		    {
     				$response = array (
-    				        "success" => array_pop(explode('\\',$adapter->getFileName("icon")))
+    				        "success" => array_pop(explode('/',$adapter->getFileName("icon")))
     				);
     		    } else {
     				$response = array (

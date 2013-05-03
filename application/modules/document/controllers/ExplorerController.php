@@ -2,7 +2,8 @@
 class Document_ExplorerController extends Zend_Controller_Action
 {
 	var $_module_id;
-
+	var $_total_uploaded_document;
+	var $_upload_document_limit;
 	public function init()
 	{
 		/* Initialize action controller here */
@@ -22,6 +23,21 @@ class Document_ExplorerController extends Zend_Controller_Action
 		    }
 		}
 		$this->_iconpack = $iconpack;
+		
+		//getting the uploaded images
+		$mapper = new Document_Model_Mapper_ModuleDocument();
+		$customer_id = Standard_Functions::getCurrentUser()->customer_id;
+		$DBExpr = new Zend_Db_Expr("COUNT(module_document_id)");
+		$select = $mapper->getDbTable()->select(false)
+		->setIntegrityCheck(false)
+		->from('module_document',array('count'=>$DBExpr ))
+		->where("customer_id =".$customer_id);
+		$stack = $mapper->getDbTable()->fetchRow($select)->toArray();
+		$this->_total_uploaded_document = $stack['count'];
+		 
+		//Getting Image Limit for customer
+		$limit = Standard_Functions::getUploadLimits();
+		$this->_upload_document_limit = $limit['document'];
 	}
 
 	public function indexAction()
@@ -48,7 +64,10 @@ class Document_ExplorerController extends Zend_Controller_Action
 				"action" => "save"
 		), "default", true );
 		$form->setAction($action);
+		$this->view->iconpack = json_encode($this->_iconpack);
 		$this->view->form = $form;
+		$this->view->documentUploaded = $this->_total_uploaded_document;
+		$this->view->documentlimit = $this->_upload_document_limit;
 		$this->view->languages = Standard_Functions::getCustomerLanguages();
 	}
 	public function getTreeAction()
@@ -387,5 +406,15 @@ class Document_ExplorerController extends Zend_Controller_Action
 			$response["errors"] = "Unable to move content";
 		}
 		echo Zend_Json::encode ( $response );
+	}
+	
+	public function iconAction(){
+	    $this->_helper->layout ()->disableLayout ();
+	    $this->_helper->viewRenderer->setNoRender ();
+	    $response = array();
+	    $image_dir = $this->view->baseUrl("resource/document/preset-icons");
+	    $response['url'] = $image_dir;
+	    $response['icons'] = $this->_iconpack;
+	    echo Zend_Json::encode ( $response );
 	}
 }

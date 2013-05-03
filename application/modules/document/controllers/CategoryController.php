@@ -51,7 +51,7 @@ class Document_CategoryController extends Zend_Controller_Action
 		), "default", true );
 		$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
 		$language_id = Standard_Functions::getCurrentUser ()->active_language_id;
-		$this->view->categoryTree = self::_getCategoryTree ( $customer_id, $language_id);
+		$this->view->categoryTree = self::_getCategoryTree ( $customer_id, $language_id,false,true);
 	}
 	public function addAction() {
 		$lang_id = Standard_Functions::getCurrentUser ()->default_language_id;
@@ -103,7 +103,7 @@ class Document_CategoryController extends Zend_Controller_Action
 			
 			$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
 			$language_id = Standard_Functions::getCurrentUser ()->active_language_id;
-			$this->view->categoryTree = self::_getCategoryTree ( $customer_id, $language_id);
+			$this->view->categoryTree = self::_getCategoryTree ( $customer_id, $language_id,$document_id);
 			$parent_id = $data["parent_id"];
 			$this->view->orignalParent = $parent_id;
 			$detailMapper = new Document_Model_Mapper_ModuleDocumentCategoryDetail();
@@ -156,7 +156,7 @@ class Document_CategoryController extends Zend_Controller_Action
 		) );
 		$this->render ( "add-edit" );
 	}
-	private static function _getCategoryTree($customer_id = null, $language_id = null) {
+	private static function _getCategoryTree($customer_id = null, $language_id = null, $nochildsforthisid = null, $onlyParents = null) {
 		// Get customer_id, module_cms_id ,title, parent_id
 		$categoryMapper = new Document_Model_Mapper_ModuleDocumentCategory();
 		$select = $categoryMapper->getDbTable ()->select ()
@@ -171,8 +171,61 @@ class Document_CategoryController extends Zend_Controller_Action
 									"cd.module_document_category_id  = c.module_document_category_id AND cd.language_id = " . $language_id, 
 									array ('text' => 'cd.title') );
 		$select = $select->where ( 'c.customer_id = ' . $customer_id );
+		if(isset($nochildsforthisid) && $nochildsforthisid != null){
+		    $childs = self::_getChilds($nochildsforthisid);
+		    $string = is_array($childs)?implode("','",$childs):false;
+		    $select = $select->where ( "c.module_document_category_id NOT IN('".$string."') AND c.parent_id !='".$nochildsforthisid."' AND c.module_document_category_id != '".$nochildsforthisid."' AND c.customer_id = '" . $customer_id . "' AND cd.language_id =".$language_id );
+		}
+		if($onlyParents){
+		    $parent_ids = self::_getParentIds();
+		    $select = $select->where("c.customer_id ='".$customer_id."' AND cd.language_id ='".$language_id."' AND c.module_document_category_id IN('".$parent_ids."')");
+		}
 		$data = $categoryMapper->getDbTable ()->fetchAll ( $select );
 		return Zend_Json::encode ( $data->toArray () );
+	}
+	private static function _getChilds($childs){
+	    if(!is_array($childs)){
+	        $childs = array($childs);
+	    }
+	    $blacklisted = array();
+	    while(count(self::_getBlacklistedIds($childs)) != 0){
+	        $resultset = self::_getBlacklistedIds($childs);
+	        foreach ($resultset as $result) {
+	            $blacklisted[] = $result;
+	        }
+	        $childs = $resultset;
+	    }
+	    return $blacklisted;
+	}
+	
+	private static function _getBlacklistedIds(array $ids = array()){
+	    $categoryMapper = new Document_Model_Mapper_ModuleDocumentCategory();
+	    $idstack = array();
+	    foreach ($ids as $id) {
+	        $result = $categoryMapper->getDbTable()->fetchAll("parent_id =".$id)->toArray();
+	        if(is_array($result)){
+	            foreach ($result as $result) {
+	                $idstack[] = $result['module_document_category_id'];
+	            }
+	        }
+	    }
+	    return $idstack;
+	}
+	
+	private static function _getParentIds(){
+	    $parentIds = array();
+	    $mapper = new Document_Model_Mapper_ModuleDocumentCategory();
+	    $select = $mapper->getDbTable()->select()->setIntegrityCheck(false)
+	    ->from(array('dc'=>'module_document_category'),'dc.parent_id')
+	    ->distinct('dc.parent_id');
+	    $parentIdArrays = $mapper->getDbTable()->fetchAll($select);
+	    foreach ($parentIdArrays as $parentIdArray) {
+	        foreach ($parentIdArray as $parentId) {
+	            $parentIds[] = $parentId;
+	        }
+	    }
+	    $parentString = !empty($parentIds)?implode("','", $parentIds):false;
+	    return $parentString;
 	}
 	
 	public function saveAction() {
@@ -189,7 +242,7 @@ class Document_CategoryController extends Zend_Controller_Action
 		        if($adapter->getFileName("icon")!="")
 		        {
     				$response = array (
-    				        "success" => array_pop(explode('\\',$adapter->getFileName("icon")))
+    				        "success" => array_pop(explode('/',$adapter->getFileName("icon")))
     				);
 		        } else {
     				$response = array (

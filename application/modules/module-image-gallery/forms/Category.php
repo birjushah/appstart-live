@@ -61,6 +61,11 @@ class ModuleImageGallery_Form_Category extends Standard_Form{
 		) );
 		$this->addElement($language_id);
 		
+		//Icon
+		$icon = $this->createElement ( 'file', 'icon' );
+		$icon->setLabel ( 'Icon:' )->setDestination ( Standard_Functions::getResourcePath () . "module-image-gallery/uploaded-icons" )->addValidator ( 'Size', false, 102400 )->addValidator ( 'Extension', false, 'jpg,png,gif' );
+		$this->addElement ( $icon );
+		
 		// Submit For ALL button
 		$allpyall = $this->addElement ( 'button', 'applyall', array (
 				'ignore' => true,

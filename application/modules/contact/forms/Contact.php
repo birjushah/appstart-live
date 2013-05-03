@@ -66,7 +66,7 @@ class Contact_Form_Contact extends Standard_Form {
 
 		//PLZ
 		$plz = $this->createElement ( "text", "plz", array (
-				'label' => 'PLZ',
+				'label' => 'PLZ:',
 				'size' => '20',
 				'filters' => array (
 						'StringTrim' 
@@ -84,7 +84,7 @@ class Contact_Form_Contact extends Standard_Form {
 		}
 		//array_unshift($countries, array("Select Country");
 		$country = $this->createElement('select','country',array(
-				'label' => 'Country',
+				'label' => 'Country:',
 				'Multioptions' => $countries,
 		));
 		$this->addElement($country);
@@ -211,13 +211,13 @@ class Contact_Form_Contact extends Standard_Form {
 		$this->addElement ( $logo );
 		
 		$this->addElement ( 'checkbox', 'status', array (
-				'label' => 'Active',
+				'label' => 'Active:',
 				'value' => '1' 
 		) );
 		
 		//Information
 		$information = $this->createElement('textarea', 'information',array(
-				'label' => "Information",
+				'label' => "Information:",
 				'id' => "content_textarea",
 				'filters' => array (
 						'StringTrim'

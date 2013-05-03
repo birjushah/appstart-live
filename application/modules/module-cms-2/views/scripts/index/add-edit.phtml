@@ -193,6 +193,15 @@ tinyMCE.init({
 					items[parentid].items = [];
 				}
 				items[parentid].items[items[parentid].items.length] = item;
+				$.each(source,function(key,value){
+					if(value && value.item && value.item.parentId == item["id"]){
+						if(!item.items){
+							item.items = [];
+						}
+						item.items[item.items.length] = source[key];
+						delete source[key];
+					}
+				});
 				items[id] = item;
 			}
 			else {

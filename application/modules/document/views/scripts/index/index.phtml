@@ -1,3 +1,7 @@
+<script type="text/javascript">
+window.documentUploaded = <?php echo $this->documentUploaded?$this->documentUploaded:0;?>;
+window.documentLimit = <?php echo $this->documentlimit?$this->documentlimit:0;?>;
+</script>
 <form id="frmFilter">
 <div id="filterBox">
       <table style="width:100%;border:0;border-spacing:0;border-collapse:collapse;">
@@ -52,7 +56,21 @@
 <script type="text/javascript">
 var grid ="";
 $(document).ready(function() {
-
+	$('a[href="<?php echo $this->addlink;?>"]').on('click',function(e){
+		if(!e.isDefaultPrevented()){
+			if(window.documentUploaded >= window.documentLimit){
+				 promptus = new prompt({
+	                reference : self,
+	                element : ".dataTables_wrapper"
+	            });
+	            promptus.showErrorMessage("You have reached maximum upload document limit of " +window.documentLimit+ ".Please delete some documents and try again");
+	            setTimeout(function(){
+            		promptus.close();
+                }, 3000);
+				e.preventDefault();
+			}
+		}
+	});
 	grid = dataTable({
 		aaSorting: [[ 6, "desc" ]],
 		"aoColumns": [
@@ -97,6 +115,7 @@ $(document).ready(function() {
                                         dataType: "json",
                                         success: function(json){
                                             if(json.success != undefined){ 
+                                            	window.documentUploaded--;
                                             	prompt.showSuccessMessage("<?php echo ($this->translate('Document deleted successfully.')); ?>");
                                             	setTimeout(function(){
                                             		prompt.close();

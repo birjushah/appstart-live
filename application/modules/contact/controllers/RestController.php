@@ -61,6 +61,13 @@ class Contact_RestController extends Standard_Rest_Controller {
 									if(isset($details["logo"])) {
 										$details["logo"] = "resource/contact/images/".$details["logo"];
 									}
+									if(isset($details["icon"]) && $details["icon"] != null) {
+									    if(count(explode('/', $details["icon"])) > 1){
+									        $details["icon"] = "resource/module-image-gallery-1/".$details["icon"];
+									    }else{
+									        $details["icon"] = "resource/module-image-gallery-1/preset-icons/".$details["icon"];
+									    }
+									}
 									$contactDetails[] = $details;
 								}
 							}

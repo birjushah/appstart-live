@@ -307,6 +307,8 @@ class ModuleImageGallery_IndexController extends Zend_Controller_Action {
 		$this->view->assign ( array (
 				"partial" => "index/partials/edit.phtml" 
 		) );
+		$this->view->imagesUploaded = $this->_total_uploaded_images;
+		$this->view->imagesLimit = $this->_upload_image_limit;
 		$this->render ( "add-edit" );
 	}
 	public function saveAction() {
@@ -712,7 +714,7 @@ class ModuleImageGallery_IndexController extends Zend_Controller_Action {
 			if (copy ( $source_dir . $source_file_name, $dest_dir . $filename )) {
 			}
 			$thumbname = str_replace ( "." . $expension, "_thumb." . $expension, $filename );
-			$this->generateThumb ( $dest_dir . $filename, $dest_dir . $thumbname, 0, 200 );
+			$this->generateThumb ( $dest_dir . $filename, $dest_dir . $thumbname, 0, 250 );
 		} catch ( Exception $ex ) {
 		}
 		return $filename;

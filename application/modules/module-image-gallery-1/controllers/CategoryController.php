@@ -16,6 +16,17 @@ class ModuleImageGallery1_CategoryController extends Zend_Controller_Action {
 		    $customermodule = $customermodule[0];
 		    $this->_customer_module_id = $customermodule->getCustomerModuleId();
 		}
+		$image_dir = Standard_Functions::getResourcePath(). "module-image-gallery-1/preset-icons";
+		if(is_dir($image_dir)){
+		    $direc = opendir($image_dir);
+		    $iconpack = array();
+		    while($icon = readdir($direc)){
+		        if(is_file($image_dir."/".$icon) && getimagesize($image_dir."/".$icon)){
+		            $iconpack[] = $icon;
+		        }
+		    }
+		}
+		$this->_iconpack = $iconpack;
 	}
 	
 	public function indexAction() {
@@ -51,6 +62,7 @@ class ModuleImageGallery1_CategoryController extends Zend_Controller_Action {
 				"partial" => "category/partials/add.phtml"
 		) );
 		$this->view->form = $form;
+		$this->view->iconpack = $this->_iconpack;
 		$this->render("add-edit");
 	}
 	
@@ -90,6 +102,13 @@ class ModuleImageGallery1_CategoryController extends Zend_Controller_Action {
 				//$this->view->category = $dataDetails[0]['title'];
 			}
 			if (isset ( $dataDetails [0] ) && is_array ( $dataDetails [0] )) {
+			    if($dataDetails[0]['icon'] != null){
+			        if(count(explode('/',$dataDetails[0]['icon'])) > 1){
+			            $this->view->icon_src = $dataDetails[0]['icon'];
+			        }else{
+			            $this->view->icon_src = "preset-icons/".$dataDetails[0]['icon'];
+			        }
+			    }
 				$form->populate ( $dataDetails [0] );
 			}
 			$action = $this->view->url ( array (
@@ -106,22 +125,52 @@ class ModuleImageGallery1_CategoryController extends Zend_Controller_Action {
 			$this->view->assign ( array (
 					"partial" => "category/partials/edit.phtml"
 			) );
+		$this->view->iconpack = $this->_iconpack;
 		$this->render ( "add-edit" );
 	}
 	public function saveAction(){
 		$this->_helper->layout ()->disableLayout ();
 		$this->_helper->viewRenderer->setNoRender ();
 		$form = new ModuleImageGallery1_Form_Category();
+		$default_lang_id = Standard_Functions::getCurrentUser ()->default_language_id;
 		$request = $this->getRequest ();
 		$response = array ();
 		$allFlag = $this->_request->getParam("all",false);
 		if ($this->_request->isPost ()) {
+		    if($request->getParam ( "iconupload", "" ) != "") {
+		        $adapter = new Zend_File_Transfer_Adapter_Http();
+		        $adapter->setDestination(Standard_Functions::getResourcePath(). "module-image-gallery-1/uploaded-icons");
+		        $adapter->receive();
+		        if($adapter->getFileName("icon")!="")
+		        {
+		            $response = array (
+		                    "success" => array_pop(explode('/',$adapter->getFileName("icon")))
+		            );
+		        } else {
+		            $response = array (
+		                    "errors" => "Error Occured"
+		            );
+		        }
+		    
+		        echo Zend_Json::encode($response);
+		        exit;
+		    }
+		    $form->removeElement("icon");
 			if ($form->isValid ( $this->_request->getParams () )) {
 				try{
 				$allFormValues = $form->getValues();
 				$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
 				$user_id = Standard_Functions::getCurrentUser ()->user_id;
 				$date_time = Standard_Functions::getCurrentDateTime ();
+				if($request->getParam("selLogo","0")){
+				    $selIcon = $request->getParam("selLogo","0");
+				}
+				$icon_path = $request->getParam("icon_path","");
+				if($selIcon != 0){
+				    $allFormValues["icon"] = $selIcon;
+				}elseif ($icon_path != ""){
+				    $allFormValues["icon"] = "uploaded-icons/".$icon_path;
+				}
 				$mapper = new ModuleImageGallery1_Model_Mapper_ModuleImageGalleryCategory1 ();
 				$mapper->getDbTable()->getAdapter()->beginTransaction();
 				$model = new ModuleImageGallery1_Model_ModuleImageGalleryCategory1 ( $allFormValues );
@@ -159,6 +208,16 @@ class ModuleImageGallery1_CategoryController extends Zend_Controller_Action {
 					$categoryDetails = $categoryDetail->getDbTable()->fetchAll("module_image_gallery_category_1_id =".$allFormValues['module_image_gallery_category_1_id'])->toArray();
 					$mapperLanguage = new Admin_Model_Mapper_CustomerLanguage ();
 					$modelLanguages = $mapperLanguage->fetchAll ( "customer_id = " . $customer_id );
+					if($allFormValues['module_image_gallery_category_detail_1_id'] != null){
+					    $currentDetails = $categoryDetail->getDbTable()->fetchAll("module_image_gallery_category_detail_1_id =".$allFormValues['module_image_gallery_category_detail_1_id'])->toArray();
+					}else{
+					    $currentDetails = $categoryDetail->getDbTable()->fetchAll("module_image_gallery_category_1_id ='".$allFormValues['module_image_gallery_category_1_id']."' AND language_id =".$default_lang_id)->toArray();
+					}
+					if(is_array($currentDetails)){
+					    if(!$allFormValues['icon']){
+					        $allFormValues['icon'] = $currentDetails[0]['icon'];
+					    }
+					}
 					unset($allFormValues['module_image_gallery_category_detail_1_id'],$allFormValues['language_id']);
 					if(count($modelLanguages) == count($categoryDetails)){
 					    foreach ($categoryDetails as $categoryDetail) {

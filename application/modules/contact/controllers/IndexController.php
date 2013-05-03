@@ -16,6 +16,17 @@ class Contact_IndexController extends Zend_Controller_Action {
 			$customermodule = $customermodule[0];
 			$this->_customer_module_id = $customermodule->getCustomerModuleId();
 		}
+		$image_dir = Standard_Functions::getResourcePath(). "module-image-gallery/preset-icons";
+		if(is_dir($image_dir)){
+		    $direc = opendir($image_dir);
+		    $iconpack = array();
+		    while($icon = readdir($direc)){
+		        if(is_file($image_dir."/".$icon) && getimagesize($image_dir."/".$icon)){
+		            $iconpack[] = $icon;
+		        }
+		    }
+		}
+		$this->_iconpack = $iconpack;
 	}
 	public function indexAction() {
 		// action body
@@ -59,7 +70,7 @@ class Contact_IndexController extends Zend_Controller_Action {
 		$this->view->assign ( array (
 				"partial" => "index/partials/add.phtml" 
 		) );
-
+		$this->view->iconpack = $this->_iconpack;
 		$this->render ( "add-edit" );
 	}
 	public function reorderAction() {
@@ -161,7 +172,14 @@ class Contact_IndexController extends Zend_Controller_Action {
 			}
 			if (isset ( $dataDetails [0] ) && is_array ( $dataDetails [0] )) {
 				//print_r($dataDetails [0]);
-				$timings = $dataDetails [0]['timings'];
+			    if($dataDetails[0]['icon'] != null){
+			        if(count(explode('/',$dataDetails[0]['icon'])) > 1){
+			            $this->view->icon_src = $dataDetails[0]['icon'];
+			        }else{
+			            $this->view->icon_src = "preset-icons/".$dataDetails[0]['icon'];
+			        }
+			    }
+			    $timings = $dataDetails [0]['timings'];
 				$form->populate ( $dataDetails [0] );
 				$logoname = $dataDetails [0] ["logo"];
 				$image_uri = "resource/contact/images/";
@@ -191,6 +209,7 @@ class Contact_IndexController extends Zend_Controller_Action {
 		$this->view->assign ( array (
 				"partial" => "index/partials/edit.phtml" 
 		) );
+		$this->view->iconpack = $this->_iconpack;
 		$this->render ( "add-edit" );
 	}
 	public function saveAction() {
@@ -220,6 +239,25 @@ class Contact_IndexController extends Zend_Controller_Action {
 				// $this->_helper->json ( $response );
 				exit ();
 			}
+			if($request->getParam ( "iconupload", "" ) != "") {
+			    $adapter = new Zend_File_Transfer_Adapter_Http();
+			    $adapter->setDestination(Standard_Functions::getResourcePath(). "contact/uploaded-icons");
+			    $adapter->receive();
+			    if($adapter->getFileName("icon")!="")
+			    {
+			        $response = array (
+			                "success" => array_pop(explode('/',$adapter->getFileName("icon")))
+			        );
+			    } else {
+			        $response = array (
+			                "errors" => "Error Occured"
+			        );
+			    }
+			
+			    echo Zend_Json::encode($response);
+			    exit;
+			}
+			$form->removeElement("icon");
 			$form->removeElement ( "logo" );
 			$allFlag = $this->_request->getParam("all",false);
 			if ($form->isValid ( $this->_request->getParams () )) {
@@ -232,8 +270,16 @@ class Contact_IndexController extends Zend_Controller_Action {
 					$logo_path = $request->getParam ( "logo_path", "" );
 					$mapper = new Contact_Model_Mapper_Contact ();
 					$mapper->getDbTable ()->getAdapter ()->beginTransaction ();
-					
 					$model = new Contact_Model_Contact ( $arrFormValues );
+					if($request->getParam("selLogo","0")){
+					    $selIcon = $request->getParam("selLogo","0");
+					}
+					$icon_path = $request->getParam("icon_path","");
+					if($selIcon != 0){
+					    $arrFormValues["icon"] = $selIcon;
+					}elseif ($icon_path != ""){
+					    $arrFormValues["icon"] = "uploaded-icons/".$icon_path;
+					}
 					if ($request->getParam ( "contact_id", "" ) == "") {
 						// Add new Record
 						$maxOrder = $mapper->getNextOrder ( $customer_id );
@@ -279,7 +325,10 @@ class Contact_IndexController extends Zend_Controller_Action {
 						    $currentmapperDetailsData = $mapperDetails->getDbTable()->fetchAll("contact_id ='".$arrFormValues['contact_id']."' AND language_id =".$default_lang_id)->toArray();
 						}
 						if(is_array($currentmapperDetailsData)){
-						    $arrFormValues['logo'] = $currentmapperDetailsData[0]['logo'];    
+						    $arrFormValues['logo'] = $currentmapperDetailsData[0]['logo'];
+						    if(!$arrFormValues['icon']){
+						        $arrFormValues['icon'] = $currentmapperDetailsData[0]['icon'];
+						    }    
 						}
 						unset($arrFormValues['contact_detail_id'],$arrFormValues['language_id']);
 						if(count($mapperDetails) == count($modelLanguages)){

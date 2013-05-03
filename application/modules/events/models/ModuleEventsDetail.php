@@ -7,6 +7,7 @@ class Events_Model_ModuleEventsDetail extends Standard_Model {
 	private $_description;
 	private $_start_date_time;
 	private $_end_date_time;
+	private $_icon;
 	private $_image;
 	private $_notes;
 	private $_recurrence;

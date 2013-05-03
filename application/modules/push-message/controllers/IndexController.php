@@ -9,16 +9,8 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 		if(is_array($module)) {
 			$this->_module_id = $module[0]->getModuleId();
 		}
-		$image_dir = Standard_Functions::getResourcePath(). "push-message/preset-icons";
-		if(is_dir($image_dir)){
-		    $direc = opendir($image_dir);
-		    $iconpack = array();
-		    while($icon = readdir($direc)){
-		        if(is_file($image_dir."/".$icon) && getimagesize($image_dir."/".$icon)){
-		            $iconpack[] = $icon;
-		        }
-		    }
-		}
+		
+		$iconpack = Standard_Functions::getIconset("push-message");
 		$this->_iconpack = $iconpack;
 	}
 	public function indexAction() {

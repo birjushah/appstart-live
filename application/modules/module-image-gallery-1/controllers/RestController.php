@@ -59,6 +59,13 @@ class ModuleImageGallery1_RestController extends Standard_Rest_Controller {
 							if($categoryDetailModel) {
 								foreach($categoryDetailModel as $category_detail) {
 									$details = $category_detail->toArray();
+									if(isset($details["icon"]) && $details["icon"] != null) {
+									    if(count(explode('/', $details["icon"])) > 1){
+									        $details["icon"] = "resource/module-image-gallery-1/".$details["icon"];
+									    }else{
+									        $details["icon"] = "resource/module-image-gallery-1/preset-icons/".$details["icon"];
+									    }
+									}
 									$categoryDetails[] = $details;
 								}
 							}

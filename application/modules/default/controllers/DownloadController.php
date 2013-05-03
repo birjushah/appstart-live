@@ -48,6 +48,17 @@ class Default_DownloadController extends Standard_Rest_Controller {
 										if(file_exists("resource/contact/images/".$details["logo"]) && is_file("resource/contact/images/".$details["logo"]))
 											$zip->addFile("resource/contact/images/".$details["logo"],"contact/".$details["logo"]);
 									}
+									if(isset($details["icon"])) {
+									    if(count(explode('/', $details["icon"])) > 1){
+									        if(file_exists("resource/contact/".$details["icon"]) && is_file("resource/contact/".$details["icon"])){
+									            $zip->addFile("resource/contact/".$details["icon"],"contact/".$details["icon"]);
+									        }
+									    }else{
+									        if(file_exists("resource/contact/preset-icons/".$details["icon"]) && is_file("resource/contact/preset-icons/".$details["icon"])){
+									            $zip->addFile("resource/contact/preset-icons/".$details["icon"],"contact/preset-icons/".$details["icon"]);
+									        }
+									    }
+									}
 								}
 							}
 						}
@@ -71,6 +82,17 @@ class Default_DownloadController extends Standard_Rest_Controller {
 									if(isset($details["image"])) {
 										if(file_exists("resource/events/images/".$details["image"]) && is_file("resource/events/images/".$details["image"]))
 											$zip->addFile("resource/events/images/".$details["image"],"events/".$details["image"]);
+									}
+									if(isset($details["icon"])) {
+									    if(count(explode('/', $details["icon"])) > 1){
+									        if(file_exists("resource/events/".$details["icon"]) && is_file("resource/events/".$details["icon"])){
+									            $zip->addFile("resource/events/".$details["icon"],"events/".$details["icon"]);
+									        }
+									    }else{
+									        if(file_exists("resource/events/preset-icons/".$details["icon"]) && is_file("resource/events/preset-icons/".$details["icon"])){
+									            $zip->addFile("resource/events/preset-icons/".$details["icon"],"events/preset-icons/".$details["icon"]);
+									        }
+									    }
 									}
 								}
 							}
@@ -130,6 +152,28 @@ class Default_DownloadController extends Standard_Rest_Controller {
 							}
 						}
 					}
+					$imageCategoryMapper = new ModuleImageGallery_Model_Mapper_ModuleImageGalleryCategory();
+					$imageCategoryModel = $imageCategoryMapper->fetchAll("customer_id =".$customer_id);
+					if($imageCategoryModel){
+					    foreach ($imageCategoryModel as $category){
+					        $categoryDetailMapper = new ModuleImageGallery_Model_Mapper_ModuleImageGalleryCategoryDetail();
+					        $categoryDetailModel = $categoryDetailMapper->fetchAll("module_image_gallery_category_id =".$category->getModuleImageGalleryCategoryId());
+					        foreach ($categoryDetailModel as $categoryDetail){
+					            $details = $categoryDetail->toArray();
+					            if(isset($details["icon"])) {
+					                if(count(explode('/', $details["icon"])) > 1){
+					                    if(file_exists("resource/module-image-gallery/".$details["icon"]) && is_file("resource/module-image-gallery/".$details["icon"])){
+					                        $zip->addFile("resource/module-image-gallery/".$details["icon"],"module-image-gallery/".$details["icon"]);
+					                    }
+					                }else{
+					                    if(file_exists("resource/module-image-gallery/preset-icons/".$details["icon"]) && is_file("resource/module-image-gallery/preset-icons/".$details["icon"])){
+					                        $zip->addFile("resource/module-image-gallery/preset-icons/".$details["icon"],"module-image-gallery/preset-icons/".$details["icon"]);
+					                    }
+					                }
+					            }    
+					        }
+					    }
+					}
 				}
 				if($reqModuleName==null || $reqModuleName=="image-gallery-1") {
 					// Image Gallery 1
@@ -157,6 +201,28 @@ class Default_DownloadController extends Standard_Rest_Controller {
 								}
 							}
 						}
+					}
+					$imageCategoryMapper = new ModuleImageGallery1_Model_Mapper_ModuleImageGalleryCategory1();
+					$imageCategoryModel = $imageCategoryMapper->fetchAll("customer_id =".$customer_id);
+					if($imageCategoryModel){
+					    foreach ($imageCategoryModel as $category){
+					        $categoryDetailMapper = new ModuleImageGallery1_Model_Mapper_ModuleImageGalleryCategoryDetail1();
+					        $categoryDetailModel = $categoryDetailMapper->fetchAll("module_image_gallery_category_1_id =".$category->getModuleImageGalleryCategory1Id());
+					        foreach ($categoryDetailModel as $categoryDetail){
+					            $details = $categoryDetail->toArray();
+					            if(isset($details["icon"])) {
+					                if(count(explode('/', $details["icon"])) > 1){
+					                    if(file_exists("resource/module-image-gallery-1/".$details["icon"]) && is_file("resource/module-image-gallery-1/".$details["icon"])){
+					                        $zip->addFile("resource/module-image-gallery-1/".$details["icon"],"module-image-gallery-1/".$details["icon"]);
+					                    }
+					                }else{
+					                    if(file_exists("resource/module-image-gallery-1/preset-icons/".$details["icon"]) && is_file("resource/module-image-gallery-1/preset-icons/".$details["icon"])){
+					                        $zip->addFile("resource/module-image-gallery-1/preset-icons/".$details["icon"],"module-image-gallery-1/preset-icons/".$details["icon"]);
+					                    }
+					                }
+					            }    
+					        }
+					    }
 					}
 				}
 				if($reqModuleName==null || $reqModuleName=="social-media") {

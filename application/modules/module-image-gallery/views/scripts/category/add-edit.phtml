@@ -24,6 +24,60 @@
 				</tr>
 				
 				<tr>
+				<td valign="top">
+					<label><?php echo $this->translate('Icon:')?></label>
+				</td>
+				<td valign="top">
+					<div id="lstLogo" class="logo-box">
+        				<?php $resource_path = $this->baseUrl("resource/module-image-gallery/preset-icons");?>
+        				<?php foreach ($this->iconpack as $icon):?>
+        				<div class="">
+							<label for="selLogo_<?php echo $icon; ?>">
+								<img src="<?php echo $resource_path . "/" . $icon; ?>" width="64" />
+							</label>
+							<input type="radio" id="selLogo_<?php echo $icon; ?>" name="selLogo" value="<?php echo $icon; ?>" />
+						</div>
+        				<?php endforeach;?>
+					</div>
+				</td>
+    			</tr>
+    			
+    			<tr>
+    		        <td>&nbsp;</td>
+    			    <td>
+    		        	<div class="logo-box">
+    		        		<table>
+    						<tr>
+    							<td>
+    								<?php 
+    								$icon_path = $this->baseUrl("resource/module-image-gallery/");
+    					        	if($this->icon_src!="") {
+    					        	?>
+    					        	<img alt="" src="<?php echo $icon_path."/".$this->icon_src;?>" style="width: 64px;" />
+    					        	<?php 
+    					        	}
+    					        	?>
+    				        	</td>
+    				        	<td>
+    				        		<?php
+    				        		$checked = "";
+    					        	if($this->icon_src!="") {
+    					        		$checked = "checked='checked'";
+    								}
+    								?>
+    					        	
+    								<input type="radio" id="selLogo_0" checked="checked" name="selLogo" value="0" style="margin-left: 10px;" />
+    								<label for="selLogo_0"><?php echo $this->translate('Upload:')?></label>
+    								<input id="icon" type="file" name="icon" /> (Size: 60px &#215; 60px )
+    					        	<input id="icon_path" type="hidden" name="icon_path" value="" />
+    				        	</td>
+    			        	</tr>
+    			        	</table>
+    					</div>
+    				</td>
+    			</tr>
+				
+				<tr>
 				<td><?php echo $form->status->renderLabel() ?></td>
 					<td>
 		        	<?php echo $form->status->renderViewHelper()?>
@@ -43,6 +97,14 @@
 </div>
 <script type="text/javascript">
 $(document).ready(function() {
+	$("input:radio[name=selLogo]").on("change",function(){
+		if($('input:radio[name=selLogo]:checked').val() == 0)
+		{
+			$("#icon").removeAttr("disabled");
+		} else {
+			$("#icon").attr("disabled","disabled");
+		}			
+	});
 	$("#applyall").on("click",function(e){
 		if(!e.isDefaultPrevented()){
 	    	var promptus = new prompt({
@@ -80,6 +142,33 @@ $(document).ready(function() {
 	            });
 	            next();
 
+			}).queue(function(next){
+				if($('input:radio[name=selLogo]:checked').val() == 0 && $('#icon').attr("value")!="") {
+					$.ajaxFileUpload({
+						url:'<?php echo $form->getAction(); ?>',
+						secureuri:false,
+						fileElementId:'icon',
+						dataType: 'json',
+						data:{iconupload:'true'},
+						success: function (data, status)
+						{
+							if(data.success != undefined) {
+								$("#icon_path").attr("value",data.success);
+								next();
+							}
+						},
+						error: function (data, status, e)
+						{
+							promptus.showErrorMessage("<?php echo $this->translate('Error uploading icon.')?>");
+							setTimeout(function(){
+								promptus.close();
+							}, 2000);
+							
+						}
+					});
+				} else {
+					next();
+				}
 			}).queue(function(next){
 				$.ajax({
 					type : "POST",

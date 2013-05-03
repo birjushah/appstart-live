@@ -70,6 +70,13 @@ class Events_RestController extends Standard_Rest_Controller {
 									if(isset($details["image"])) {
 										$details["image"] = "resource/events/images/".$details["image"];
 									}
+									if(isset($details["icon"]) && $details["icon"] != null) {
+									    if(count(explode('/', $details["icon"])) > 1){
+									        $details["icon"] = "resource/events/".$details["icon"];
+									    }else{
+									        $details["icon"] = "resource/events/preset-icons/".$details["icon"];
+									    }
+									}
 									$eventDetails[] = $details;
 								}
 							}

@@ -11,7 +11,9 @@ class ModuleImageGallery_RestController extends Standard_Rest_Controller {
 		} else {
 			if($service == "sync") {
 				$this->_sync();
-			} else {
+			} else if ($service == "download") { 
+				$this->_download();
+			}else {
 				$this->_sendError("Invalid service");
 			}
 		}
@@ -58,6 +60,13 @@ class ModuleImageGallery_RestController extends Standard_Rest_Controller {
 							if($categoryDetailModel) {
 								foreach($categoryDetailModel as $category_detail) {
 									$details = $category_detail->toArray();
+    								if(isset($details["icon"]) && $details["icon"] != null) {
+    					                if(count(explode('/', $details["icon"])) > 1){
+    					                    $details["icon"] = "resource/module-image-gallery/".$details["icon"];
+    					                }else{
+    					                    $details["icon"] = "resource/module-image-gallery/preset-icons/".$details["icon"];
+    					                }
+    					            }
 									$categoryDetails[] = $details;
 								}
 							}
@@ -94,6 +103,46 @@ class ModuleImageGallery_RestController extends Standard_Rest_Controller {
 					$this->_sendData($data);
 				} else {
 					$this->_sendError("Invalid customer ID");
+				}
+			} catch (Exception $ex) {
+				$this->_sendError($ex->getMessage());
+			}
+		}
+	}
+	protected function _download() {
+		$customer_id = $this->_request->getParam("customer_id",null);
+		if($customer_id===null) {
+			$this->_sendError("Invalid request");
+		} else {
+			try{
+				$file_path = "resource/module-image-gallery/thumb/".$customer_id."/";
+				$zip = new ZipArchive();
+				$zip->open($file_path . "images.zip",ZIPARCHIVE::CREATE | ZIPARCHIVE::OVERWRITE);
+				
+				$imageMapper = new ModuleImageGallery_Model_Mapper_ModuleImageGallery();
+				$imageModel = $imageMapper->fetchAll("customer_id=".$customer_id);
+				if($imageModel) {
+					foreach($imageModel as $image) {
+						$imageDetails = array();
+						$imageDetailMapper = new ModuleImageGallery_Model_Mapper_ModuleImageGalleryDetail();
+						$imageDetailModel = $imageDetailMapper->fetchAll("module_image_gallery_id=".$image->getModuleImageGalleryId());
+						if($imageDetailModel) {
+							foreach($imageDetailModel as $image_detail) {
+								$details = $image_detail->toArray();
+								if(isset($details["image_path"])) {
+									$zip->addFile($file_path .$details["image_path"],$details["image_path"]);
+								}
+							}
+						}
+					}
+				}
+				if(($zip->close()===true)) {
+					header('Content-Type: application/zip');
+					header('Content-disposition: attachment; filename=images.zip');
+					header('Content-Length: ' . filesize($file_path."images.zip"));
+					readfile($file_path."images.zip");
+					unlink($file_path."images.zip");
+					die;
 				}
 			} catch (Exception $ex) {
 				$this->_sendError($ex->getMessage());

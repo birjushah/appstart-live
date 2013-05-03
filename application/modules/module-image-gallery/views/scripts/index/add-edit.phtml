@@ -247,8 +247,8 @@ function submitForm(e,customObject){
 		var promptus = false;
 		$(document).queue(function(next){
 			promptus = new prompt({
-            	reference : form,
-                element : ".dataTables_wrapper",
+            	reference : "#frmAddEditimageGallery",
+                element : "#content",
                 beforeShow : function(){
 	                this.alternateMessage = this.showLoadingMessage("<?php echo $this->translate('Saving Image..')?>");
                 }

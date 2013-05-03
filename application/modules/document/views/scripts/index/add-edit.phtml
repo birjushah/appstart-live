@@ -1,4 +1,8 @@
 <?php $form = $this->form;?>
+<script type="text/javascript">
+window.documentUploaded = <?php echo $this->documentUploaded?$this->documentUploaded:0;?>;
+window.documentLimit = <?php echo $this->documentlimit?$this->documentlimit:0;?>;
+</script>
 <script type="text/javascript" src="<?php echo $this->baseUrl("libs/tinymce/js/tiny_mce.js"); ?>"></script>
 <script type="text/javascript">
 tinyMCE.init({
@@ -262,6 +266,17 @@ $(document).ready(function() {
     //console.log(source);
 	$("#jqxTree").jqxTree({source:source,width: 250 });
 	$("#frmAddEditDocument").validator().submit(function(e,customObject){
+		if(window.documentUploaded >= window.documentLimit){
+			 promptus = new prompt({
+	            reference : "#frmAddEditDocument",
+	            element : "#content"
+	        });
+	        promptus.showErrorMessage("You have reached maximum upload document limit of " +window.documentLimit+ ".Please delete some documents and try again");
+	        setTimeout(function(){
+	    		promptus.close();
+	        },2000);
+			e.preventDefault();
+		}
 		customObject = customObject || {};
 		var queryAppend = "";
 		if(customObject.all){
@@ -274,21 +289,21 @@ $(document).ready(function() {
 		}else{
 			var parent = '&parent=intact'
 		}
-		if($('#module_document_category_id').val() == 0){
-			promptus = new prompt({
-	           	reference : self,
-	            element : "#frmAddEditDocument",
-	            beforeShow : function(){
-	                this.alternateMessage = this.showErrorMessage("Please select some Category!");
-                } 
-			});
-			setTimeout(function(){
-				promptus.close();
-			}, 2000);
-			return false;
-		}
 		var form = $(this);
 		if(!e.isDefaultPrevented()){
+			if($('#module_document_category_id').val() == 0){
+				promptus = new prompt({
+		           	reference : self,
+		            element : "#frmAddEditDocument",
+		            beforeShow : function(){
+		                this.alternateMessage = this.showErrorMessage("Please select some Category!");
+	                } 
+				});
+				setTimeout(function(){
+					promptus.close();
+				}, 2000);
+				return false;
+			}
 			var promptus = false;
 			$(document).queue(function(next){
 				promptus = new prompt({

@@ -307,6 +307,8 @@ class ModuleImageGallery1_IndexController extends Zend_Controller_Action {
 		$this->view->assign ( array (
 				"partial" => "index/partials/edit.phtml" 
 		) );
+		$this->view->imagesUploaded = $this->_total_uploaded_images;
+		$this->view->imagesLimit = $this->_upload_image_limit;
 		$this->render ( "add-edit" );
 	}
 	public function saveAction() {

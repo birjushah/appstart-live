@@ -2,6 +2,8 @@
 class HomeWallpaper_IndexController extends Zend_Controller_Action {
 	var $_module_id;
 	var $_customer_module_id;
+	var $_total_uploaded_wallpapers;
+	var $_upload_wallpaper_limit;
 	public function init() {
 		/* Initialize action controller here */
 		$modulesMapper = new Admin_Model_Mapper_Module();
@@ -16,6 +18,21 @@ class HomeWallpaper_IndexController extends Zend_Controller_Action {
 		    $customermodule = $customermodule[0];
 		    $this->_customer_module_id = $customermodule->getCustomerModuleId();
 		}
+		
+		//getting the uploaded wallpapers
+		$mapper = new HomeWallpaper_Model_Mapper_HomeWallpaper();
+		$customer_id = Standard_Functions::getCurrentUser()->customer_id;
+		$DBExpr = new Zend_Db_Expr("COUNT(home_wallpaper_id)");
+		$select = $mapper->getDbTable()->select(false)
+		->setIntegrityCheck(false)
+		->from('module_home_wallpaper',array('count'=>$DBExpr ))
+		->where("customer_id =".$customer_id);
+		$stack = $mapper->getDbTable()->fetchRow($select)->toArray();
+		$this->_total_uploaded_wallpapers = $stack['count'];
+		
+		//Getting Wallapaer Limit for customer
+		$limit = Standard_Functions::getUploadLimits();
+		$this->_upload_wallpaper_limit = $limit['home-wallpaper'];
 	}
 	public function indexAction() {
 		// action body
@@ -35,6 +52,9 @@ class HomeWallpaper_IndexController extends Zend_Controller_Action {
 				"controller" => "index",
 				"action" => "reorder"
 		), "default", true );
+		
+		$this->view->imagesUploaded = $this->_total_uploaded_wallpapers;
+		$this->view->imagesLimit = $this->_upload_wallpaper_limit;
 	}
 	public function reorderAction() {
 		$active_lang_id = Standard_Functions::getCurrentUser ()->active_language_id;
@@ -126,6 +146,8 @@ class HomeWallpaper_IndexController extends Zend_Controller_Action {
 				"partial" => "index/partials/add.phtml",
 				"resolutions" => $mapper->fetchAll()
 		) );
+		$this->view->imagesUploaded = $this->_total_uploaded_wallpapers;
+		$this->view->imagesLimit = $this->_upload_wallpaper_limit;
 		$this->render ( "add-edit" );
 	}
 	public function editAction() {
@@ -200,6 +222,8 @@ class HomeWallpaper_IndexController extends Zend_Controller_Action {
 				"partial" => "index/partials/edit.phtml",
 				"resolutions" => $mapper->fetchAll() 
 		) );
+		$this->view->imagesUploaded = $this->_total_uploaded_wallpapers;
+		$this->view->imagesLimit = $this->_upload_wallpaper_limit;
 		$this->render ( "add-edit" );
 	}
 	public function saveAction() {
@@ -541,7 +565,7 @@ class HomeWallpaper_IndexController extends Zend_Controller_Action {
 			
 			if ($adapter->getFileName ( $element ) != "") {
 				$response = array (
-						"success" => array_pop ( explode ( '\\', $adapter->getFileName ( $element ) ) ) 
+						"success" => array_pop ( explode ( '/', $adapter->getFileName ( $element ) ) ) 
 				);
 			} else {
 				$response = array (

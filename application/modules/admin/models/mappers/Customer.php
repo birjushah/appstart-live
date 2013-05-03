@@ -242,6 +242,21 @@ class Admin_Model_Mapper_Customer extends Standard_ModelMapper {
 					}
 				}
 			}
+			//Order the distorted numbered customer modules in uniform way
+			$select = $customerModuleMapper->getDbTable()->select(false)
+			          ->setIntegrityCheck(false)
+			          ->from("customer_module")
+			          ->order(array("order_number ASC"))
+			          ->where("customer_id =".$customer_id." AND status=1");
+			$distortedModules = $customerModuleMapper->fetchAll($select);
+			$order = 1;
+			$sortedModules = array();
+			foreach ($distortedModules as $distortedModule){
+			    $distortedModule->setOrderNumber($order);
+			    $distortedModule->save();
+			    $order++;
+			}
+			
 			$db->commit ();
 			$returnData ['customer'] = $customer->toArray ();
 			$returnData ['user'] = $user->toArray ();

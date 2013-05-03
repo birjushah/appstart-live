@@ -136,10 +136,11 @@ $(document).ready(function() {
 	//creating data which jqtree plugin can use
 	var builddata = function () {
 		var source = [];
-		var items = [];	
+		var items = [];
 		// build hierarchical source.
 		items[0]={id:0,label:'Menu',selected:false};
 		source[0] = items[0];
+		console.dir(data);
 		for (var i = 0; i < data.length; i++) {
 			var item = data[i];
 			var label = item["text"];
@@ -152,12 +153,35 @@ $(document).ready(function() {
 					items[parentid].items = [];
 				}
 				items[parentid].items[items[parentid].items.length] = item;
+				$.each(source,function(key,value){
+					if(value &&  value.item && value.item.parentId == item["id"]){
+						if(!item.items){
+							item.items = [];
+						}
+						item.items[item.items.length] = source[key];
+						delete source[key];
+					}
+				});
 				items[id] = item;
 			}
 			else {
-				items[id] = { id: id, label: label, item: item };
+				var tempItem = { id: id, label: label, item: item };
+				$.each(source,function(key,value){
+					if(value &&  value.item && value.item.parentId == tempItem["id"]){
+						if(!tempItem.items){
+							tempItem.items = [];
+						}
+						tempItem.items[tempItem.items.length] = source[key];
+						delete source[key];
+					}
+				});
+				items[id] = tempItem;
+				//items[id] = { id: id, label: label, item: item };
 				source[id] = items[id];
 			}
+			console.log("Loop : " + i);
+			console.log(source);
+			console.log("\n\n");
 		}		
 		return source;
 	}

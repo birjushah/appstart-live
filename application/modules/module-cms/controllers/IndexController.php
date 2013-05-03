@@ -617,7 +617,7 @@ class ModuleCms_IndexController extends Zend_Controller_Action {
 		}
 		$select->order(array('mc.parent_id',"mc.order"));
 		$data = $moduleCmsMapper->getDbTable ()->fetchAll ( $select );
-		return Zend_Json::encode ( $data->toArray () );
+		return Zend_Json::encode ( $data->toArray() );
 	}
 	
 	private function _getParentIds(){

@@ -96,6 +96,7 @@ $(document).ready(function() {
 		// build hierarchical source.
 		items[0]={id:0,label:'Menu',selected:true};
 		source[0] = items[0];
+		console.dir(data);
 		for (i = 0; i < data.length; i++) {
 			var item = data[i];
 			var label = item["text"];
@@ -108,12 +109,33 @@ $(document).ready(function() {
 					items[parentid].items = [];
 				}
 				items[parentid].items[items[parentid].items.length] = item;
+				$.each(source,function(key,value){
+					if(value &&  value.item && value.item.parentId == item["id"]){
+						if(!item.items){
+							item.items = [];
+						}
+						item.items[item.items.length] = source[key];
+						delete source[key];
+					}
+				});
 				items[id] = item;
 			}
 			else {
+				$.each(source,function(key,value){
+					if(value &&  value.item && value.item.parentId == item["id"]){
+						if(!item.items){
+							item.items = [];
+						}
+						item.items[item.items.length] = source[key];
+						delete source[key];
+					}
+				});
 				items[id] = { id: id, label: label, item: item };
 				source[id] = items[id];
 			}
+			console.log("Loop : " + i);
+			console.log(source);
+			console.log("\n\n");
 		}		
 		return source;
 	}

@@ -18,6 +18,17 @@ class Events_IndexController extends Zend_Controller_Action
     	    $customermodule = $customermodule[0];
     	    $this->_customer_module_id = $customermodule->getCustomerModuleId();
     	}
+    	$image_dir = Standard_Functions::getResourcePath(). "events/preset-icons";
+    	if(is_dir($image_dir)){
+    	    $direc = opendir($image_dir);
+    	    $iconpack = array();
+    	    while($icon = readdir($direc)){
+    	        if(is_file($image_dir."/".$icon) && getimagesize($image_dir."/".$icon)){
+    	            $iconpack[] = $icon;
+    	        }
+    	    }
+    	}
+    	$this->_iconpack = $iconpack;
     }
 
     public function indexAction()
@@ -65,6 +76,7 @@ class Events_IndexController extends Zend_Controller_Action
     	$this->view->assign ( array (
     			"partial" => "index/partials/add.phtml"
     	) );
+    	$this->view->iconpack = $this->_iconpack;
     	$this->render ( "add-edit" );
     }
     
@@ -184,6 +196,13 @@ class Events_IndexController extends Zend_Controller_Action
     		}
     		
     		if(isset($dataDetails[0]) && is_array($dataDetails[0])) {
+    		    if($dataDetails[0]['icon'] != null){
+    		        if(count(explode('/',$dataDetails[0]['icon'])) > 1){
+    		            $this->view->icon_src = $dataDetails[0]['icon'];
+    		        }else{
+    		            $this->view->icon_src = "preset-icons/".$dataDetails[0]['icon'];
+    		        }
+    		    }
                 $locationDetails = new Events_Model_Mapper_ModuleEventsLocation();
                 if($dataDetails[0]["module_events_detail_id"] != ""){
                     $locations = $locationDetails->getDbTable()->fetchAll("module_events_detail_id =". $dataDetails[0]["module_events_detail_id"])->toArray();
@@ -232,6 +251,7 @@ class Events_IndexController extends Zend_Controller_Action
     	$this->view->assign ( array (
     			"partial" => "index/partials/edit.phtml"
     	) );
+    	$this->view->iconpack = $this->_iconpack;
     	$this->render ( "add-edit" );
     }
     
@@ -261,8 +281,26 @@ class Events_IndexController extends Zend_Controller_Action
     			echo Zend_Json::encode($response);
     			exit;
     		}
+    		if($request->getParam ( "iconupload", "" ) != "") {
+    		    $adapter = new Zend_File_Transfer_Adapter_Http();
+    		    $adapter->setDestination(Standard_Functions::getResourcePath(). "events/uploaded-icons");
+    		    $adapter->receive();
+    		    if($adapter->getFileName("icon")!="")
+    		    {
+    		        $response = array (
+    		                "success" => array_pop(explode('/',$adapter->getFileName("icon")))
+    		        );
+    		    } else {
+    		        $response = array (
+    		                "errors" => "Error Occured"
+    		        );
+    		    }
     		
+    		    echo Zend_Json::encode($response);
+    		    exit;
+    		}
     		$form->removeElement("image");
+    		$form->removeElement("icon");
     		$allFlag = $this->_request->getParam("all",false);
     		if ($form->isValid ( $this->_request->getParams () )) {
     			
@@ -292,6 +330,15 @@ class Events_IndexController extends Zend_Controller_Action
     				$date_time = Standard_Functions::getCurrentDateTime ();
     				$image_path = $request->getParam ("image_path", "");
     				$model = new Events_Model_ModuleEvents($arrFormValues);
+    				if($request->getParam("selLogo","0")){
+    				    $selIcon = $request->getParam("selLogo","0");
+    				}
+    				$icon_path = $request->getParam("icon_path","");
+    				if($selIcon != 0){
+    				    $arrFormValues["icon"] = $selIcon;
+    				}elseif ($icon_path != ""){
+    				    $arrFormValues["icon"] = "uploaded-icons/".$icon_path;
+    				}
     				if($request->getParam ( "module_events_id", "" ) == "") {
     					// Add New Event
     					$maxOrder = $mapper->getNextOrder($customer_id);
@@ -377,7 +424,10 @@ class Events_IndexController extends Zend_Controller_Action
     				        $currentevents = $eventdetailMapper->getDbTable()->fetchAll("module_events_id ='".$arrFormValues["module_events_id"]."' AND language_id =".$default_lang_id)->toArray();
     				    }
     				    if(is_array($currentevents)){
-    				        $arrFormValues['image'] = $currentevents[0]["image"]; 
+    				        $arrFormValues['image'] = $currentevents[0]["image"];
+    				        if(!$arrFormValues['icon']){
+    				            $arrFormValues['icon'] = $currentevents[0]['icon'];
+    				        } 
     				    }
     				    unset($arrFormValues['module_events_detail_id'],$arrFormValues['language_id']);
     				    if(count($eventdetails) == count($customerLanguageModel)){
