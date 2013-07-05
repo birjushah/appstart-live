@@ -1,6 +1,7 @@
 <?php 
 class PushMessage_Model_PushMessage extends Standard_Model{
 	private $_push_message_id;
+	private $_push_message_category_id;
 	private $_customer_id;
 	private $_status;
 	private $_order;

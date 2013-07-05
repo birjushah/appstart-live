@@ -65,11 +65,34 @@ class Document_ExplorerController extends Zend_Controller_Action
 		), "default", true );
 		$form->setAction($action);
 		$this->view->iconpack = json_encode($this->_iconpack);
+		
+		$language_id = Standard_Functions::getCurrentUser ()->default_language_id;
+    	$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
+    	$this->view->categoryTree = $this->_getCategoryTree ( $customer_id, $language_id);
+		
 		$this->view->form = $form;
 		$this->view->documentUploaded = $this->_total_uploaded_document;
 		$this->view->documentlimit = $this->_upload_document_limit;
 		$this->view->languages = Standard_Functions::getCustomerLanguages();
 	}
+	private function _getCategoryTree($customer_id = null, $language_id = null) {
+    	// Get customer_id, module_cms_id ,title, parent_id
+    	$categoryMapper = new Document_Model_Mapper_ModuleDocumentCategory();
+    	$select = $categoryMapper->getDbTable ()->select ()
+    	->setIntegrityCheck ( false )
+    	->from ( array (
+		'c' => 'module_document_category'),
+		array (
+		'id' => 'c.module_document_category_id',
+		'parentId' => 'c.parent_id') )
+		->joinLeft ( array (
+		'cd' => 'module_document_category_detail'),
+		"cd.module_document_category_id  = c.module_document_category_id AND cd.language_id = " . $language_id,
+		array ('text' => 'cd.title') );
+		$select = $select->where ( 'c.customer_id = ' . $customer_id );
+		$data = $categoryMapper->getDbTable ()->fetchAll ( $select );
+		return Zend_Json::encode ( $data->toArray () );
+    }
 	public function getTreeAction()
 	{
 		$this->_helper->layout ()->disableLayout ();

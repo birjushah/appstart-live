@@ -19,7 +19,7 @@
 	</fieldset>
 	<footer>
 	  <?php echo $form->remember->renderViewHelper()." ";?><?php echo $form->remember->renderLabel(); ?>
-	  <?php echo $form->submit->renderViewHelper() ?>
+	  <?php echo html_entity_decode($form->submit->renderViewHelper()) ?>
 	</footer>
 </form>
 

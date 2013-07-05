@@ -9,14 +9,38 @@
             <order>-1000</order>
             <resource>index</resource>
             <MM_title>Welcome to AppStart!</MM_title>
+            <MM_logo>dashboard-active.png</MM_logo>
     	</Dashboard>
+    	<design>
+    		<label>Design</label>
+    		<order>1</order>
+    		<resource>configuration</resource>
+    		<module>default</module>			
+			<controller>configuration</controller>
+			<action>index</action>
+    	</design>
+    	<Modules>
+    		<label>Manage</label>
+    		<order>3</order>
+    		<uri>#</uri>
+			<resource>index</resource>
+			<dropdown>3columns</dropdown>
+    	</Modules>
+    	<GoLive>
+    		<label>Go Live</label>
+    		<order>4</order>
+    		<uri>#</uri>
+			<resource>index</resource>
+    	</GoLive>
     	<Settings>
     		<label>Settings</label>
     		<uri>#</uri>
-    		<order>1000</order>
+    		<order>5</order>
     		<resource>index</resource>
     		<controller></controller>
     		<dropdown>1columns</dropdown>
+    		<MM_logo>settings-active.png</MM_logo>
+    		<MM_align>right</MM_align>
     		<pages>
     			<user>
     				<label>User Profile</label>
@@ -24,6 +48,7 @@
 					<controller>settings</controller>
 					<action>index</action>
 		            <resource>profile</resource>
+		            <MM_icon>null</MM_icon>
     			</user>
 	    		<UserGroup>
 		    		<label>User Groups</label>
@@ -32,6 +57,7 @@
 					<action>index</action>
 		            <order>1000</order>
 		            <resource>user-group</resource>
+		            <MM_icon>null</MM_icon>
 		            <pages>
 		            	<add>
 							<label>Add user-group</label>
@@ -58,6 +84,7 @@
 					<action>index</action>
 		            <order>1001</order>
 		            <resource>user</resource>
+		            <MM_icon>null</MM_icon>
 		            <pages>
 		            	<add>
 							<label>Add users</label>
@@ -77,18 +104,7 @@
 						</edit>
 					</pages>
 		    	</User>
-		    	<Configuration>
-		    		<label>Configuration</label>
-					<module>default</module>			
-					<controller>configuration</controller>
-					<action>index</action>
-		            <order>1002</order>
-		            <resource>configuration</resource>
-		    	</Configuration>
     		</pages>
     	</Settings>
-    	<Modules>
-    		<dropdown>3columns</dropdown>
-    	</Modules>
 	</nav>
 </config>

@@ -2,10 +2,6 @@
 <config>
     <nav> 
     	<Modules>
-    		<label>Modules</label>
-    		<order>3</order>
-    		<uri>#</uri>
-			<resource>index</resource>
     		<pages>
 				<Contact>
 		    		<label>Contact</label>
@@ -39,6 +35,74 @@
 							<resource>contact</resource>
 							<visible>false</visible>
 						</reorder>
+						<types>
+							<label>Contact Types</label>
+							<module>contact</module>			
+							<controller>types</controller>
+							<action>index</action>
+							<visible>false</visible>
+				            <resource>contact</resource>
+				            <pages>
+				            	<add>
+									<label>Add Contact Types</label>
+									<module>contact</module>			
+									<controller>types</controller>
+									<action>add</action>
+									<resource>contact</resource>
+									<visible>false</visible>
+								</add>
+								<edit>
+									<label>Edit Contact Types</label>
+									<module>contact</module>			
+									<controller>types</controller>
+									<action>edit</action>
+									<resource>contact</resource>
+									<visible>false</visible>
+								</edit>
+								<reorder>
+									<label>Reorder Contact Types</label>
+									<module>contact</module>			
+									<controller>types</controller>
+									<action>reorder</action>
+									<resource>contact</resource>
+									<visible>false</visible>
+								</reorder>
+				            </pages>
+						</types>
+						<category>
+							<label>Contact Category</label>
+							<module>contact</module>			
+							<controller>category</controller>
+							<action>index</action>
+							<visible>false</visible>
+				            <resource>contact</resource>
+				            <pages>
+				            	<add>
+									<label>Add Contact Category</label>
+									<module>contact</module>			
+									<controller>category</controller>
+									<action>add</action>
+									<resource>contact</resource>
+									<visible>false</visible>
+								</add>
+								<edit>
+									<label>Edit Contact Category</label>
+									<module>contact</module>			
+									<controller>category</controller>
+									<action>edit</action>
+									<resource>contact</resource>
+									<visible>false</visible>
+								</edit>
+								<reorder>
+									<label>Reorder Contact Category</label>
+									<module>contact</module>			
+									<controller>category</controller>
+									<action>reorder</action>
+									<resource>contact</resource>
+									<visible>false</visible>
+								</reorder>
+				            </pages>
+						</category>
 					</pages>
 		    	</Contact>
 	    	</pages>

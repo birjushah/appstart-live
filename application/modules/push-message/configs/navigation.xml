@@ -2,10 +2,6 @@
 <config>
     <nav> 
     	<Modules>
-    		<label>Modules</label>
-    		<order>3</order>
-    		<uri>#</uri>
-			<resource>index</resource>
     		<pages>
 				<PushMessage>
 		    		<label>Push Message</label>
@@ -39,6 +35,40 @@
 							<resource>push-message</resource>
 							<visible>false</visible>
 						</reorder>
+						<category>
+							<label>Push Message Category</label>
+							<module>push-message</module>			
+							<controller>category</controller>
+							<action>index</action>
+							<visible>false</visible>
+				            <resource>push-message</resource>
+				            <pages>
+				            	<add>
+									<label>Add Push Message Category</label>
+									<module>push-message</module>			
+									<controller>category</controller>
+									<action>add</action>
+									<resource>push-message</resource>
+									<visible>false</visible>
+								</add>
+								<edit>
+									<label>Edit Push Message Category</label>
+									<module>push-message</module>			
+									<controller>category</controller>
+									<action>edit</action>
+									<resource>push-message</resource>
+									<visible>false</visible>
+								</edit>
+								<reorder>
+									<label>Reorder Push Message Category</label>
+									<module>push-message</module>			
+									<controller>category</controller>
+									<action>reorder</action>
+									<resource>push-message</resource>
+									<visible>false</visible>
+								</reorder>
+				            </pages>
+						</category>
 					</pages>
 		    	</PushMessage>
 		    </pages>

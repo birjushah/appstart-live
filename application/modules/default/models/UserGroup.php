@@ -4,6 +4,7 @@ class Default_Model_UserGroup extends Standard_Model {
 	private $_customer_id;
 	private $_name;
 	private $_settings;
+	private $_publish;
 	private $_last_updated_by;
 	private $_last_updated_at;
 	private $_created_by;

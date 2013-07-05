@@ -59,8 +59,8 @@ div.selected{min-height:340px !important;}
 		</tr>-->
 		<tr>
 			<td align="center" colspan="2">
-				<?php echo $form->submit->renderViewHelper() ?>&nbsp;
-				<?php echo $form->reset->renderViewHelper() ?>
+				<?php echo html_entity_decode($form->submit->renderViewHelper()) ?>&nbsp;
+				<?php echo html_entity_decode($form->reset->renderViewHelper()) ?>
 			</td>
 		</tr>
 	</table>

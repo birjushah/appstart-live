@@ -66,6 +66,29 @@ class Default_Form_CustomerModule extends Standard_Form {
 				'value'      => '1'
 		));
 		
+		//Label View Image
+		$listviewimage = $this->createElement('file','list_view_image');
+		$listviewimage->setLabel('List View Image:')
+		->setDestination(Standard_Functions::getResourcePath(). "default/images/listviewimage")
+		->addValidator('Size', false, 102400)
+		->addValidator('Extension', false, 'jpg,png,gif');
+		$this->addElement($listviewimage);
+		
+		$this->addElement('checkbox', 'visibility', array(
+		        'label'      => 'Visible',
+		        'value'      => '1'
+		));
+		
+		$this->addElement('checkbox', 'label_1', array(
+		        'label'      => 'Label 1',
+		        'value'      => '1'
+		));
+		//Label 2
+		$this->addElement('checkbox', 'label_2', array(
+		        'label'      => 'Label 2',
+		        'value'      => '1'
+		));
+		
 		//background type
 		$background_type = $this->createElement ( "hidden", "background_type", array (
 				'value' => '',

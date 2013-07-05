@@ -64,6 +64,17 @@ class ModuleImageGallery1_IndexController extends Zend_Controller_Action {
 		$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
 		$categories = $this->_getCategories ($customer_id);
 		
+		//getting total categories
+		$mapper = new ModuleImageGallery1_Model_Mapper_ModuleImageGalleryCategory1();
+		$customer_id = Standard_Functions::getCurrentUser()->customer_id;
+		$DBExpr = new Zend_Db_Expr("COUNT(module_image_gallery_category_1_id)");
+		$select = $mapper->getDbTable()->select(false)
+		->setIntegrityCheck(false)
+		->from('module_image_gallery_category_1',array('count'=>$DBExpr ))
+		->where("customer_id =".$customer_id);
+		$stack = $mapper->getDbTable()->fetchRow($select)->toArray();
+		$this->view->totalcategories = $stack['count'];
+		
 		//Send the image limit and total uploaded image
 		$this->view->imagesUploaded = $this->_total_uploaded_images;
 		$this->view->imagesLimit = $this->_upload_image_limit;
@@ -243,6 +254,8 @@ class ModuleImageGallery1_IndexController extends Zend_Controller_Action {
 		$this->render ( "add-edit" );
 	}
 	public function editAction() {
+	    $request = $this->getRequest ();
+	    ModuleImageGallery1_Form_ModuleImageGallery::$lang = $request->getParam ( "lang", "" );
 		$form = new ModuleImageGallery1_Form_ModuleImageGallery ();
 		$action = $this->view->url ( array (
 				"module" => "module-image-gallery-1",
@@ -255,7 +268,6 @@ class ModuleImageGallery1_IndexController extends Zend_Controller_Action {
 				"partial" => "index/partials/add.phtml" 
 		) );
 		$this->view->form = $form;
-		$request = $this->getRequest ();
 		$keywords = array ();
 		if ($request->getParam ( "id", "" ) != "" && $request->getParam ( "lang", "" ) != "") {
 			$mapper = new ModuleImageGallery1_Model_Mapper_ModuleImageGallery1 ();

@@ -35,6 +35,7 @@ class Default_Form_GeneralConfiguration extends Standard_Form {
 		$font_color = $this->createElement ( "text", "font_color", array (
 				'label' => 'Font Color:',
 				'size' => '15',
+				'maxlength' => '6',
 				'filters' => array (
 						'StringTrim' 
 				) 
@@ -65,6 +66,7 @@ class Default_Form_GeneralConfiguration extends Standard_Form {
 		$theme_color_color = $this->createElement ( "text", "theme_color", array (
 				'label' => 'Theme Color:',
 				'size' => '15',
+				'maxlength' => '6',
 				'filters' => array (
 						'StringTrim'
 				)
@@ -76,12 +78,138 @@ class Default_Form_GeneralConfiguration extends Standard_Form {
 		$separator = $this->createElement ( "text", "separator_color", array (
 		        'label' => 'Line Separator Color:',
 		        'size' => '15',
+				'maxlength' => '6',
 		        'filters' => array (
 		                'StringTrim'
 		        )
 		) );
 		
 		$this->addElement ( $separator );
+		
+		// Header Font Type
+		$header_font_type = $this->createElement ( "select", "header_font_type", array (
+		        'label' => 'Header Font Type:',
+		        'MultiOptions' => $this->_getFontType (),
+		        'filters' => array (
+		                'StringTrim'
+		        )
+		) );
+		$this->addElement ( $header_font_type );
+		
+		//Header Font Size
+		$header_font_size = $this->createElement ( "text", "header_font_size", array (
+		        'label' => 'Header Font Size:',
+		        'size' => '15',
+		        'filters' => array (
+		                'StringTrim'
+		        )
+		) );
+		$this->addElement ( $header_font_size );
+		//Header Color
+		$header_color = $this->createElement ( "text", "header_color", array (
+		        'label' => 'Header Color:',
+		        'size' => '15',
+				'maxlength' => '6',
+		        'filters' => array (
+		                'StringTrim'
+		        )
+		) );
+		$this->addElement ( $header_color );
+		
+		//Header Font Color
+		$header_font_color = $this->createElement ( "text", "header_font_color", array (
+		        'label' => 'Header Font Color:',
+		        'size' => '15',
+				'maxlength' => '6',
+		        'filters' => array (
+		                'StringTrim'
+		        )
+		) );
+		$this->addElement ( $header_font_color );
+		
+		// List Gradient Top
+		$list_top = $this->createElement ( "text", "list_gradient_top", array (
+		        'label' => 'List View Gradient  (top):',
+		        'size' => '15',
+				'maxlength' => '6',
+		        'filters' => array (
+		                'StringTrim'
+		        )
+		) );
+		
+		$this->addElement ( $list_top );
+		
+		// List Gradient Middle
+		$list_middle= $this->createElement ( "text", "list_gradient_middle", array (
+		        'label' => 'List View Gradient  (middle):',
+		        'size' => '15',
+				'maxlength' => '6',
+		        'filters' => array (
+		                'StringTrim'
+		        )
+		) );
+		
+		$this->addElement ( $list_middle );
+		
+		// List Gradient Bottom
+		$list_bottom = $this->createElement ( "text", "list_gradient_bottom", array (
+		        'label' => 'List View Gradient  (bottom):',
+		        'size' => '15',
+				'maxlength' => '6',
+		        'filters' => array (
+		                'StringTrim'
+		        )
+		) );
+		
+		$this->addElement ( $list_bottom );
+		
+		// List Font Type
+		$list_font_type = $this->createElement ( "select", "list_font_type", array (
+		        'label' => 'ListView Font Type:',
+		        'MultiOptions' => $this->_getFontType (),
+		        'filters' => array (
+		                'StringTrim'
+		        )
+		) );
+		$this->addElement ( $list_font_type );
+		
+		//List Font Color
+		$list_font_color = $this->createElement ( "text", "list_font_color", array (
+		        'label' => 'ListView Font Color:',
+		        'size' => '15',
+				'maxlength' => '6',
+		        'filters' => array (
+		                'StringTrim'
+		        )
+		) );
+		$this->addElement ( $list_font_color );
+		
+		//List Background Color
+		$list_background_color = $this->createElement ( "text", "list_background_color", array (
+		        'label' => 'ListView Background Color:',
+		        'size' => '15',
+		        'maxlength' => "6",
+		        'filters' => array (
+		                'StringTrim'
+		        )
+		) );
+		$this->addElement ( $list_background_color );
+		
+		//List Font Size
+		$list_font_size = $this->createElement ( "text", "list_font_size", array (
+		        'label' => 'ListView Font Size:',
+		        'size' => '15',
+		        'filters' => array (
+		                'StringTrim'
+		        )
+		) );
+		$this->addElement ( $list_font_size );
+		
+		//Invert
+		$this->addElement('checkbox', 'invert', array(
+		        'label'      => 'Invert more',
+		        'value'      => '0'
+		));
 		
 		// Submit Button
 		$submit = $this->createElement ( 'submit', 'submit', array (

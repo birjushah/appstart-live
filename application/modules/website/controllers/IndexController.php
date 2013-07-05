@@ -17,7 +17,7 @@ class Website_IndexController extends Zend_Controller_Action {
 			$customermodule = $customermodule[0];
 			$this->_customer_module_id = $customermodule->getCustomerModuleId();
 		}
-		$iconpack = Standard_Functions::getIconset("push-message");
+		$iconpack = Standard_Functions::getIconset("website");
 		$this->_iconpack = $iconpack;
 	}
 	public function indexAction() {
@@ -69,21 +69,21 @@ class Website_IndexController extends Zend_Controller_Action {
 		        $adapter = new Zend_File_Transfer_Adapter_Http();
 		        $adapter->setDestination(Standard_Functions::getResourcePath(). "website/uploaded-icons");
 		        $adapter->receive();
-		        if($adapter->getFileName("icon")!="")
+		        if($adapter->getFileName("website_logo")!="")
 		        {
-		        				$response = array (
-		        				        "success" => array_pop(explode('\\',$adapter->getFileName("icon")))
-		        				);
+    				$response = array (
+    				        "success" => array_pop(explode('/',$adapter->getFileName("website_logo")))
+    				);
 		        } else {
-		        				$response = array (
-		        				        "errors" => "Error Occured"
-		        				);
+    				$response = array (
+    				        "errors" => "Error Occured"
+    				);
 		        }
 		    
 		        echo Zend_Json::encode($response);
 		        exit;
 		    }
-		    $form->removeElement("icon");
+		    $form->removeElement("website_logo");
 			$allFlag = $this->_request->getParam("all",false);
 			if($form->isValid($this->_request->getParams())){
 				try{
@@ -94,14 +94,14 @@ class Website_IndexController extends Zend_Controller_Action {
 					$websiteMapper = new Website_Model_Mapper_ModuleWebsite ();
 					$websiteMapper->getDbTable ()->getAdapter ()->beginTransaction ();
 					$websiteModel = new Website_Model_ModuleWebsite( $allFormValues );
-		            if($request->getParam("selLogo","0")){
-	                    $selIcon = $request->getParam("selLogo","0");
-	                }
+                    $selIcon = $request->getParam("selLogo","0");
 	                $icon_path = $request->getParam("icon_path","");
-	                if($selIcon != 0){
-	                    $allFormValues["icon"] = $selIcon;
+	                if($selIcon != "0"){
+	                    $allFormValues["website_logo"] = $selIcon;
+	                }elseif($icon_path == "deleted"){
+	                    $allFormValues["website_logo"] = "";
 	                }elseif ($icon_path != ""){
-	                    $allFormValues["icon"] = "uploaded-icons/".$icon_path;
+	                    $allFormValues["website_logo"] = "uploaded-icons/".$icon_path;
 	                }
 					if ($request->getParam ( "module_website_id", "" ) == "") {
 						// save Website
@@ -143,8 +143,8 @@ class Website_IndexController extends Zend_Controller_Action {
 						    $currentWebsiteDetails = $websiteDetailMapper->getDbTable()->fetchAll("module_website_id ='".$allFormValues['module_website_id']."' AND language_id =".$default_lang_id)->toArray();
 						}
 						if(is_array($currentWebsiteDetails)){
-						    if(!$allFormValues['icon']){
-						        $allFormValues['icon'] = $currentWebsiteDetails[0]['icon'];
+						    if(!isset($allFormValues['website_logo'])){
+						        $allFormValues['website_logo'] = $currentWebsiteDetails[0]['website_logo'];
 						    }
 						}
 						$websiteDetails = $websiteDetailMapper->getDbTable()->fetchAll("module_website_id =".$allFormValues['module_website_id'])->toArray();
@@ -327,11 +327,11 @@ class Website_IndexController extends Zend_Controller_Action {
 			}
 			if (isset ( $dataDetails [0] ) && is_array ( $dataDetails [0] )) {
 				$form->populate ( $dataDetails [0] );
-			    if($dataDetails[0]['icon'] != null){
-			        if(count(explode('/',$dataDetails[0]['icon'])) > 1){
-			            $this->view->icon_src = $dataDetails[0]['icon'];
+			    if($dataDetails[0]['website_logo'] != null){
+			        if(count(explode('/',$dataDetails[0]['website_logo'])) > 1){
+			            $this->view->icon_src = $dataDetails[0]['website_logo'];
 			        }else{
-			            $this->view->icon_src = "preset-icons/".$dataDetails[0]['icon'];
+			            $this->view->icon_src = "preset-icons/".$dataDetails[0]['website_logo'];
 			        }
 			    }
 			}

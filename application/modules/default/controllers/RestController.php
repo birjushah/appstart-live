@@ -140,6 +140,9 @@ class Default_RestController extends Standard_Rest_Controller {
 										}else{
 											$tempDetail["background_type"] = "";	
 										}
+										if($tempDetail["list_view_image"] != null){
+										    $tempDetail["list_view_image"] = "resource/default/images/listviewimage/".$tempDetail["list_view_image"];
+										}
 										$details[] = $tempDetail;
 									}
 								}
@@ -233,7 +236,7 @@ class Default_RestController extends Standard_Rest_Controller {
 				if($device_id != "" && $customer_id != "" && $device_id != "000000000000000"){
 					$iphoneuserModel = new Default_Model_IphoneUser();
 					$iphoneuserMapper = new Default_Model_Mapper_IphoneUser();
-					$iphoneuserExists = $iphoneuserMapper->getDbTable()->fetchAll("device_id =".$device_id)->toArray();
+					$iphoneuserExists = $iphoneuserMapper->getDbTable()->fetchAll("device_id ='".$device_id."' AND customer_id =".$customer_id)->toArray();
 					if($iphoneuserExists){
 						$iphoneuserModel->setIphoneUserId($iphoneuserExists[0]["iphone_user_id"]);
 					}

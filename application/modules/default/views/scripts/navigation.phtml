@@ -7,24 +7,33 @@ foreach ( $this->container as $index => $page ) {
 		$class = "";
 		$dropdown = "";
 		$properties = new Zend_Config($page->GetCustomProperties());
+		$float = "";
+		$align = "";
+		if(isset($properties->MM_align)) {
+			$float = "style='float:".$properties->MM_align.";'";
+			$align = "align_right";
+		}
 		if(isset($properties->dropdown))
 		{
 			$dropdown = $properties->dropdown;
-			echo '<li>';
+			echo '<li '.$float.'>';
 		} else {
-			echo '<li class="no-drop">';
+			echo '<li class="no-drop" '.$float.'>';
 		}
-		echo '<a href="' . $page->getHref () . '" ' . $class . '>' . $this->translate($page->getLabel ()) . '</a>';
-		
+		if(isset($properties->MM_logo)) {
+			echo '<a href="' . $page->getHref () . '" ' . $class . '><img src="'.$this->baseUrl('/images/'.$properties->MM_logo).'" alt="' . $this->translate($page->getLabel ()) . '" /></a>';
+		} else {
+			echo '<a href="' . $page->getHref () . '" ' . $class . '>' . $this->translate($page->getLabel ()) . '</a>';
+		}
 		$submenu = array();
 		foreach($page->pages as $subPage) {
 			$title = "";
 			$icon = "";
 			$properties = new Zend_Config($subPage->GetCustomProperties());
 			if(isset($properties->MM_description)) $title = $properties->MM_description;
-			if(isset($properties->MM_icon) && $properties->MM_icon!="") {
+			if(isset($properties->MM_icon) && $properties->MM_icon!="" && $properties->MM_icon!="null") {
 				$icon = "<img src='".$this->baseUrl("resource/default/images/icon/".$properties->MM_icon)."' width='20' />";
-			} else {
+			} else if($properties->MM_icon!="null"){
 				$icon = "<img src='".$this->baseUrl("images/settings.png")."' width='20' />";
 			}
 			if($subPage->isVisible() && $this->navigation()->getAcl()->isAllowed($this->navigation()->getRole(),$subPage->getResource())) {
@@ -35,14 +44,14 @@ foreach ( $this->container as $index => $page ) {
 		if(count($submenu)>0) {
 			if($dropdown == "3columns") {
 				$submenu_chunk = array_chunk($submenu, ceil(count($submenu)/3));
-				echo '<div class="dropdown_3columns">';
+				echo '<div class="dropdown_3columns '.$align.'">';
 					echo '<div class="col_3"><h2>'.$this->translate($page->getLabel ()).'</h2></div>';
 					foreach($submenu_chunk as $chunk) {
 						echo "<div class='col_1'><ul class='greybox'><li>". implode("</li><li>", $chunk) ."</li></ul></div>";
 					}
 				echo'</div>';
 			} else if($dropdown == "1columns") {
-				echo '<div class="dropdown_1column">';
+				echo '<div class="dropdown_1column '.$align.'">';
 				echo "<div class='col_1'><ul class='simple'><li>". implode("</li><li>", $submenu) ."</li></ul></div>";
 				echo'</div>';
 			}

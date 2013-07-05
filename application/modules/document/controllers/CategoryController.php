@@ -111,7 +111,7 @@ class Document_CategoryController extends Zend_Controller_Action
 				$details = $detailMapper->getDbTable()->fetchAll("language_id = ".$language_id." AND module_document_category_id =" .$parent_id)->toArray();
 				$this->view->parentCategory = $details[0]['title'];
 			} else {
-				$this->view->parentCategory = 'Menu';
+				$this->view->parentCategory = 'Root';
 			}
 			
 			$dataDetails = array();
@@ -156,9 +156,24 @@ class Document_CategoryController extends Zend_Controller_Action
 		) );
 		$this->render ( "add-edit" );
 	}
-	private static function _getCategoryTree($customer_id = null, $language_id = null, $nochildsforthisid = null, $onlyParents = null) {
+	private function _getCategoryTree($customer_id = null, $language_id = null, $nochildsforthisid = null, $onlyParents = null) {
 		// Get customer_id, module_cms_id ,title, parent_id
-		$categoryMapper = new Document_Model_Mapper_ModuleDocumentCategory();
+		$where = "c.customer_id = " . $customer_id;
+	    if(isset($nochildsforthisid) && $nochildsforthisid != null){
+		    $childs = self::_getChilds($nochildsforthisid);
+		    $string = is_array($childs)?implode("','",$childs):false;
+		    $where = "c.module_document_category_id NOT IN('".$string."') AND c.parent_id !='".$nochildsforthisid."' AND c.module_document_category_id != '".$nochildsforthisid."' AND c.customer_id = '" . $customer_id . "' AND cd.language_id =".$language_id;
+		}
+		if($onlyParents){
+		    $parent_ids = self::_getParentIds();
+		    $where = "c.customer_id ='".$customer_id."' AND cd.language_id ='".$language_id."' AND c.module_document_category_id IN('".$parent_ids."')";
+		}
+		$data = array();
+		$this->_getChildrens($where,0,$data,$language_id);
+		return Zend_Json::encode ( $data );
+	}
+	private function _getChildrens($where, $parent,&$data,$language_id){
+	    $categoryMapper = new Document_Model_Mapper_ModuleDocumentCategory();
 		$select = $categoryMapper->getDbTable ()->select ()
 							->setIntegrityCheck ( false )
 							->from ( array (
@@ -170,18 +185,16 @@ class Document_CategoryController extends Zend_Controller_Action
 									'cd' => 'module_document_category_detail'), 
 									"cd.module_document_category_id  = c.module_document_category_id AND cd.language_id = " . $language_id, 
 									array ('text' => 'cd.title') );
-		$select = $select->where ( 'c.customer_id = ' . $customer_id );
-		if(isset($nochildsforthisid) && $nochildsforthisid != null){
-		    $childs = self::_getChilds($nochildsforthisid);
-		    $string = is_array($childs)?implode("','",$childs):false;
-		    $select = $select->where ( "c.module_document_category_id NOT IN('".$string."') AND c.parent_id !='".$nochildsforthisid."' AND c.module_document_category_id != '".$nochildsforthisid."' AND c.customer_id = '" . $customer_id . "' AND cd.language_id =".$language_id );
-		}
-		if($onlyParents){
-		    $parent_ids = self::_getParentIds();
-		    $select = $select->where("c.customer_id ='".$customer_id."' AND cd.language_id ='".$language_id."' AND c.module_document_category_id IN('".$parent_ids."')");
-		}
-		$data = $categoryMapper->getDbTable ()->fetchAll ( $select );
-		return Zend_Json::encode ( $data->toArray () );
+		$select = $select->where ( "c.parent_id=".$parent." AND ".$where );
+	    $item = $categoryMapper->getDbTable ()->fetchAll ( $select )->toArray ();
+	    if(count($item) > 0) {
+	        foreach ($item as $child) {
+	            $data[] = $child;
+	            $this->_getChildrens($where,$child['id'],$data,$language_id);
+	        }
+	    } else {
+	        return false;
+	    }
 	}
 	private static function _getChilds($childs){
 	    if(!is_array($childs)){
@@ -264,15 +277,17 @@ class Document_CategoryController extends Zend_Controller_Action
 					$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
 					$user_id = Standard_Functions::getCurrentUser ()->user_id;
 					$date_time = Standard_Functions::getCurrentDateTime ();
-					if($request->getParam("selcatLogo","0")){
-					    $selIcon = $request->getParam("selcatLogo","0");
+					if($request->getParam("selcatLogo")){
+					    $selIcon = $request->getParam("selcatLogo");
 					}
-					if($request->getParam("selLogo","0")){
-					    $selIcon = $request->getParam("selLogo","0");
+					if($request->getParam("selLogo")){
+					    $selIcon = $request->getParam("selLogo");
 					}
 					$icon_path = $request->getParam("icon_path","");
-					if($selIcon != 0){
+					if($selIcon != "0"){
 					    $arrFormValues["icon"] = $selIcon;
+					}elseif($icon_path == "deleted"){
+					    $arrFormValues["icon"] = "";
 					}elseif ($icon_path != ""){
 					    $arrFormValues["icon"] = "uploaded-icons/".$icon_path;
 					}
@@ -320,7 +335,7 @@ class Document_CategoryController extends Zend_Controller_Action
 						    $currentDetails = $categoryDetailMapper->getDbTable()->fetchAll("module_document_id ='".$arrFormValues['module_document_category_id']."' AND language_id =".$default_lang_id)->toArray();
 						}
 						if(is_array($currentDetails)){
-						    if(!$arrFormValues['icon']){
+						    if(!isset($arrFormValues['icon'])){
 						        $arrFormValues['icon'] = $currentDetails[0]['icon'];
 						    }
 						}
@@ -419,43 +434,67 @@ class Document_CategoryController extends Zend_Controller_Action
 			$document_category->populate($document_category_id);
 			if($document_category) {
 				$mapper = new Document_Model_Mapper_ModuleDocumentCategory();
-				$mapper->getDbTable()->getAdapter()->beginTransaction();
-				try {
-					$detailsMapper = new Document_Model_Mapper_ModuleDocumentCategoryDetail();
-					$details = $detailsMapper->fetchAll("module_document_category_id=".$document_category->getModuleDocumentCategoryId());
-					if(is_array($details)) {
-						foreach($details as $documentDetail) {
-							$documentDetail->delete();
-						}
-					}
-	
-					$deletedRows = $document_category->delete ();
-	
-					// set is pulish to false
-					$customerId = Standard_Functions::getCurrentUser ()->customer_id;
-					$customermoduleMapper = new Admin_Model_Mapper_CustomerModule();
-					$customermodule = $customermoduleMapper->fetchAll("customer_id=".$customerId." AND module_id=".$this->_module_id);
-					if(is_array($customermodule)) {
-						$customermodule = $customermodule[0];
-						$customermodule->setIsPublish("NO");
-						$customermodule->save();
-					}
-	
-					$mapper->getDbTable()->getAdapter()->commit();
-	
-					$response = array (
-							"success" => array (
-									"deleted_rows" => $deletedRows
-							)
-					);
-	
-				} catch (Exception $ex) {
-					$mapper->getDbTable()->getAdapter()->rollBack();
-					$response = array (
-							"errors" => array (
-									"message" => $ex->getMessage ()
-							)
-					);
+				$childexist = $mapper->fetchAll("parent_id =".$document_category_id);
+				if($childexist){
+				    $response = array (
+				            "errors" => array (
+				                    "message" => "Please delete its child first."
+				            )
+				    );
+				}else{
+				    $mapper->getDbTable()->getAdapter()->beginTransaction();
+				    try {
+				        $detailsMapper = new Document_Model_Mapper_ModuleDocumentCategoryDetail();
+				        $details = $detailsMapper->fetchAll("module_document_category_id=".$document_category->getModuleDocumentCategoryId());
+				        if(is_array($details)) {
+				            foreach($details as $documentDetail) {
+				                $documentDetail->delete();
+				            }
+				        }
+				    
+				        $deletedRows = $document_category->delete ();
+				    
+				        // set is pulish to false
+				        $customerId = Standard_Functions::getCurrentUser ()->customer_id;
+				        $customermoduleMapper = new Admin_Model_Mapper_CustomerModule();
+				        $customermodule = $customermoduleMapper->fetchAll("customer_id=".$customerId." AND module_id=".$this->_module_id);
+				        if(is_array($customermodule)) {
+				            $customermodule = $customermodule[0];
+				            $customermodule->setIsPublish("NO");
+				            $customermodule->save();
+				        }
+				    
+				        $mapper->getDbTable()->getAdapter()->commit();
+				    
+				        $response = array (
+				                "success" => array (
+				                        "deleted_rows" => $deletedRows
+				                )
+				        );
+				         
+				    } catch (Zend_Db_Exception $ex) {
+				        $mapper->getDbTable()->getAdapter()->rollBack();
+				        if($ex->getCode() == 23000){
+				            $response = array (
+				                    "errors" => array (
+				                            "message" => "Delete underlying documents first"
+				                    )
+				            );
+				        }else{
+				            $response = array (
+				                    "errors" => array (
+				                            "message" => $ex->getMessage ()
+				                    )
+				            );
+				        }
+				    } catch (Exception $ex) {
+				        $mapper->getDbTable()->getAdapter()->rollBack();
+				        $response = array (
+				                "errors" => array (
+				                        "message" => $ex->getMessage ()
+				                )
+				        );
+				    }    
 				}
 			} else {
 				$response = array (
@@ -630,7 +669,7 @@ class Document_CategoryController extends Zend_Controller_Action
 			$details = $detailMapper->getDbTable()->fetchAll("language_id = ".$language_id." AND module_document_category_id =" .$parent_id)->toArray();
 			$this->view->parentTitle = $details[0]['title'];
 		} else {
-			$this->view->parentTitle = 'Menu';
+			$this->view->parentTitle = 'Root';
 		}
 		
 		$select = $mapper->getDbTable ()->

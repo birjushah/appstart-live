@@ -48,6 +48,34 @@ class PushMessage_RestController extends Standard_Rest_Controller {
 				$customer = $mapper->find($customer_id);
 				if($customer) {
 					$response = array();
+					
+					$pushmessageCategoryMapper = new PushMessage_Model_Mapper_PushMessageCategory();
+					$pushmessageCategoryModel = $pushmessageCategoryMapper->fetchAll("customer_id=".$customer_id);
+					if($pushmessageCategoryModel) {
+					    foreach($pushmessageCategoryModel as $pushmessageCategory) {
+					        $pushmessageCategoryDetail = array();
+					        $pushmessageCategoryDetailMapper = new PushMessage_Model_Mapper_PushMessageCategoryDetail();
+					        $pushmessageCategoryDetailModel = $pushmessageCategoryDetailMapper->fetchAll("push_message_category_id=".$pushmessageCategory->getPushMessageCategoryId());
+					        if($pushmessageCategoryDetailModel) {
+					            foreach($pushmessageCategoryDetailModel as $pushmessage_category_detail) {
+					                $details = $pushmessage_category_detail->toArray();
+					                if(isset($details["icon"]) && $details["icon"] != null){
+					                    if(count(explode("/", $details["icon"])) > 1){
+					                        $details["icon"] = "resource/push-message/".$details["icon"];
+					                    }else{
+					                        $details["icon"] = "resource/push-message/preset-icons/".$details["icon"];
+					                    }
+					                }
+					                $pushmessageCategoryDetail[] = $details;
+					            }
+					        }
+					
+					        $response["data"][] = array("tbl_push_message_category"=>$pushmessageCategory->toArray(),"tbl_push_message_category_detail"=>$pushmessageCategoryDetail);
+					    }
+					}else{
+					    $response["data"][] = array("tbl_push_message_category"=>array(),"tbl_push_message_category_detail"=>array());
+					}
+					
 					$pushmessageMapper = new PushMessage_Model_Mapper_PushMessage();
 					$pushmessageModel = $pushmessageMapper->fetchAll("customer_id=".$customer_id);
 					if($pushmessageModel) {

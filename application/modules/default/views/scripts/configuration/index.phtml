@@ -16,8 +16,8 @@ div.iconBox, #background-sel-container{
 #iconDiv{
 	overflow-x: hidden;
 	overflow-y: scroll;
-	height:85px;
-	background-color:black; 
+	height:81px;
+	background-color:white; 
 }
 #iconDiv div{
 	border: 1px solid #DCDDE2;
@@ -27,9 +27,6 @@ div.iconBox, #background-sel-container{
 }
 #iconDiv label{
 	display:block;
-}
-#manualDiv{
-	padding-bottom: 20px;
 }
 .float-left{
 	float:left;
@@ -63,47 +60,10 @@ div.iconBox, #background-sel-container{
 <script src="<?php echo $this->baseUrl("libs/dropdown/dd.js"); ?>"></script>
 <div id="config-tabs">
 	<ul>
-		<li><a href="#general-config"><?php echo $this->translate('General Configuration');?></a></li>
-		<li><a href="#module-config"><?php echo $this->translate('Module Configuration');?></a></li>
+		<li><a href="#module-config"><?php echo $this->translate('Setup');?></a></li>
 		<li><a href="#reorder"><?php echo $this->translate('Reorder');?></a></li>
+		<li><a href="#general-config"><?php echo $this->translate('Appearence');?></a></li>
 	</ul>
-	<div id="general-config">
-		<form action="<?php echo $generalConfigurationForm->getAction(); ?>"
-			method="<?php echo $generalConfigurationForm->getMethod();?>"
-			id="frmGeneralConfiguration" class="zend_form">
-			<?php echo $generalConfigurationForm->customer_configuration_id->renderViewHelper()?>
-			<?php echo $generalConfigurationForm->customer_id->renderViewHelper()?>
-			<table>
-				<tbody>
-					<tr>
-						<td><?php echo $generalConfigurationForm->font_type->renderLabel() ?></td>
-						<td><?php echo $generalConfigurationForm->font_type->renderViewHelper()?></td>
-					</tr>
-					<tr>
-						<td><?php echo $generalConfigurationForm->font_color->renderLabel() ?></td>
-						<td><?php echo $generalConfigurationForm->font_color->renderViewHelper()?></td>
-					</tr>
-					<tr>
-						<td><?php echo $generalConfigurationForm->font_size->renderLabel() ?></td>
-						<td><?php echo $generalConfigurationForm->font_size->renderViewHelper()?></td>
-					</tr>
-					<tr>
-						<td><?php echo $generalConfigurationForm->spacing->renderLabel() ?></td>
-						<td><?php echo $generalConfigurationForm->spacing->renderViewHelper()?></td>
-					</tr>
-					<tr>
-						<td><?php echo $generalConfigurationForm->theme_color->renderLabel(); ?></td>
-						<td><?php echo $generalConfigurationForm->theme_color->renderViewHelper()?></td>
-					</tr>
-					<tr>
-						<td><?php echo $generalConfigurationForm->separator_color->renderLabel(); ?></td>
-						<td><?php echo $generalConfigurationForm->separator_color->renderViewHelper()?></td>
-					</tr>
-				</tbody>
-			</table>
-			<div class="customer_submit"><?php echo $generalConfigurationForm->submit->renderViewHelper().$generalConfigurationForm->reset->renderViewHelper();?></div>
-		</form>
-	</div>
 	<div id="module-config">
 		<div id="data-grid">
 			<table style="border-spacing: 0; border-collapse: collapse; width: 100%"
@@ -151,12 +111,21 @@ div.iconBox, #background-sel-container{
 							<td>&nbsp;</td>
 							<td>
 					        	<div class="iconBox" id="manualDiv">
-					        		<input type="radio" checked='checked' name="selIcon" id="selIcon_0" value=0>
-						        	<label for=icon>Default:</label>
-						        	<input id="icon" type="file" name="icon" disabled="disabled"/>
-						        	<input id="icon_path" type="hidden" name="icon_path" />
-						        	(Size: 120px &#215; 120px )
-									<img alt="" id="img-icon" height=60 width=60 />
+					        		<table>
+    					        		<tr>
+    					        		    <td><input type="radio" checked='checked' name="selIcon" id="selIcon_0" value=0></td>
+    					        		    <td><label for=icon>Default:</label></td>
+    					        		    <td><input id="icon" type="file" name="icon" disabled="disabled"/></td>
+    					        		    <td><input id="icon_path" type="hidden" name="icon_path" />(Size: 120px &#215; 120px )</td>
+    					        		    <td style="display:none" id="iconimg"><img alt="" id="img-icon" height=60 width=60 /></td>
+    					        	    </tr>
+    					        	    <tr id="deleteIconButton" style="display:none">
+        								    <td colspan="4">&nbsp;</td>
+        								    <td>
+                							    <div class="deletebuttons"><a class="deleteIcon red button-grid">Delete</a></div>
+        								    </td>
+        							    </tr>
+					        		</table>
 								</div>
 							</td>
 						</tr>
@@ -192,12 +161,41 @@ div.iconBox, #background-sel-container{
 							</td>
 						</tr>
 						<tr>
+							<td><label for=icon>ListView Image:</label></td>
+							<td>
+					        	<div class="iconBox" id="manualDiv">
+						        	<table>
+    						        	<tr>
+    						        	    <td>&nbsp;</td>
+        						        	<td><input id="list_view_image" type="file" name="list_view_image"/>(Size: 640px &#215; 250px )</td>
+        						        	<td><input id="list_view_image_path" type="hidden" name="list_view_image_path" /></td>
+        						        	<td id="listimg" style="display:none"><img alt="" id="list-img-icon" height=60 width=60 /></td>
+        						        </tr>
+        						        <tr id="deleteListImageButton" style="display:none">
+        								    <td colspan="3">&nbsp;</td>
+        								    <td>
+                							    <div class="deletebuttons"><a class="deleteListImageIcon red button-grid">Delete</a></div>
+        								    </td>
+        							    </tr>
+						        	</table>
+								</div>
+							</td>
+						</tr>
+						<tr>
+							<td><?php echo $moduleForm->label_1->renderLabel() ?></td>
+							<td><?php echo $moduleForm->label_1->renderViewHelper()?></td>
+						</tr>
+						<tr>
+							<td><?php echo $moduleForm->label_2->renderLabel() ?></td>
+							<td><?php echo $moduleForm->label_2->renderViewHelper()?></td>
+						</tr>
+						<tr>
 							<td><?php echo $moduleForm->visibility->renderLabel() ?></td>
 							<td><?php echo $moduleForm->visibility->renderViewHelper()?></td>
 						</tr>
 					</tbody>
 				</table>
-				<div class="customer_submit"><?php echo $moduleForm->submit->renderViewHelper().$moduleForm->applyall->renderViewHelper().$moduleForm->cancel->renderViewHelper();?></div>
+				<div class="customer_submit"><?php echo html_entity_decode($moduleForm->submit->renderViewHelper().$moduleForm->applyall->renderViewHelper().$moduleForm->cancel->renderViewHelper());?></div>
 			</form>
 		</div>
 	</div>
@@ -236,11 +234,108 @@ div.iconBox, #background-sel-container{
 				</tbody>      
 			</table>
 	</div>
+	<div id="general-config">
+		<form action="<?php echo $generalConfigurationForm->getAction(); ?>"
+			method="<?php echo $generalConfigurationForm->getMethod();?>"
+			id="frmGeneralConfiguration" class="zend_form">
+			<?php echo $generalConfigurationForm->customer_configuration_id->renderViewHelper()?>
+			<?php echo $generalConfigurationForm->customer_id->renderViewHelper()?>
+			<table>
+				<tbody>
+					<tr>
+						<td><?php echo $generalConfigurationForm->font_type->renderLabel() ?></td>
+						<td><?php echo $generalConfigurationForm->font_type->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $generalConfigurationForm->font_color->renderLabel() ?></td>
+						<td><?php echo $generalConfigurationForm->font_color->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $generalConfigurationForm->font_size->renderLabel() ?></td>
+						<td><?php echo $generalConfigurationForm->font_size->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $generalConfigurationForm->spacing->renderLabel() ?></td>
+						<td><?php echo $generalConfigurationForm->spacing->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $generalConfigurationForm->theme_color->renderLabel(); ?></td>
+						<td><?php echo $generalConfigurationForm->theme_color->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $generalConfigurationForm->separator_color->renderLabel(); ?></td>
+						<td><?php echo $generalConfigurationForm->separator_color->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $generalConfigurationForm->header_font_type->renderLabel() ?></td>
+						<td><?php echo $generalConfigurationForm->header_font_type->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $generalConfigurationForm->header_color->renderLabel() ?></td>
+						<td><?php echo $generalConfigurationForm->header_color->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $generalConfigurationForm->header_font_color->renderLabel() ?></td>
+						<td><?php echo $generalConfigurationForm->header_font_color->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $generalConfigurationForm->header_font_size->renderLabel() ?></td>
+						<td><?php echo $generalConfigurationForm->header_font_size->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $generalConfigurationForm->list_gradient_top->renderLabel(); ?></td>
+						<td><?php echo $generalConfigurationForm->list_gradient_top->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $generalConfigurationForm->list_gradient_middle->renderLabel(); ?></td>
+						<td><?php echo $generalConfigurationForm->list_gradient_middle->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $generalConfigurationForm->list_gradient_bottom->renderLabel(); ?></td>
+						<td><?php echo $generalConfigurationForm->list_gradient_bottom->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $generalConfigurationForm->list_font_color->renderLabel() ?></td>
+						<td><?php echo $generalConfigurationForm->list_font_color->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $generalConfigurationForm->list_background_color->renderLabel() ?></td>
+						<td><?php echo $generalConfigurationForm->list_background_color->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $generalConfigurationForm->list_font_size->renderLabel() ?></td>
+						<td><?php echo $generalConfigurationForm->list_font_size->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $generalConfigurationForm->list_font_type->renderLabel() ?></td>
+						<td><?php echo $generalConfigurationForm->list_font_type->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $generalConfigurationForm->invert->renderLabel() ?></td>
+						<td><?php echo $generalConfigurationForm->invert->renderViewHelper()?></td>
+					</tr>
+				</tbody>
+			</table>
+			<div class="customer_submit"><?php echo html_entity_decode($generalConfigurationForm->submit->renderViewHelper().$generalConfigurationForm->reset->renderViewHelper());?></div>
+		</form>
+	</div>
 </div>
 <script type="text/javascript">
 var grid ="";
 	$(document).ready(function(){
-		$("#font_color,#theme_color,#separator_color").colorpicker({
+		$(".deleteIcon").on("click",function(){
+	    	$("#icon_path").attr("value","deleted");
+	    	$("tr#deleteIconButton").css({'display':'none'});
+	    	$("td#iconimg").css({'display':'none'});
+	    	$("#icon").removeAttr("disabled","disabled");
+	    	$("#selIcon_0").attr("checked","checked");
+	    });
+		$(".deleteListImageIcon").on("click",function(){
+	    	$("#list_view_image_path").attr("value","deleted");
+	    	$("tr#deleteListImageButton").css({'display':'none'});
+	    	$("td#listimg").css({'display':'none'});
+	    });
+		$("#font_color,#theme_color,#separator_color,#list_gradient_top,#list_gradient_middle,#list_gradient_bottom,#list_font_color,#list_background_color,#header_color,#header_font_color").colorpicker({
 			parts: 'draggable',
 			showOn: 'both',
 			regional: 'en',
@@ -284,6 +379,7 @@ var grid ="";
 								setTimeout(function(){
 									next();
 								}, 2000);
+								location.href=location.href;
 							} else if( json && json.errors != undefined ){
 								if( typeof(json.errors.message) == "string"){
 										promptus.showErrorMessage(json.errors.message);
@@ -421,7 +517,7 @@ var grid ="";
                             	if(data["d_background_color"] != ""){
                             		$("#background_color").attr("value",data["d_background_color"]);
                             	}else{
-                            		$("#background_color").attr("value",'');
+                            		$("#background_color").attr("value",'000000');
                             	}                           	
                             	//$('#background_color').trigger('keyup');
                             	$('#myDropdown').ddslick('destroy'); 
@@ -429,15 +525,44 @@ var grid ="";
                                 	data:dropdown,
                         			width:300,                      			
                         		    selectText: "Select your preferred background image",
-                        		    imagePosition:"left",   
+                        		    imagePosition:"left",
+                        		    onSelected: function(data){
+                        		    	if(data.selectedData){
+                            		    	var id = data.selectedData.value;
+                                			$("#background_image").attr("value",id);
+                            		    }        
+                            		}   
                         		});
                             	$('#myDropdown').on("click",function(){
                         			var data = $('#myDropdown').data('ddslick');
-                        			var id = data.selectedData.value;
-                        			$("#background_image").attr("value",id);
+                        		    if(data.selectedData){
+                        		    	var id = data.selectedData.value;
+                            			$("#background_image").attr("value",id);
+                        		    }
                             	});
-                            	if(data["cm_icon"] != ""){
+                            	if($('input:radio[name=selIcon]:checked').val() == 0){
+                        			$("#icon").removeAttr("disabled");
+                        		} else {
+                        			$("#icon").attr("disabled","disabled");
+                        		}	
+                            	if(data["cm_icon"] != null && data["cm_icon"].length != 0){
                             		$("#img-icon").attr("src","<?php echo $this->baseUrl()."/resource/default/images/icon/"; ?>" + data["cm_icon"]);
+                            		if(data["cm_icon"].indexOf('/') != '-1'){$("#icon").removeAttr("disabled");}
+                            		$("tr#deleteIconButton").css({'display':''});
+                            		$("td#iconimg").css({'display':''});
+                            	}else{
+                                	$("tr#deleteIconButton").css({'display':'none'});
+                                	$("td#iconimg").css({'display':'none'});
+                            	}
+                            	if(data["d_list_view_image"] != null && data["d_list_view_image"].length != 0){
+                            		$("#list-img-icon").attr("src","<?php echo $this->baseUrl()."/resource/default/images/listviewimage/"; ?>" + data["d_list_view_image"]);
+                            		$("#list_view_image_path").attr("value",data["d_list_view_image"]);
+                            		$("tr#deleteListImageButton").css({'display':''});
+                            		$("td#listimg").css({'display':''});
+                            	}else{
+                            		$("#list_view_image_path").attr("value","");
+                            		$("tr#deleteListImageButton").css({'display':'none'});
+                            		$("td#listimg").css({'display':'none'});
                             	}
                             	if(data["d_background_type"]==0){
                             		$("#sel-color").attr("checked","checked");
@@ -451,6 +576,16 @@ var grid ="";
                             		$("#visibility").attr("checked","checked");
                             	} else {
                             		$("#visibility").removeAttr("checked");
+                            	}
+                            	if(data["cm_label_1"]==1) {
+                            		$("#label_1").attr("checked","checked");
+                            	} else {
+                            		$("#label_1").removeAttr("checked");
+                            	}
+                            	if(data["cm_label_2"]==1) {
+                            		$("#label_2").attr("checked","checked");
+                            	} else {
+                            		$("#label_2").removeAttr("checked");
                             	}
                             	$("input[name=sel-background]").on("change",function(){
                             		if($(this).attr("id") == "sel-image"){
@@ -516,6 +651,7 @@ var grid ="";
 		                message : "<?php echo $this->translate('Your changes will be saved and applied to all languages. Is it Ok?'); ?>",
 		                buttons : {
 		                    "Yes" : function(self){
+			                    this.close();
 		                        $("#frmModuleConfiguration").trigger("submit",{all:true});
 		                    },
 		                    "No"  : function(self){
@@ -532,12 +668,24 @@ var grid ="";
 			if(customObject.all){
 				queryAppend = "&all=true";
 			}
-			if($("input[name=background_type]").val() == 0){
-				$("#background_image").attr("value","");
-			}else{
-				$("#background_color").attr("value","");
-			}	
+			
 			if(!e.isDefaultPrevented()){
+				if($("input[name=background_type]").val() == 0){
+					if($("#background_color").attr("value") == ""){
+						alert("Please Select Color");
+						e.preventDefault();
+						return;
+					}
+					$("#background_image").attr("value","");
+				}else{
+					if($("#background_image").attr("value") == ""){
+						alert("Please Select Image");
+						e.preventDefault();
+						return;
+					}
+					$("#background_color").attr("value","");
+				}	
+			
 				var self = this;
 				var promptus = false;
 				$(document).queue(function(next){
@@ -550,31 +698,59 @@ var grid ="";
 					});
 					next();
 				}).queue(function(next){
-					// Upoad Images
-					$("input[type='file']").each(function(){
-						var input = $(this).attr("id");
-						if($(this).attr("value") != "")
-						{
-							$.ajaxFileUpload({
-								url:'<?php echo $this->url(array("module"=>"default","controller"=>"configuration","action"=>"upload"),"default",true);?>',
-								secureuri:false,
-								fileElementId:$(this).attr("id"),
-								dataType: 'json',
-								data:{upload:$(this).attr("id")},
-								success: function (data, status)
-								{
-									if(data.success != undefined) {
-										$("#"+ input + "_path").attr("value",data.success);
-									}	
-								},
-								complete: function(){
+					if($('#icon').attr("value")!="") {
+						$.ajaxFileUpload({
+							url:'<?php echo $this->url(array("module"=>"default","controller"=>"configuration","action"=>"upload"),"default",true);?>',
+							secureuri:false,
+							fileElementId:'icon',
+							dataType: 'json',
+							data:{upload:'true'},
+							success: function (data, status)
+							{
+								if(data.success != undefined) {
+									$("#icon_path").attr("value",data.success);
 									next();
 								}
-							});
-						} else {
-							next();
-						}
-					});
+							},
+							error: function (data, status, e)
+							{
+								promptus.showErrorMessage("<?php echo $this->translate('Error uploading logo.')?>");
+								setTimeout(function(){
+									promptus.close();
+								}, 2000);
+								
+							}
+						});
+					} else {
+						next();
+					}
+				}).queue(function(next){
+					if($('#list_view_image').attr("value")!="") {
+						$.ajaxFileUpload({
+							url:'<?php echo $this->url(array("module"=>"default","controller"=>"configuration","action"=>"upload"),"default",true);?>',
+							secureuri:false,
+							fileElementId:'list_view_image',
+							dataType: 'json',
+							data:{uploadlistimage:'true'},
+							success: function (data, status)
+							{
+								if(data.success != undefined) {
+									$("#list_view_image_path").attr("value",data.success);
+									next();
+								}
+							},
+							error: function (data, status, e)
+							{
+								promptus.showErrorMessage("<?php echo $this->translate('Error uploading logo.')?>");
+								setTimeout(function(){
+									promptus.close();
+								}, 2000);
+								
+							}
+						});
+					} else {
+						next();
+					}
 				}).queue(function(next){
 					// Save Modules
 					$.ajax({

@@ -1,0 +1,189 @@
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxcore.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/gettheme.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxdropdownbutton.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxscrollbar.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxbuttons.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxtree.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxpanel.js"); ?>"></script>
+<form id="frmFilter">
+<div id="filterBox">
+      <table style="width:100%;border:0;border-spacing:0;border-collapse:collapse;">
+        <tr>
+          <td valign="middle"><h2 class="filterIcon"><?php echo $this->translate('Filter'); ?></h2></td>
+          <td>
+          	<table>
+              <tr>
+              	<td><?php echo $this->translate('Title'); ?></td>
+                <td><input type="text" class="input" id="txtTitle" name="dcd[title]"></td>
+                <td><?php echo $this->translate('Status'); ?></td>
+                <td>
+                	<select name="dc[status]">
+                		<option value="1"><?php echo $this->translate('Active'); ?></option>
+                		<option value="0"><?php echo $this->translate('InActive'); ?></option>
+                	</select>
+               	</td>
+              </tr>
+            </table>
+          </td>
+          <td>&nbsp;</td>
+          <td align="right">
+          	<input type="submit" name="button" id="button" class="button" value="<?php echo $this->translate('Submit')?>">
+          </td>
+        </tr>
+      </table>
+</div>
+</form>
+<a class="togglefilter"></a>
+<table style="border-spacing:0;border-collapse:collapse;width:100%" class="pattern-style-b" id="dataGrid">
+	<thead>
+		<tr>
+	        <th scope="col"><?php echo $this->translate('Title'); ?></th>
+		    <th scope="col"><?php echo $this->translate('Status'); ?></th>
+		    <th scope="col"><?php echo $this->translate('Order'); ?></th>
+		    <th scope="col" class="action"><?php echo $this->translate('Action'); ?></th>
+		</tr>
+    </thead> 
+	<tbody>
+		<tr>
+			<td colspan="3" class="dataTables_empty"><?php echo $this->translate('Loading data from server'); ?></td>
+		</tr>
+	</tbody>      
+</table>
+
+<script type="text/javascript">
+var grid ="";
+$(document).ready(function() {
+    $(document).on("submit","#frmFilter",function(){
+    	grid.fnDraw();
+    	return false;
+    });
+    
+    window.grid = dataTable({
+		aaSorting: [[ 2, "desc" ]],
+		"aoColumns": [
+						{ "sName": "dcd.title" },
+						{ "sName": "dc.status" },
+						{ "sName": "dc.order" },
+						{ "sName": "actions","bSortable": false}
+					 ],
+		id : $('#dataGrid'),
+		filterForm : $('#frmFilter'),
+		sAjaxSource: "<?php echo $this->url(array("module"=>"contact","controller"=>"types","action"=>"grid"));?>"
+	});
+    $(document).on("click",".grid_delete",function(e){
+        var self = this;
+        window.currentDeleteUrl = $(this).attr("href"); 
+        if(!e.isDefaultPrevented()){
+        	var promptus = new prompt({
+                    	reference : self,
+                        element : ".dataTables_wrapper",
+                        message : "<?php echo $this->translate('Are you sure you want to delete this contact type?'); ?>",
+                        buttons : {
+                            "Yes" : function(self){
+                                var prompt = this;
+                                $(document).queue(function(next){
+                                    prompt.showLoadingMessage("<?php echo $this->translate('Please wait while deleting contact type..'); ?>");
+                                    next();
+                                }).queue(function(next){
+                                    $.ajax({
+                                        url: window.currentDeleteUrl,
+                                        cache: false,
+                                        type: "GET",
+                                        dataType: "json",
+                                        success: function(json){
+                                            if(json.success != undefined){ 
+                                            	prompt.showSuccessMessage("<?php echo $this->translate('Contact type deleted successfully.'); ?>");
+                                            	setTimeout(function(){
+                                            		prompt.close();
+                                                	grid.fnDraw();
+                                                }, 1000);
+                                            } else if(json.errors != undefined){
+                                                var errorMessage = "<?php echo $this->translate('Unable to contact event type:'); ?><br />";
+                                                errorMessage += json.errors.message;
+                                            	prompt.showErrorMessage(errorMessage);
+                                            	setTimeout(function(){
+                                            		prompt.close();
+                                                }, 2000);
+                                            }
+                                        },
+                                        error: function(){
+                                        }
+                                    }).complete(next); 
+                                });
+                            },
+                            "No"  : function(self){
+                            	this.close();
+                            },
+                        }
+                    });
+            e.preventDefault();
+        }
+    });
+
+    $(document).on("click",".module_publish",function(e){
+        var self = this;
+        window.currentPublishUrl = $(this).attr("href"); 
+        if(!e.isDefaultPrevented()){
+        	var promptus = new prompt({
+                    	reference : self,
+                        element : ".dataTables_wrapper",
+                        message : "<?php echo $this->translate('Are you sure you want to publish this Module?'); ?>",
+                        buttons : {
+                            "Yes" : function(self){
+                                var prompt = this;
+                                $(document).queue(function(next){
+                                    prompt.showLoadingMessage("<?php echo $this->translate('Publishing Module..'); ?>");
+                                    next();
+                                }).queue(function(next){
+                                    $.ajax({
+                                        url: window.currentPublishUrl,
+                                        cache: false,
+                                        type: "GET",
+                                        dataType: "json",
+                                        success: function(json){
+                                            if(json.success != undefined){ 
+                                            	prompt.showSuccessMessage("<?php echo $this->translate('Module Published successfully.'); ?>");
+                                            	setTimeout(function(){
+                                            		prompt.close();
+                                                	grid.fnDraw();
+                                                }, 1000);
+                                            } else if(json.errors != undefined){
+                                                var errorMessage = "<?php echo $this->translate('Unable to publish Module:'); ?><br />";
+                                                errorMessage += json.errors.message;
+                                            	prompt.showErrorMessage(errorMessage);
+                                            	setTimeout(function(){
+                                            		prompt.close();
+                                                }, 2000);
+                                            }
+                                        },
+                                        error: function(){
+                                        }
+                                    }).complete(next); 
+                                });
+                            },
+                            "No"  : function(self){
+                            	this.close();
+                            },
+                        }
+                    });
+            e.preventDefault();
+        }
+    });
+    $('.togglefilter').on("click",function(){
+		$('#filterBox').toggle();
+		$('#content > a').toggleClass('flip-vertical');
+	});
+	$('#filterBox').hide();
+});
+$('#jqxTree').on('select', function (event) {
+    var args = event.args;
+    var item = $('#jqxTree').jqxTree('getItem', args.element);
+    var dropDownContent = '<div style="position: relative; margin-left: 3px; margin-top: 5px;">' + item.label + '</div>';
+    $("#dropDownButton").jqxDropDownButton('setContent', dropDownContent);
+    $("#parent_id").attr("value",item.id);
+    if(window.grid){        
+    	window.grid.fnDraw();
+    }
+    $("#dropDownButton").jqxDropDownButton("close");
+});
+</script>

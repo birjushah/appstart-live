@@ -62,6 +62,7 @@ class HomeWallpaper_RestController extends Standard_Rest_Controller {
 									if($resolution_id > 0) {
 										$homeWallpaperImageMapper = new HomeWallpaper_Model_Mapper_HomeWallpaperImage();
 										$homeWallpaperImageModels = $homeWallpaperImageMapper->fetchAll("home_wallpaper_detail_id=".$details["home_wallpaper_detail_id"]." AND resolution_id=".$resolution_id);
+										$details["image_path"] = "";
 										if($homeWallpaperImageModels) {
 											if($homeWallpaperImageModels[0]->get("image_path") != null){
 											    $details["image_path"] = "resource/home-wallpaper/wallpapers/C" . $customer_id. "/R".$resolution_id."/".$homeWallpaperImageModels[0]->get("image_path");

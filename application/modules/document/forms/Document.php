@@ -91,27 +91,6 @@ class Document_Form_Document extends Standard_Form {
 			 ->addValidator('Size', false, 102400);
 		$this->addElement($document);
 		
-		// Keywords
-		$keywords = $this->createElement ( "text", "keywords", array (
-				'label' => 'Keywords',
-				'size' => '128',
-				'required' => true,
-				'filters' => array (
-						'StringTrim'
-				),
-				'validators' => array (
-						array (
-								$notEmptyValidator,
-								true
-						)
-				),
-				'errorMessages' => array (
-						'Invalid Keywords'
-				)
-		) );
-		$keywords->setAttrib("required", "required");
-		$this->addElement ( $keywords);
-		
 		$this->addElement('checkbox', 'status', array(
 				'label'      => 'Active',
 				'value'      => '1'

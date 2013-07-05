@@ -62,31 +62,38 @@
 			    <td>
 		        	<div class="logo-box">
 		        		<table>
-						<tr>
-							<td>
-								<?php 
-								$icon_path = $this->baseUrl("resource/document/");
-					        	if($this->icon_src!="") {
-					        	?>
-					        	<img alt="" src="<?php echo $icon_path."/".$this->icon_src;?>" style="width: 64px;" />
-					        	<?php 
-					        	}
-					        	?>
-				        	</td>
-				        	<td>
-				        		<?php
-				        		$checked = "";
-					        	if($this->icon_src!="") {
-					        		$checked = "checked='checked'";
-								}
-								?>
-					        	
-								<input type="radio" id="selLogo_0" checked="checked" name="selLogo" value="0" style="margin-left: 10px;" />
-								<label for="selLogo_0"><?php echo $this->translate('Upload:')?></label>
-								<input id="icon" type="file" name="icon" /> (Size: 120px &#215; 120px )
-					        	<input id="icon_path" type="hidden" name="icon_path" value="" />
-				        	</td>
-			        	</tr>
+    						<tr>
+    							<td>
+    								<?php 
+    								$icon_path = $this->baseUrl("resource/document/");
+    					        	if($this->icon_src!="") {
+    					        	?>
+    					        	<img class="iconImage" alt="" src="<?php echo $icon_path."/".$this->icon_src;?>" style="width: 64px;" />
+    					        	<?php 
+    					        	}
+    					        	?>
+    				        	</td>
+    				        	<td>
+    				        		<?php
+    				        		$checked = "";
+    					        	if($this->icon_src!="") {
+    					        		$checked = "checked='checked'";
+    								}
+    								?>
+    					        	
+    								<input type="radio" id="selLogo_0" checked="checked" name="selLogo" value="0" style="margin-left: 10px;" />
+    								<label for="selLogo_0"><?php echo $this->translate('Upload:')?></label>
+    								<input id="icon" type="file" name="icon" /> (Size: 120px &#215; 120px )
+    					        	<input id="icon_path" type="hidden" name="icon_path" value="" />
+    				        	</td>
+    			        	</tr>
+			        	    <tr id="deleteIconButton">
+    			        	 <?php if($this->icon_src!=""){ ?>
+    						    <td>
+    							    <div class="deletebuttons"><a class="deleteIcon red button-grid">Delete</a></div>
+    						    </td>
+    					    </tr>
+					    <?php } ?>
 			        	</table>
 					</div>
 				</td>
@@ -100,9 +107,9 @@
 			</tr>
 			<tr>
 		        <td colspan="3" align="center">
-		        	<?php echo $form->submit->renderViewHelper() ?>&nbsp;
-		        	<?php echo $form->applyallcat->renderViewHelper()?>&nbsp;
-					<?php echo $form->reset->renderViewHelper() ?>
+		        	<?php echo html_entity_decode($form->submit->renderViewHelper()) ?>&nbsp;
+		        	<?php echo (Standard_Functions::$action == "edit")? html_entity_decode($form->applyallcat->renderViewHelper()):""?>&nbsp;
+					<?php echo html_entity_decode($form->reset->renderViewHelper()) ?>
 				</td>
 			</tr>
 		</tbody>
@@ -136,11 +143,10 @@ $(document).ready(function() {
 	//creating data which jqtree plugin can use
 	var builddata = function () {
 		var source = [];
-		var items = [];
+		var items = [];	
 		// build hierarchical source.
-		items[0]={id:0,label:'Menu',selected:false};
+		items[0]={id:0,label:'Root',selected:false};
 		source[0] = items[0];
-		console.dir(data);
 		for (var i = 0; i < data.length; i++) {
 			var item = data[i];
 			var label = item["text"];
@@ -153,35 +159,12 @@ $(document).ready(function() {
 					items[parentid].items = [];
 				}
 				items[parentid].items[items[parentid].items.length] = item;
-				$.each(source,function(key,value){
-					if(value &&  value.item && value.item.parentId == item["id"]){
-						if(!item.items){
-							item.items = [];
-						}
-						item.items[item.items.length] = source[key];
-						delete source[key];
-					}
-				});
 				items[id] = item;
 			}
 			else {
-				var tempItem = { id: id, label: label, item: item };
-				$.each(source,function(key,value){
-					if(value &&  value.item && value.item.parentId == tempItem["id"]){
-						if(!tempItem.items){
-							tempItem.items = [];
-						}
-						tempItem.items[tempItem.items.length] = source[key];
-						delete source[key];
-					}
-				});
-				items[id] = tempItem;
-				//items[id] = { id: id, label: label, item: item };
+				items[id] = { id: id, label: label, item: item };
 				source[id] = items[id];
 			}
-			console.log("Loop : " + i);
-			console.log(source);
-			console.log("\n\n");
 		}		
 		return source;
 	}
@@ -193,10 +176,16 @@ $(document).ready(function() {
 			$("#icon").attr("disabled","disabled");
 		}			
 	});
+	$(".deleteIcon").on("click",function(){
+    	$("#icon_path").attr("value","deleted");
+    	$(".iconImage").remove();
+    	$("#icon").attr("value","");
+    	$("tr#deleteIconButton").remove();
+    });
 	$("#dropDownButton").jqxDropDownButton({ width: 150, height: 25 });
 	$('#jqxTree').bind('initialized', function (event) { 
 		var args = event.args;
-		parentIdLabel = (parentIdLabel=="")?"Menu":parentIdLabel;
+		parentIdLabel = (parentIdLabel=="")?"Root":parentIdLabel;
     	var dropDownContent = '<div style="position: relative; margin-left: 3px; margin-top: 5px;">' + parentIdLabel + '</div>';
     	$("#dropDownButton").jqxDropDownButton('setContent', dropDownContent);
     });	
@@ -213,6 +202,7 @@ $(document).ready(function() {
     var source = builddata();
     //console.log(source);
     $("#jqxTree").jqxTree({source:source,width: 250 });
+    $('#jqxTree').jqxTree('expandAll');
 	$("#frmAddEditDocumentCategory").validator().submit(function(e,customObject){
 		customObject = customObject || {};
 		var queryAppend = "";

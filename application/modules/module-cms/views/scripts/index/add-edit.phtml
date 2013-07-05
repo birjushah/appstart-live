@@ -1,70 +1,7 @@
 <?php $form = $this->form; ?>
-<script type="text/javascript" src="<?php echo $this->baseUrl("libs/tinymce/js/tiny_mce.js"); ?>"></script>
 <script type="text/javascript" src="<?php echo $this->baseUrl("libs/colorpicker/jquery.colorpicker.js"); ?>"></script>
 <link href="<?php echo $this->baseUrl("libs/colorpicker/jquery.colorpicker.css"); ?>" rel="stylesheet" type="text/css"/>
 <script src="<?php echo $this->baseUrl("libs/colorpicker/i18n/jquery.ui.colorpicker-en.js"); ?>"></script>
-<script type="text/javascript">
-tinyMCE.init({
-	// General options
-	mode : "exact",
-	elements:"content_textarea",
-	theme : "advanced",
-	script : "<?php echo $this->baseUrl("libs/tinymce/js/plugins/uploadImage/editor_plugin.js"); ?>",
-	plugins : "autolink,lists,pagebreak,style,layer,table,save,advhr,advimage,advlink,emotions,iespell,inlinepopups,insertdatetime,preview,media,searchreplace,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras,template,wordcount,advlist,autosave,visualblocks,uploadImage",
-
-	// Theme options
-	theme_advanced_buttons1 : "save,newdocument,|,bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,styleselect,formatselect,fontselect,fontsizeselect",
-	theme_advanced_buttons2 : "cut,copy,paste,pastetext,pasteword,|,search,replace,|,bullist,numlist,|,outdent,indent,blockquote,|,undo,redo,|,link,unlink,anchor,image,cleanup,help,code,|,insertdate,inserttime,preview,|,forecolor,backcolor",
-	theme_advanced_buttons3 : "tablecontrols,|,hr,removeformat,visualaid,|,sub,sup,|,charmap,emotions,iespell,media,advhr,|,print,|,ltr,rtl,|,fullscreen",
-	theme_advanced_buttons4 : "insertlayer,moveforward,movebackward,absolute,|,styleprops,|,cite,abbr,acronym,del,ins,attribs,|,visualchars,nonbreaking,template,pagebreak,restoredraft,visualblocks,uploadImage",
-	
-	// set value of textarea if null
-	//onchange_callback : "textAreaValueChange",
-
-	//plugins : "autolink,lists,pagebreak,style,layer,table,save,advhr,advimage,advlink,emotions,iespell,inlinepopups,insertdatetime,preview,media,searchreplace,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras,template,wordcount,advlist,visualblocks",
-	//plugins : "paste,pagebreak,table",
-	
-	// Theme options
-	//theme_advanced_buttons1 : "bold,italic,underline,strikethrough,|,undo,redo,|,bullist,numlist,|,outdent,indent,blockquote,|,forecolor,backcolor,|,tablecontrols,|,hr",
-	//theme_advanced_buttons1 : "formatselect,fontselect,fontsizeselect,|,forecolor,backcolor,|,bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,|,code",
-	//theme_advanced_buttons2 : "",
-	//theme_advanced_buttons3 : "tablecontrols,|,hr,removeformat,visualaid,|,sub,sup,|,ltr,rtl",
-	//theme_advanced_buttons4 : "insertlayer,moveforward,movebackward,absolute,|,cite,abbr,acronym,del,ins,attribs,|,visualchars,nonbreaking,pagebreak",
-	theme_advanced_toolbar_location : "top",
-	theme_advanced_toolbar_align : "left",
-	theme_advanced_statusbar_location : "bottom",
-	theme_advanced_resizing : true,
-	relative_urls : false,
-
-	// Example content CSS (should be your site CSS)
-	content_css : "<?php echo $this->baseUrl("libs/tinymce/css/content.css"); ?>",
-
-	// Drop lists for link/image/media/template dialogs
-	template_external_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/template_list.js"); ?>",
-	external_link_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/link_list.js"); ?>",
-	external_image_list_url : "<?php echo $this->url(array("module"=>"module-cms","controller"=>"index","action" => "get-images"),"default",true); ?>",
-	media_external_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/media_list.js"); ?>",
-
-	// Style formats
-	style_formats : [
-		{title : 'Bold text', inline : 'b'},
-		{title : 'Red text', inline : 'span', styles : {color : '#ff0000'}},
-		{title : 'Red header', block : 'h1', styles : {color : '#ff0000'}},
-		{title : 'Example 1', inline : 'span', classes : 'example1'},
-		{title : 'Example 2', inline : 'span', classes : 'example2'},
-		{title : 'Table styles'},
-		{title : 'Table row 1', selector : 'tr', classes : 'tablerow1'}
-	],
-	// Replace values for the template plugin
-	template_replace_values : {
-		username : "Some User",
-		staffid : "991234"
-	}
-});
-//function textAreaValueChange(inst){
-	//content_textarea.value = tinyMCE.get('content_textarea').getContent();
-//}
-</script>
 <script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxcore.js"); ?>"></script>
 <script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/gettheme.js"); ?>"></script>
 <script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxdropdownbutton.js"); ?>"></script>
@@ -72,6 +9,10 @@ tinyMCE.init({
 <script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxbuttons.js"); ?>"></script>
 <script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxtree.js"); ?>"></script>
 <script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxpanel.js"); ?>"></script>
+
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/innovaeditor/scripts/innovaeditor.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/innovaeditor/scripts/jquery.innovaeditor.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/innovaeditor/scripts/editor.aksPlugin.js"); ?>"></script>
 
 <div id="filterBox">
 	<table
@@ -110,11 +51,65 @@ tinyMCE.init({
 				</tr>
 				
 				<tr>
-					<td><label for="thumb"><?php echo $this->translate('Thumb'); ?></label></td>
-						<td><?php echo $form->thumb->renderFile();?>(Size: 120px &#215; 120px )</td>
-						<td><img alt="" src="<?php echo $this->image_thumb?>"></td>
-						<td><input name="thumb_path" type="hidden" id="thumb_path"/></td>
-				</tr>
+				<td valign="top">
+					<label><?php echo $this->translate('Icon:')?></label>
+				</td>
+    				<td valign="top">
+    					<div id="lstLogo" class="logo-box">
+            				<?php $resource_path = $this->baseUrl("resource/module-cms/preset-icons");?>
+            				<?php foreach ($this->iconpack as $icon):?>
+            				<div class="">
+    							<label for="selLogo_<?php echo $icon; ?>">
+    								<img src="<?php echo $resource_path . "/" . $icon; ?>" width="64" height="64" />
+    							</label>
+    							<input type="radio" id="selLogo_<?php echo $icon; ?>" name="selLogo" value="<?php echo $icon; ?>" />
+    						</div>
+            				<?php endforeach;?>
+    					</div>
+    				</td>
+			    </tr>
+			
+			    <tr>
+		        <td>&nbsp;</td>
+    			    <td>
+    		        	<div class="logo-box">
+    		        		<table>
+        						<tr>
+        							<td>
+        								<?php
+        								$icon_path = $this->baseUrl("resource/module-cms/");
+        					        	if($this->icon_src!="") {
+        					        	?>
+        					        	<img class="iconImage" alt="" src="<?php echo $icon_path."/".$this->icon_src;?>" style="width: 64px; height: 64px" />
+        					        	<?php 
+        					        	}
+        					        	?>
+        				        	</td>
+        				        	<td>
+        				        		<?php
+        				        		$checked = "";
+        					        	if($this->icon_src!="") {
+        					        		$checked = "checked='checked'";
+        								}
+        								?>
+        					        	
+        								<input type="radio" id="selLogo_0" checked="checked" name="selLogo" value="0" style="margin-left: 10px;" />
+        								<label for="selLogo_0"><?php echo $this->translate('Upload:')?></label>
+        								<input id="thumb" type="file" name="thumb" /> (Size: 60px &#215; 60px )
+        					        	<input id="icon_path" type="hidden" name="icon_path" value="" />
+        				        	</td>
+        			        	</tr>
+        			        	 <tr id="deleteIconButton">
+        			        	 <?php if($this->icon_src!=""){ ?>
+        						    <td>
+        							    <div class="deletebuttons"><a class="deleteIcon red button-grid">Delete</a></div>
+        						    </td>
+        					    </tr>
+    					        <?php } ?>
+    			        	</table>
+    					</div>
+    				</td>
+			    </tr>
 				
 				<tr>
 					<td><?php echo $form->content->renderLabel() ?></td>
@@ -123,12 +118,26 @@ tinyMCE.init({
 					</td>
 				</tr>
 				
-				<!-- <tr>
-					<td><?php //echo $form->background_color->renderLabel() ?></td>
+				<tr>
+					<td><?php echo $form->label_1->renderLabel() ?></td>
 					<td>
-		        	<?php //echo $form->background_color->renderViewHelper()?>
+		        	<?php echo $form->label_1->renderViewHelper()?>
 					</td>
-				</tr> -->
+				</tr>
+				
+				<tr>
+					<td><?php echo $form->label_1_color->renderLabel() ?></td>
+					<td>
+		        	<?php echo $form->label_1_color->renderViewHelper()?>
+					</td>
+				</tr>
+				
+				<tr>
+					<td><?php echo $form->label_2->renderLabel() ?></td>
+					<td>
+		        	<?php echo $form->label_2->renderViewHelper()?>
+					</td>
+				</tr>
 
 				<tr>
 				<td><?php echo $form->status->renderLabel() ?></td>
@@ -139,9 +148,9 @@ tinyMCE.init({
 				
 				<tr>	
 					<td colspan="3" align="center">
-		        	<?php echo $form->submit->renderViewHelper() ?>&nbsp;
-		        	<?php echo $form->applyall->renderViewHelper()?>&nbsp;
-					<?php echo $form->reset->renderViewHelper()?>
+		        	<?php echo html_entity_decode($form->submit->renderViewHelper()) ?>&nbsp;
+		        	<?php echo (Standard_Functions::$action == "edit")? html_entity_decode($form->applyall->renderViewHelper()):""?>&nbsp;
+					<?php echo html_entity_decode($form->reset->renderViewHelper())?>
 					</td>
 				</tr>
 			</tbody>
@@ -151,7 +160,41 @@ tinyMCE.init({
 
 <script type="text/javascript">
 // <!--
+var queryAppend = "";
 $(document).ready(function() {
+	$('#content_textarea').editor({
+		width:650,
+        height: 600,
+        innerWidth:320,
+        enableFlickr: true,
+        css: ['<?php echo $this->baseUrl("libs/innovaeditor/styles/default.css");?>'] ,
+        groups: [
+                ["group1", "", ["FontName", "FontSize", "Superscript", "ForeColor", "BackColor", "FontDialog", "Styles", "BRK", "Bold", "Italic", "Underline", "Strikethrough", "TextDialog","CompleteTextDialog", "RemoveFormat"]],
+		        ["group2", "", ["JustifyLeft", "JustifyCenter", "JustifyRight", "Paragraph", "BRK", "Bullets", "Numbering", "Indent", "Outdent"]],
+		        ["group3", "", ["Table","TableDialog", "Emoticons", "FlashDialog", "BRK", "LinkDialog", "ImageDialog", "YoutubeDialog"]],
+		        ["group4", "", ["InternalLink", "Undo", "Redo", "Line", "BRK", "SearchDialog", "CharsDialog", "SourceDialog", "FullScreen"]]
+                ],
+        fileBrowser:['<?php echo $this->baseUrl("libs/innovaeditor/assetmanager/asset.php");?>']
+    });
+    
+	$("#label_1_color").colorpicker({
+		parts: 'draggable',
+		showOn: 'both',
+		regional: 'en',
+		buttonColorize: true,
+		showNoneButton: false,
+		alpha: true,
+		close : function(){
+			var self = $(this);
+			$(this).parent().find("button").css({background:"#"+self.val()});
+		}
+	});
+	$(".deleteIcon").on("click",function(){
+    	$("#icon_path").attr("value","deleted");
+    	$(".iconImage").remove();
+    	$("#icon").attr("value","");
+    	$("tr#deleteIconButton").remove();
+    });
 	$("#applyall").on("click",function(e){
 		if(!e.isDefaultPrevented()){
 	    	var promptus = new prompt({
@@ -160,7 +203,9 @@ $(document).ready(function() {
 	                message : "<?php echo $this->translate('Your changes will be saved and applied to all languages. Is it Ok?'); ?>",
 	                buttons : {
 	                    "Yes" : function(self){
-	                        $("#frmAddEditCms").trigger("submit",{all:true});
+	                        this.close();
+	                    	queryAppend = "&all=true";
+	                        $("#submit").trigger("click");
 	                    },
 	                    "No"  : function(self){
 	                    	this.close();
@@ -172,49 +217,33 @@ $(document).ready(function() {
 	});
 
 	var parentIdLabel = <?php echo ($this->parentCategory!="")? "'$this->parentCategory'":"'Parent'" ?>;
-	//console.log(parentIdLabel);
 	var data = <?php echo $this->moduleCmsTree?>;
-	//console.log(data);
-	//creating data which jqtree plugin can use
 	var builddata = function () {
 		var source = [];
-		var items = [];
-		//adding an option to become parent, id will be set to 0
-		items[0]={id:0,label:'Parent',selected:false};
-		source[0] = items[0];	
-		// build hierarchical source.
-	    console.log(data);
-		for (var i = 0; i < data.length; i++) {
-			var item = data[i];
-			var label = item["text"];
-			var parentid = item["parentId"];
-			var id = item["id"];
+	    var items = [];
+	    items[0]={id:0,label:'Menu',selected:false};
+		source[0] = items[0];
+	    for (var i = 0; i < data.length; i++) {
+	        var item = data[i];
+	        var label = item["text"];
+	        var parentid = item["parentId"];
+	        var id = item["id"];
 
-			if (items[parentid]) {
-				var item = { id: id, label: label, item: item };
-				if (!items[parentid].items) {
-					items[parentid].items = [];
-				}
-				items[parentid].items[items[parentid].items.length] = item;
-				$.each(source,function(key,value){
-					if(value && value.item && value.item.parentId == item["id"]){
-						if(!item.items){
-							item.items = [];
-						}
-						item.items[item.items.length] = source[key];
-						delete source[key];
-					}
-				});
-				items[id] = item;
-			}
-			else {
-				items[id] = { id: id, label: label, item: item };
-				source[id] = items[id];
-			}
-		}		
-		console.log(source);
-		return source;
-	}
+	        if (items[parentid]) {
+	            var item = { id: id, label: label, item: item };
+	            if (!items[parentid].items) {
+	                items[parentid].items = [];
+	            }
+	            items[parentid].items[items[parentid].items.length] = item;
+	            items[id] = item;
+	        }
+	        else {
+	            items[id] = { id: id, label: label, item: item };
+	            source[id] = items[id];
+	        }
+	    }
+	    return source;
+	};
 	$("#dropDownButton").jqxDropDownButton({ width: 150, height: 25 });
 	$('#jqxTree').bind('initialized', function (event) { 
 		var args = event.args;
@@ -224,27 +253,40 @@ $(document).ready(function() {
 	$('#jqxTree').bind('select', function (event) {
         var args = event.args;
         var item = $('#jqxTree').jqxTree('getItem', args.element);
-        console.log(item);
         $("#parent_id").attr("value",item.id);
         var dropDownContent = '<div style="position: relative; margin-left: 3px; margin-top: 5px;">' + item.label + '</div>';
         $("#dropDownButton").jqxDropDownButton('setContent', dropDownContent);
         $("#dropDownButton").jqxDropDownButton("close");        
     });
     var source = builddata();
-    //console.log(source);
+    
 	$("#jqxTree").jqxTree({source:source});
-	$("#frmAddEditCms").validator().submit(function(e,customObject){
-		customObject = customObject || {};
-		var queryAppend = "";
-		if(customObject.all){
-			queryAppend = "&all=true";
-		}
+	$('#jqxTree').jqxTree('expandAll');
+	$("#frmAddEditCms").validator().submit(function(e){
+		//escapeHtmlEntities = function (text) {
+            //return text.replace(/[\u00A0-\u2666<>\&]/g, function(c) {
+              //  return '&' + 
+                //(escapeHtmlEntities.entityTable[c.charCodeAt(0)] || '#'+c.charCodeAt(0)) + ';';
+            //});
+        //};
+       // escapeHtmlEntities.entityTable = {
+        //		252 : 'uuml'
+        //};
+        //$("#content_textarea").val(escapeHtmlEntities ($('#content_textarea').html()));
+		text = ""+$("#content_textarea").html()+"";
+		var html = text.replace(/[\u00A0-\u00FF\u2022-\u2135]/g, function(c) {
+			 return '&#'+c.charCodeAt(0)+';';
+		});
+		alert(html);
+		html.replace(/&/g, "&amp;").replace(/>/g, "&gt;").replace(/</g, "&lt;").replace(/"/g, "&quot;");
+		alert(html);
+		$("#content_textarea").val(html);
 		var orignalParentId = <?php echo ($this->orignalParent != "")?$this->orignalParent:"''" ?>;
 		var currentParentId = $("#parent_id").val();
 		if(orignalParentId != currentParentId){
 			var parent = 'changed';
 		}else{
-			var parent = 'intact'
+			var parent = 'intact';
 		}
 		var form = $(this);
 		if(!e.isDefaultPrevented()){
@@ -265,11 +307,11 @@ $(document).ready(function() {
 						secureuri:false,
 						fileElementId:'thumb',
 						dataType: 'json',
-						data:{upload:'true'},
+						data:{iconupload:'true'},
 						success: function (data, status)
 						{
 							if(data.success != undefined) {
-								$("#thumb_path").attr("value",data.success);
+								$("#icon_path").attr("value",data.success);
 								next();
 							}
 						},

@@ -173,44 +173,34 @@ $(document).ready(function() {
     });
     
 	var data = <?php echo $this->parentCategories?>;
-	//console.log(data);
 	//creating data which jqtree plugin can use
 	var builddata = function () {
 		var source = [];
-		var items = [];
-		// build hierarchical source.
-		items[0]={id:0,label:'Root Parents',selected:true};
+	    var items = [];
+	    items[0]={id:0,label:'Root',selected:true};
 		source[0] = items[0];
-		for (var i = 0; i < data.length; i++) {
-			var item = data[i];
-			var label = item["text"];
-			var parentid = item["parentId"];
-			var id = item["id"];
+	    // build hierarchical source.
+	    for (var i = 0; i < data.length; i++) {
+	        var item = data[i];
+	        var label = item["text"];
+	        var parentid = item["parentId"];
+	        var id = item["id"];
 
-			if (items[parentid]) {
-				var item = { id: id, label: label, item: item };
-				if (!items[parentid].items) {
-					items[parentid].items = [];
-				}
-				items[parentid].items[items[parentid].items.length] = item;
-				$.each(source,function(key,value){
-					if(value && value.item && value.item.parentId == item["id"]){
-						if(!item.items){
-							item.items = [];
-						}
-						item.items[item.items.length] = source[key];
-						delete source[key];
-					}
-				});
-				items[id] = item;
-			}
-			else {
-				items[id] = { id: id, label: label, item: item };
-				source[id] = items[id];
-			}
-		}		
-		return source;
-	}
+	        if (items[parentid]) {
+	            var item = { id: id, label: label, item: item };
+	            if (!items[parentid].items) {
+	                items[parentid].items = [];
+	            }
+	            items[parentid].items[items[parentid].items.length] = item;
+	            items[id] = item;
+	        }
+	        else {
+	            items[id] = { id: id, label: label, item: item };
+	            source[id] = items[id];
+	        }
+	    }
+	    return source;
+	};
 	$("#dropDownButton").jqxDropDownButton({ width: 150, height: 25 });
     $(document).on("submit","#frmFilter",function(){
     	grid.fnDraw();
@@ -240,7 +230,6 @@ $(document).ready(function() {
 	$('#filterBox').hide();
 });
 //getting the reorder link
-//var reorderLink = $("#hrefReorder").attr("href");
 $('#jqxTree').on('select', function (event) {
     var args = event.args;
     var item = $('#jqxTree').jqxTree('getItem', args.element);
@@ -259,12 +248,12 @@ $(document).on("click","td",function(){
 	if($(this).closest("tr").find("span.child").length){
 		if($(this).index()<4){
 			var parentid = $(this).closest("tr").find("span.child span.child").attr("id");
+			$('#jqxTree').jqxTree('selectItem', $("#jqxTree").find('#'+parentid)[0]);
 			$("#parent_id").attr("value",parentid);
-			window.grid.fnDraw();
 		}
 	}	
 });
 $(document).on("hover","tr",function(){
-	$('tr').css( 'cursor', 'pointer' );
+	$('span.child').parent().parent().css( 'cursor', 'pointer' );
 });
 </script>

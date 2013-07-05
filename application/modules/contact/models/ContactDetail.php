@@ -22,6 +22,7 @@ class Contact_Model_ContactDetail extends Standard_Model {
 	private $_logo;
 	private $_icon;
 	private $_information;
+	private $_keywords;
 	private $_last_updated_by;
 	private $_last_updated_at;
 	private $_created_by;

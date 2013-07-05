@@ -7,4 +7,7 @@ class ModuleCms2_Model_ModuleCmsDetail2 extends Standard_Model{
 	private $_thumb;
 	private $_content;
 	private $_background_color;
+	private $_label_1;
+	private $_label_1_color;
+	private $_label_2;
 }

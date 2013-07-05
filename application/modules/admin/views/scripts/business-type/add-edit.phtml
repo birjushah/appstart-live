@@ -20,8 +20,8 @@
 			<tr>
 		    	<td></td>
 		        <td>
-		        	<?php echo $form->submit->renderViewHelper() ?>&nbsp;
-					<?php echo $form->reset->renderViewHelper() ?>
+		        	<?php echo html_entity_decode($form->submit->renderViewHelper()) ?>&nbsp;
+					<?php echo html_entity_decode($form->reset->renderViewHelper()) ?>
 				</td>
 			</tr>
 		</tbody>

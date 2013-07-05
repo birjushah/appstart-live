@@ -12,6 +12,9 @@ class Default_Plugin_Authentication extends Zend_Controller_Plugin_Abstract {
 		
 		$resource = $request->getControllerName ();
 		$action = $request->getActionName ();
+		Standard_Functions::$action = strtolower($action);
+		if(count(Standard_Functions::getCustomerLanguages()) == 1)
+		    Standard_Functions::$action = strtolower($action)."-1-language";
 		if (strtolower ( $request->getModuleName () ) != "admin") {
 			
 			if($resource != "forgot" && $resource != "error" && $action!="admin-login" && $resource!="rest" && $resource!="download") {

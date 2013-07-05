@@ -2,10 +2,6 @@
 <config>
     <nav> 
     	<Modules>
-    		<label>Modules</label>
-    		<order>3</order>
-    		<uri>#</uri>
-			<resource>index</resource>
     		<pages>
 				<ModuleCms1>
 		    		<label>Pages-1</label>

@@ -1,3 +1,15 @@
+<?php $form = $this->form; ?>
+<script>
+window.totalcategories = <?php echo $this->totalcategories?$this->totalcategories:0;?>;
+</script>
+<style type="text/css">
+<!--
+#language_id {
+	min-width:172px !important;
+	height: 130px;
+}
+-->
+</style>
 <form id="frmFilter">
 <div id="filterBox">
       <table style="width:100%;border:0;border-spacing:0;border-collapse:collapse;">
@@ -8,6 +20,14 @@
               <tr>
                 <td><?php echo $this->translate('Title'); ?></td>
                 <td><input type="text" class="input" id="txtTemplate" name="ed[title]"></td>
+                <td><?php echo $this->translate('Time'); ?></td>
+                <td>
+                	<select name="time">
+                		<option value="">Select Events Time</option>
+                		<option value="1">Past Events</option>
+                		<option value="2" selected="selected">Current Events</option>
+                	</select>
+                </td>
                 <td><?php echo $this->translate('Status'); ?></td>
                 <td>
                     <select name="status">
@@ -20,7 +40,8 @@
           </td>
           <td>&nbsp;</td>
           <td align="right">
-            <input type="submit" name="button" id="button" class="button" value="<?php echo $this->translate('Submit')?>">
+            <input type="submit" name="button" id="button" class="button" value="<?php echo $this->translate('Submit')?>" /> &nbsp;
+            <input type="button" name="bulkEdit" id="bulkEdit" class="button" value="<?php echo $this->translate('Bulk Edit')?>" />
           </td>
         </tr>
       </table>
@@ -30,7 +51,10 @@
 <table style="border-spacing:0;border-collapse:collapse;width:100%" class="pattern-style-b" id="dataGrid">
     <thead>
         <tr>
+            <th scope="col"><input type="checkbox" name="check_all" id="check_all" value="select all" /></th>
             <th scope="col"><?php echo $this->translate('Title'); ?></th>
+            <th scope="col"><?php echo $this->translate('Type'); ?></th>
+            <th scope="col"><?php echo $this->translate('Category'); ?></th>
             <th scope="col"><?php echo $this->translate('Start Date/Time'); ?></th>
             <th scope="col"><?php echo $this->translate('End Date/Time'); ?></th>
             <th scope="col"><?php echo $this->translate('Status'); ?></th>
@@ -44,15 +68,58 @@
         </tr>
     </tbody>      
 </table>
-
+<div id="divBulkEdit" style="display: none;">
+<form id="frmBulkEdit" name="frmBulkEdit" method="post">
+	<table>
+		<tr>
+			<td><?php echo $form->language_id->renderLabel() ?></td>
+			<td><?php echo $form->language_id->renderViewHelper()?></td>
+		</tr>
+		<tr>
+			<td><?php echo $form->start_date_time->renderLabel() ?></td>
+			<td><?php echo $form->start_date_time->renderViewHelper()?></td>
+		</tr>
+		<tr>
+			<td><?php echo $form->end_date_time->renderLabel() ?></td>
+			<td><?php echo $form->end_date_time->renderViewHelper()?></td>
+		</tr>
+		<tr>
+			<td colspan="2">&nbsp;</td>
+		</tr>
+		<tr>
+			<td colspan="2" align="center">
+				<?php echo html_entity_decode($form->submit->renderViewHelper())?>&nbsp;
+				<?php echo html_entity_decode($form->reset->renderViewHelper())?>
+			</td>
+		</tr>
+	</table>
+</form>
+</div>
 <script type="text/javascript">
 var grid ="";
 $(document).ready(function() {
-
+	$('a[href="<?php echo $this->addlink;?>"]').on('click',function(e){
+		if(!e.isDefaultPrevented()){
+			if(window.totalcategories == 0){
+				 promptus = new prompt({
+	                reference : self,
+	                element : ".dataTables_wrapper"
+	            });
+	            promptus.showErrorMessage("You can not add an event without category.Please add atleast one category.");
+	            setTimeout(function(){
+            		promptus.close();
+                }, 3000);
+				e.preventDefault();
+			}
+		}
+	});
     grid = dataTable({
         aaSorting: [[ 3, "asc" ]],
         "aoColumns": [
+						{ "sName": "checkbox", "bSortable": false},
                         { "sName": "ed.title" },
+                        { "sName": "et.title" },
+                        { "sName": "ecd.title" },
                         { "sName": "ed.start_date_time" },
                         { "sName": "ed.end_date_time" },
                         { "sName": "e.status" },
@@ -63,11 +130,108 @@ $(document).ready(function() {
         filterForm : $('#frmFilter'),
         sAjaxSource: "<?php echo $this->url(array("module"=>"events","controller"=>"index","action"=>"grid"));?>"
     });
+    $('#start_date_time').datetimepicker({ 
+		showOn: "both",
+		buttonImage: "<?php echo $this->baseUrl("images/calander.png");?>",
+		buttonImageOnly: true,
+		dateFormat: 'dd/mm/yy', 
+		showSecond: false,
+		timeFormat: 'hh:mm',
+		firstDay:1
+	});
+	$('#end_date_time').datetimepicker({ 
+		showOn: "both",
+		buttonImage: "<?php echo $this->baseUrl("images/calander.png");?>",
+		buttonImageOnly: true,
+		dateFormat: 'dd/mm/yy', 
+		showSecond: false,
+		timeFormat: 'hh:mm',
+		firstDay:1
+	});
     $(document).on("submit","#frmFilter",function(){
         grid.fnDraw();
         return false;
     });
-    
+    $(document).on("click","#check_all",function(e){
+        if(typeof $(this).attr("checked") !== 'undefined') {
+			$(".check-box").attr("checked","checked");
+		} else {
+			$(".check-box").removeAttr("checked");
+		}
+    });
+    $(".check-box").live("click",function(e){
+		if(typeof $(this).attr("checked") !== 'undefined') {
+			if($(".check-box:checked").length==$(".check-box").length) {
+				$("#check_all").attr("checked","checked");
+			}
+		} else {
+			$("#check_all").removeAttr("checked");
+		}
+	});
+    $(document).on("click","#bulkEdit",function(e){
+    	if($(".check-box:checked").length==0) {
+			alert("Please Select Records To Perform Bulk Edit.");
+			return;
+    	}
+    	$("#frmBulkEdit #reset").click();
+    	$("#divBulkEdit").dialog({
+    		modal: true,
+    		width: 450,
+    		resizable: false,
+    		title: "<?php echo $this->translate("Bulk Edit")?>",
+    		dialogClass: "Add"
+    	});
+    });
+    $("#frmBulkEdit").validator().submit(function(e){
+    	var self = this;
+    	var form = $(this);
+    	var queryAppend = "";
+    	$(".check-box:checked").each(function(){
+    		queryAppend += "&module_events_id[]=" + $(this).val();
+        });
+        if(!e.isDefaultPrevented()){
+            var promptus=false;
+        	$(document).queue(function(next){
+        		promptus = new prompt({
+	            	reference : form,
+	                element : "#divBulkEdit",
+	                beforeShow : function(){
+		                this.alternateMessage = this.showLoadingMessage("<?php echo $this->translate('Saving Event...'); ?>");
+	                }
+	            });
+                next();
+            }).queue(function(next){
+                $.ajax({
+                    url: '<?php  echo $this->url(array("module"=>"events","controller"=>"index","action"=>"bulk-edit")); ?>',
+                    cache: false,
+                    data : form.serialize() + queryAppend,
+                    type: "POST",
+                    dataType: "json",
+                    success: function(json){
+                        if(json.success != undefined){ 
+                        	promptus.showSuccessMessage("<?php echo $this->translate('Event saved successfully.'); ?>");
+                        	setTimeout(function(){
+                        		promptus.close();
+                        		$('#divBulkEdit').dialog("close");
+                        		$("#frmBulkEdit #reset").click();
+                        		grid.fnDraw();
+                            }, 1000);
+                        } else if(json.errors != undefined){
+                            var errorMessage = "<?php echo $this->translate('Unable to save event:'); ?><br />";
+                            errorMessage += json.errors.message;
+                            promptus.showErrorMessage(errorMessage);
+                        	setTimeout(function(){
+                        		promptus.close();
+                            }, 2000);
+                        }
+                    },
+                    error: function(){
+                    }
+                }).complete(next); 
+            });
+            e.preventDefault();
+        }
+    });
     $(document).on("click",".grid_delete",function(e){
         var self = this;
         window.currentDeleteUrl = $(this).attr("href"); 

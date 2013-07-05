@@ -1,5 +1,6 @@
 <?php 
 class PushMessage_Form_PushMessage extends Standard_Form{
+	public static $_module_id;
 	public function init(){
 		$this->setMethod('POST');
 		$notEmptyValidator = new Zend_Validate_NotEmpty ();
@@ -15,6 +16,15 @@ class PushMessage_Form_PushMessage extends Standard_Form{
 				)
 		) );
 		$this->addElement ( $push_message_id);
+		
+		// Module Document Category ID
+		$push_message_category_id = $this->createElement ( "hidden", "push_message_category_id", array (
+		        'value' => '',
+		        'filters' => array (
+		                'StringTrim'
+		        )
+		) );
+		$this->addElement ( $push_message_category_id);
 		
 		// Push Message Detail ID
 		$push_message_detail_id = $this->createElement ( "hidden", "push_message_detail_id", array (
@@ -59,6 +69,7 @@ class PushMessage_Form_PushMessage extends Standard_Form{
 				'label' => 'Push Message Description:',
 				'style' => 'width:500px;',
 				'required' => true,
+		        'maxlength' => 255,
 				'filters' => array(
 						'StringTrim'
 				),
@@ -98,6 +109,67 @@ class PushMessage_Form_PushMessage extends Standard_Form{
 		$message->setAttrib("required", "required");
 		$this->addElement ($message);
 		
+		// Phone
+		$phone = $this->createElement ( "text", "phone", array (
+				'label' => 'Phone:',
+				'size' => '20',
+				'filters' => array (
+						'StringTrim'
+				)
+		) );
+		$this->addElement ($phone);
+		
+		// Email
+		$email = $this->createElement ( "text", "email", array (
+				'label' => 'Email:',
+				'size' => '120',
+				'filters' => array (
+						'StringTrim'
+				)
+		) );
+		$this->addElement ($email);
+		
+		// Website
+		$website = $this->createElement ( "text", "website", array (
+				'label' => 'Website:',
+				'size' => '255',
+				'filters' => array (
+						'StringTrim'
+				)
+		) );
+		$this->addElement ($website);
+		
+		// Code
+		$code = $this->createElement ( "text", "code", array (
+				'label' => 'Code:',
+				'size' => '120',
+				'filters' => array (
+						'StringTrim'
+				)
+		) );
+		$this->addElement ($code);
+		
+		// Notes
+		$notes = $this->createElement("textarea","notes",array(
+				'label' => 'Notes:',
+				'style' => 'width:500px;',
+				'maxlength' => 255,
+				'filters' => array(
+						'StringTrim'
+				)
+		));
+		$this->addElement($notes);
+		
+		// Module
+		$module_id= $this->createElement ( "select", "module_id", array (
+				'label' => 'Module:',
+				'MultiOptions' => $this->_getLinkModule (),
+				'filters' => array (
+						'StringTrim'
+				)
+		) );
+		$this->addElement ( $module_id );
+		
 		//Icon
 		$icon = $this->createElement ( 'file', 'icon' );
 		$icon->setLabel ( 'Icon:' )->setDestination ( Standard_Functions::getResourcePath () . "push-message/uploaded-icons" )->addValidator ( 'Size', false, 102400 )->addValidator ( 'Extension', false, 'jpg,png,gif' );
@@ -126,5 +198,26 @@ class PushMessage_Form_PushMessage extends Standard_Form{
 				$reset
 		) );
 		
+	}
+	public function _getLinkModule ()
+	{
+		$modules = array(""=>"Select Module");
+		$mapper = new Admin_Model_Mapper_CustomerModule();
+		$model = $mapper->fetchAll("status=1 AND customer_id=".Standard_Functions::getCurrentUser()->customer_id);
+		$active_lang_id = Standard_Functions::getCurrentUser ()->active_language_id;
+		foreach ($model as $customerModule) {
+			if(self::$_module_id != $customerModule->getModuleId()) {
+				$mapperDetail = new Admin_Model_Mapper_CustomerModuleDetail();
+				$modelDetail = $mapperDetail->fetchAll("customer_module_id = ".$customerModule->get("customer_module_id"). " AND language_id=".$active_lang_id);
+	
+				if(is_array($modelDetail) && is_object($modelDetail[0])) {
+					$modules[$customerModule->getModuleId()] = $modelDetail[0]->getScreenName();
+				}
+			}
+		}
+		$modules = array_filter($modules,function($element){
+			return ($element != "");
+		});
+		return $modules;
 	}
 }

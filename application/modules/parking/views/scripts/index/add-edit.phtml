@@ -1,0 +1,398 @@
+<?php $form = $this->form; ?>
+<style type="text/css">
+<!--
+#gMap {
+	margin: auto;
+	border: 1px solid #DCDDE2;
+	width: 100%;
+	height: 400px;
+}
+-->
+</style>
+<div id="filterBox">
+	<table
+		style="width: 100%; border: 0; border-spacing: 0; border-collapse: collapse;">
+		<tr>
+			<td valign="middle"><?php echo $this->partial($this->partial,array()); ?></td>
+			<td align="right"><h2><?php echo $this->language; ?></h2></td>
+		</tr>
+	</table>
+</div>
+<div class="boxBorderBottom">
+	<form id="frmAddEditParking" method="<?php echo $form->getMethod();?>"
+		action="<?php echo $form->getAction();?>" class="zend_form">
+	<?php  echo $form->module_parking_id->renderViewHelper();?>
+	<?php  echo $form->language_id->renderViewHelper();?>
+	<?php  echo $form->module_parking_detail_id->renderViewHelper();?>
+	<table style="margin: 10px 0;width:100%;">
+			<tbody>
+				<tr>
+					<td><?php echo $form->module_parking_source_id->renderLabel() ?></td>
+					<td><?php echo $form->module_parking_source_id->renderViewHelper()?></td>
+				</tr>
+				
+				<tr>
+					<td><?php echo $form->name->renderLabel() ?></td>
+					<td><?php echo $form->name->renderViewHelper()?></td>
+				</tr>
+				
+				<tr>
+					<td><?php echo $form->address->renderLabel() ?></td>
+		        	<td><?php echo $form->address->renderViewHelper()?></td>
+				</tr>
+				
+				<tr>
+					<td><?php echo $form->source_reference_id->renderLabel() ?></td>
+		        	<td><?php echo $form->source_reference_id->renderViewHelper()?></td>
+				</tr>
+				
+				<tr>
+					<td><?php echo $form->total_capacity->renderLabel() ?></td>
+		        	<td><?php echo $form->total_capacity->renderViewHelper()?></td>
+				</tr>
+				
+				<tr>
+				<td valign="top">
+					<label><?php echo $this->translate('Icon:')?></label>
+				</td>
+    				<td valign="top">
+    					<div id="lstLogo" class="logo-box">
+            				<?php $resource_path = $this->baseUrl("resource/parking/preset-icons");?>
+            				<?php foreach ($this->iconpack as $icon):?>
+            				<div class="">
+    							<label for="selLogo_<?php echo $icon; ?>">
+    								<img src="<?php echo $resource_path . "/" . $icon; ?>" width="64" height="64" />
+    							</label>
+    							<input type="radio" id="selLogo_<?php echo $icon; ?>" name="selLogo" value="<?php echo $icon; ?>" />
+    						</div>
+            				<?php endforeach;?>
+    					</div>
+    				</td>
+			    </tr>
+			
+			    <tr>
+		        <td>&nbsp;</td>
+    			    <td>
+    		        	<div class="logo-box">
+    		        		<table>
+    						<tr>
+    							<td>
+    								<?php
+    								$icon_path = $this->baseUrl("resource/parking/");
+    					        	if($this->icon_src!="") {
+    					        	?>
+    					        	<img alt="" src="<?php echo $icon_path."/".$this->icon_src;?>" style="width: 64px; height: 64px" />
+    					        	<?php 
+    					        	}
+    					        	?>
+    				        	</td>
+    				        	<td>
+    				        		<?php
+    				        		$checked = "";
+    					        	if($this->icon_src!="") {
+    					        		$checked = "checked='checked'";
+    								}
+    								?>
+    					        	
+    								<input type="radio" id="selLogo_0" checked="checked" name="selLogo" value="0" style="margin-left: 10px;" />
+    								<label for="selLogo_0"><?php echo $this->translate('Upload:')?></label>
+    								<input id="parking_logo" type="file" name="parking_logo" /> (Size: 60px &#215; 60px )
+    					        	<input id="icon_path" type="hidden" name="icon_path" value="" />
+    				        	</td>
+    			        	</tr>
+    			        	</table>
+    					</div>
+    				</td>
+			    </tr>
+				
+				<tr>
+					<td><?php echo $form->parking_type->renderLabel() ?></td>
+			        <td><?php echo $form->parking_type->renderViewHelper()?></td>
+				</tr>
+				
+				<tr>
+					<td><?php echo $form->status->renderLabel() ?></td>
+			        <td><?php echo $form->status->renderViewHelper()?></td>
+				</tr>
+				
+				<tr>
+					<td valign="top" colspan="2">
+						<div class="logo-box" style="width:98%; padding: 0 1%;">
+						<table width="100%">
+								<tr>
+									<td>
+										<?php echo $form->latitude->renderLabel() ?>
+										<?php echo $form->latitude->renderViewHelper()?>
+									</td>
+									<td>
+										<?php echo $form->longitude->renderLabel() ?>
+										<?php echo $form->longitude->renderViewHelper()?>
+									</td>
+									<td><input type="checkbox" checked="checked" name="mark-fixed"
+											id="mark-fixed" /> <label for="mark-fixed"><?php echo $this->translate('Auto Locate')?> </label>
+									</td>
+								</tr>
+								<tr>
+									<td rowspan="3" colspan="4"><div id="gMap"></div></td>
+								</tr>
+						</table>
+						</div>
+					</td>
+				</tr>
+				
+				<tr>	
+					<td colspan="3" align="center">
+    		        	<?php echo html_entity_decode($form->submit->renderViewHelper()) ?>&nbsp;
+    		        	<?php echo (Standard_Functions::$action == "edit")? html_entity_decode($form->applyall->renderViewHelper()):""?>&nbsp;
+    					<?php echo html_entity_decode($form->reset->renderViewHelper())?>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</form>
+</div>
+<script>
+$(document).ready(function() {
+	$("#parking_type").multiselect({sortable: false, searchable: false});
+	
+	// Initialize Google Map
+	$('#gMap').gmap3({
+    	action: 'init',
+        options:{
+        	center:[0, 0],
+        	mapTypeId: google.maps.MapTypeId.SATELLITE,
+        	zoom: 2,
+        	scrollwheel: false
+        },
+        callback: function(){
+            
+        }
+    });
+    // Set current geo-loaction on Map
+    if($("#latitude").attr("value")=="" && $("#longitude").attr("value")=="")
+    {
+    	var url = "http://www.geoplugin.net/json.gp?jsoncallback=?";
+
+    	$(document).queue(function(next){
+
+    		if(navigator.geolocation) {
+        		var locationMarker = null;
+        		navigator.geolocation.getCurrentPosition(function(position) {
+            		if(locationMarker) {
+    					return;
+            		}
+            		$('#gMap').gmap3('setDefault', {init:{center:[ position.coords.latitude,position.coords.longitude ]}});
+               		$("#latitude").attr("value",position.coords.latitude);
+           			$("#longitude").attr("value",position.coords.longitude);
+
+           			next();
+        		}, function() {
+        			
+        		});
+        	} 
+        	
+        	if($("#latitude").attr("value")=="" && $("#longitude").attr("value")=="") {    		
+        		$.getJSON(url, function(data){
+                	if(data['geoplugin_status'] == 200){
+            	        // Do something with the data
+            	    	$('#gMap').gmap3('setDefault', {init:{center:[ data["geoplugin_latitude"],data["geoplugin_longitude"] ]}});
+        				//$('#gMap').gmap3({action: 'setCenter', args:[ data["geoplugin_latitude"],data["geoplugin_longitude"] ]});
+                   		$("#latitude").attr("value",data["geoplugin_latitude"]);
+               			$("#longitude").attr("value",data["geoplugin_longitude"]);
+            	    }
+            	    else
+            	    {
+            	    	$('#gMap').gmap3('setDefault', {init:{center:[ 0,0 ]}});
+                   		$("#latitude").attr("value",0);
+               			$("#longitude").attr("value",0);
+            	    }
+            	}).complete(next);
+        	}
+    	}).queue(function(next){
+    		// Set Marker to the current geo-location
+           	$('#gMap').gmap3({ 
+                action: 'addMarker',
+                latLng:[$("#latitude").attr("value"),$("#longitude").attr("value")],
+    			options:{
+                	draggable: true,
+                    animation: google.maps.Animation.DROP
+                },
+                events:{
+                	drag: function(marker, event, data) {
+                		var pos = marker.getPosition();
+                    	$("#latitude").attr("value",pos.lat());
+                    	$("#longitude").attr("value",pos.lng());
+                	}
+                }
+            });
+			next();
+    	});    	
+    } else {
+    	// Set Marker to the current geo-location
+    	//$("#mark-fixed").removeAttr("checked");
+       	$('#gMap').gmap3({ 
+            action: 'addMarker',
+            latLng:[$("#latitude").attr("value"),$("#longitude").attr("value")],
+			map: {center:true, zoom:14},
+			options:{
+                animation: google.maps.Animation.DROP
+            },
+            events:{
+            	drag: function(marker, event, data) {
+            		var pos = marker.getPosition();
+                	$("#latitude").attr("value",pos.lat());
+                	$("#longitude").attr("value",pos.lng());
+            	}
+            }
+        });
+    }
+    // Callback to auto set marker based on address
+    $("#address").on("blur",function(){
+    	if($("#mark-fixed").attr("checked")!="checked") return;
+    	$('#gMap').gmap3({
+    		action:'getAddress',
+    		address:($("#address").attr("value")),
+    		callback:function(results){
+    			if (!results) return;
+    			var item = results[0];
+    			$("#gMap").gmap3(
+    	    		{action:'clear', name:'marker'},
+    				{
+        				action:'addMarker',
+    					latLng:item.geometry.location,
+    					map: {center:true, zoom:14},
+    					options:{
+  				        	draggable: true,
+  				        	animation: google.maps.Animation.DROP
+  				        },
+  				        events:{
+  				        	drag: function(marker, event, data) {
+  				        		var pos = marker.getPosition();
+  				            	$("#latitude").attr("value",pos.lat());
+  				            	$("#longitude").attr("value",pos.lng());
+  				        	}
+  				        }
+    				}
+        		);
+    			var pos = item.geometry.location;
+            	$("#latitude").attr("value",pos.lat());
+            	$("#longitude").attr("value",pos.lng());
+    		}
+    	});
+	});
+	
+    // Callback to auto set marker based on latitude and longitude
+    $("#latitude,#longitude").on("blur",function(){
+    	if($("#mark-fixed").attr("checked")!="checked") return;
+        $("#gMap").gmap3(
+			{action:'clear', name:'marker'},
+			{
+    			action:'addMarker',
+				latLng:[$("#latitude").attr("value"),$("#longitude").attr("value")],
+				map: {center:true, zoom:14},
+				options:{
+					draggable: true,
+					animation: google.maps.Animation.DROP
+				},
+				events:{
+					drag: function(marker, event, data) {
+				    	var pos = marker.getPosition();
+				        $("#latitude").attr("value",pos.lat());
+				        $("#longitude").attr("value",pos.lng());
+					}
+				}
+			}
+		);
+	});
+	
+$("#applyall").on("click",function(e){
+	if(!e.isDefaultPrevented()){
+    	var promptus = new prompt({
+            	reference :"#frmAddEditParking",
+                element : "#content",
+                message : "<?php echo $this->translate('Your changes will be saved and applied to all languages. Is it Ok?'); ?>",
+                buttons : {
+                    "Yes" : function(self){
+                        this.close();
+                        $("#frmAddEditParking").trigger("submit",{all:true});
+                    },
+                    "No"  : function(self){
+                    	this.close();
+                    },
+                }
+            });
+        e.preventDefault();
+    }
+});
+$("#frmAddEditParking").validator().submit(function(e,customObject){
+		customObject = customObject || {};
+		var queryAppend = "";
+		if(customObject.all){
+			queryAppend = "&all=true";
+		}
+		var form = $(this);
+		if(!e.isDefaultPrevented()){
+			var promptus = false;
+			$(document).queue(function(next){
+				promptus = new prompt({
+	            	reference : form,
+	                element : "#content",
+	                beforeShow : function(){
+		                this.alternateMessage = this.showLoadingMessage("<?php echo $this->translate('Saving Parking..')?>");
+	                }
+	            });
+	            next();
+			}).queue(function(next){
+				if($('#parking_logo').attr("value")!="") {
+					$.ajaxFileUpload({
+						url:'<?php echo $form->getAction(); ?>',
+						secureuri:false,
+						fileElementId:'parking_logo',
+						dataType: 'json',
+						data:{iconupload:'true'},
+						success: function (data, status)
+						{
+							if(data.success != undefined) {
+								$("#icon_path").attr("value",data.success);
+								next();
+							}
+						},
+						error: function (data, status, e)
+						{
+							promptus.showErrorMessage("<?php echo $this->translate('Error uploading logo.')?>");
+							setTimeout(function(){
+								promptus.close();
+							}, 2000);
+						}
+					});
+				} else {
+					next();
+				}
+			}).queue(function(next){
+				$.ajax({
+					type : "POST",
+					cache : false,
+					data : form.serialize() + queryAppend,
+					url : "<?php echo $form->getAction(); ?>",
+					success : function(json){
+						if(json["errors"] != undefined){
+							form.data("validator").invalidate(json["errors"]);
+							next();
+						} else if(json["success"] != undefined){
+							promptus.showSuccessMessage("<?php echo $this->translate('Parking saved successfully.')?>");
+							setTimeout(function(){
+								location.href = "<?php echo $this->url(array("module"=>"parking","controller"=>"index","action" => "index"),"default",true);?>";
+							}, 2000);
+						}
+					},
+					error : next
+	  			});
+			}).queue(function(next){
+				promptus.close();
+				next();
+	  		});
+			e.preventDefault();
+		}
+	});
+});
+</script>

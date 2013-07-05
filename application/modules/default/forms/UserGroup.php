@@ -43,7 +43,11 @@ class Default_Form_UserGroup extends Standard_Form {
 			'value' => 1
 		));
 
-
+		$this->addElement('checkbox','publish', array(
+			'label' => 'Publish:',
+			'value' => 1
+		));
+		
 		$this->addElement ( 'submit', 'submit', array (
 				'ignore' => true,
 		) );

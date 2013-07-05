@@ -47,31 +47,38 @@
     			    <td>
     		        	<div class="logo-box">
     		        		<table>
-    						<tr>
-    							<td>
-    								<?php 
-    								$icon_path = $this->baseUrl("resource/module-image-gallery/");
-    					        	if($this->icon_src!="") {
-    					        	?>
-    					        	<img alt="" src="<?php echo $icon_path."/".$this->icon_src;?>" style="width: 64px;" />
-    					        	<?php 
-    					        	}
-    					        	?>
-    				        	</td>
-    				        	<td>
-    				        		<?php
-    				        		$checked = "";
-    					        	if($this->icon_src!="") {
-    					        		$checked = "checked='checked'";
-    								}
-    								?>
-    					        	
-    								<input type="radio" id="selLogo_0" checked="checked" name="selLogo" value="0" style="margin-left: 10px;" />
-    								<label for="selLogo_0"><?php echo $this->translate('Upload:')?></label>
-    								<input id="icon" type="file" name="icon" /> (Size: 60px &#215; 60px )
-    					        	<input id="icon_path" type="hidden" name="icon_path" value="" />
-    				        	</td>
-    			        	</tr>
+        						<tr>
+        							<td>
+        								<?php 
+        								$icon_path = $this->baseUrl("resource/module-image-gallery/");
+        					        	if($this->icon_src!="") {
+        					        	?>
+        					        	<img class="iconImage" alt="" src="<?php echo $icon_path."/".$this->icon_src;?>" style="width: 64px;" />
+        					        	<?php 
+        					        	}
+        					        	?>
+        				        	</td>
+        				        	<td>
+        				        		<?php
+        				        		$checked = "";
+        					        	if($this->icon_src!="") {
+        					        		$checked = "checked='checked'";
+        								}
+        								?>
+        					        	
+        								<input type="radio" id="selLogo_0" checked="checked" name="selLogo" value="0" style="margin-left: 10px;" />
+        								<label for="selLogo_0"><?php echo $this->translate('Upload:')?></label>
+        								<input id="icon" type="file" name="icon" /> (Size: 60px &#215; 60px )
+        					        	<input id="icon_path" type="hidden" name="icon_path" value="" />
+        				        	</td>
+        			        	</tr>
+    			        	    <tr id="deleteIconButton">
+        			        	 <?php if($this->icon_src!=""){ ?>
+        						    <td>
+        							    <div class="deletebuttons"><a class="deleteIcon red button-grid">Delete</a></div>
+        						    </td>
+        					    </tr>
+    					        <?php } ?>
     			        	</table>
     					</div>
     				</td>
@@ -86,9 +93,9 @@
 				
 				<tr>	
 					<td colspan="3" align="center">
-		        	<?php echo $form->submit->renderViewHelper() ?>&nbsp;
-		        	<?php echo $form->applyall->renderViewHelper()?>&nbsp;
-					<?php echo $form->reset->renderViewHelper()?>
+    		        	<?php echo html_entity_decode($form->submit->renderViewHelper()) ?>&nbsp;
+    		        	<?php echo (Standard_Functions::$action == "edit")? html_entity_decode($form->applyall->renderViewHelper()):""?>&nbsp;
+    					<?php echo html_entity_decode($form->reset->renderViewHelper())?>
 					</td>
 				</tr>
 			</tbody>
@@ -105,6 +112,12 @@ $(document).ready(function() {
 			$("#icon").attr("disabled","disabled");
 		}			
 	});
+	$(".deleteIcon").on("click",function(){
+    	$("#icon_path").attr("value","deleted");
+    	$(".iconImage").remove();
+    	$("#icon").attr("value","");
+    	$("tr#deleteIconButton").remove();
+    });
 	$("#applyall").on("click",function(e){
 		if(!e.isDefaultPrevented()){
 	    	var promptus = new prompt({
@@ -113,6 +126,7 @@ $(document).ready(function() {
 	                message : "<?php echo $this->translate('Your changes will be saved and applied to all languages. Is it Ok?'); ?>",
 	                buttons : {
 	                    "Yes" : function(self){
+		                    this.close();
 	                        $("#frmAddEditimageCategory").trigger("submit",{all:true});
 	                    },
 	                    "No"  : function(self){

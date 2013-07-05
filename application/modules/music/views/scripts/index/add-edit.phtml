@@ -93,9 +93,9 @@
 			</tr>
 			<tr>
 		        <td colspan="3" align="center">
-		        	<?php echo $form->submit->renderViewHelper(); ?>&nbsp;
-		        	<?php echo $form->applyall->renderViewHelper()?>&nbsp;
-					<?php echo $form->reset->renderViewHelper(); ?>
+		        	<?php echo html_entity_decode($form->submit->renderViewHelper()) ?>&nbsp;
+		        	<?php echo (Standard_Functions::$action == "edit")? html_entity_decode($form->applyall->renderViewHelper()):""?>&nbsp;
+					<?php echo html_entity_decode($form->reset->renderViewHelper())?>
 				</td>
 			</tr>
 		</tbody>
@@ -137,6 +137,7 @@ $(document).ready(function() {
 	            	reference : form,
 	                element : "#content",
 	                beforeShow : function(){
+		                this.close();
 		                this.alternateMessage = this.showLoadingMessage("<?php echo $this->translate('Saving Track...')?>");
 	                }
 	            });

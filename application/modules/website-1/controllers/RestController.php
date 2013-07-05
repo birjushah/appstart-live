@@ -56,15 +56,21 @@ class Website1_RestController extends Standard_Rest_Controller {
 							$websiteDetailMapper = new Website1_Model_Mapper_ModuleWebsiteDetail1();
 							$websiteDetailModel = $websiteDetailMapper->fetchAll("module_website_1_id=".$website->getModuleWebsite1Id());
 							if($websiteDetailModel) {
+								$details = array();
 								foreach($websiteDetailModel as $website_detail) {
 									$websiteDetail = $website_detail->toArray();
-									if(isset($websiteDetail["website_logo"])) {
-										$websiteDetail["website_logo"] = "resource/website-1/logos/".$websiteDetail["website_logo"];
+									if(isset($websiteDetail["website_logo"]) && $websiteDetail["website_logo"] != null){
+									    if(count(explode("/", $websiteDetail["website_logo"])) > 1){
+                                            $websiteDetail["website_logo"] = "resource/website-1/".$websiteDetail["website_logo"];
+									    }else{
+									        $websiteDetail["website_logo"] = "resource/website-1/preset-icons/".$websiteDetail["website_logo"];
+									    }
 									}
+									$details[] = $websiteDetail; 
 								}
 							}
 							
-							$response["data"][] = array("tbl_module_website_1"=>$website->toArray(),"tbl_module_website_detail_1"=>$websiteDetail);
+							$response["data"][] = array("tbl_module_website_1"=>$website->toArray(),"tbl_module_website_detail_1"=>$details);
 						}
 					}else{
 						$response["data"][] = array("tbl_module_website_1"=>array(),"tbl_module_website_detail_1"=>array());

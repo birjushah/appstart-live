@@ -15,17 +15,29 @@ class Default_DownloadController extends Standard_Rest_Controller {
 			try{
 				$zip = new ZipArchive();
 				$zip->open("resource/images.zip",ZIPARCHIVE::CREATE | ZIPARCHIVE::OVERWRITE);
-				if($reqModuleName==null || $reqModuleName=="icon") {
+				if($reqModuleName==null || $reqModuleName=="default") {
 					// Icons
-					$zip->addEmptyDir("icon");
+					$zip->addEmptyDir("default");
 					$moduleMapper = new Admin_Model_Mapper_CustomerModule();
 					$customerModule = $moduleMapper->fetchAll("customer_id=".$customer_id);
 					if($customerModule) {
 						foreach($customerModule as $module) {
+						    $customerDetails = array();
+						    $customerDetailMapper = new Admin_Model_Mapper_CustomerModuleDetail();
+						    $customerDetailModel = $customerDetailMapper->fetchAll("customer_module_id=".$module->getCustomerModuleId());
+						    if($customerDetailModel) {
+						        foreach($customerDetailModel as $customer_detail) {
+						            $details = $customer_detail->toArray();
+						            if(isset($details["list_view_image"])) {
+						                if(file_exists("resource/default/images/listviewimage/".$details["list_view_image"]) && is_file("resource/default/images/listviewimage/".$details["list_view_image"]))
+						                    $zip->addFile("resource/default/images/listviewimage/".$details["list_view_image"],"default/images/listviewimage/".$details["list_view_image"]);
+						            }
+						        }
+						    }
 							$module = $module->toArray();
 							if(isset($module["icon"]) && $module["icon"]!="") {
 								if(file_exists("resource/default/images/icon/".$module["icon"]) && is_file("resource/default/images/icon/".$module["icon"]))
-									$zip->addFile("resource/default/images/icon/".$module["icon"],"icon/".$module["icon"]);
+									$zip->addFile("resource/default/images/icon/".$module["icon"],"default/images/icon/".$module["icon"]);
 							}
 						}
 					}
@@ -62,12 +74,117 @@ class Default_DownloadController extends Standard_Rest_Controller {
 								}
 							}
 						}
-					}				
+					}
+
+					$contactCategoryMapper = new Contact_Model_Mapper_ContactCategory();
+					$contactCategoryModel = $contactCategoryMapper->fetchAll("customer_id=".$customer_id);
+					if($contactCategoryModel) {
+					    foreach($contactCategoryModel as $category) {
+					        $contactCategoryDetails = array();
+					        $contactCategoryDetailMapper = new Contact_Model_Mapper_ContactCategoryDetail();
+					        $contactCategoryDetailModel = $contactCategoryDetailMapper->fetchAll("contact_category_id=".$category->getContactCategoryId());
+					        if($contactCategoryDetailModel) {
+					            foreach($contactCategoryDetailModel as $category_detail) {
+					                $details = $category_detail->toArray();
+					                if(isset($details["icon"])) {
+					                    if(count(explode('/', $details["icon"])) > 1){
+					                        if(file_exists("resource/contact/category/".$details["icon"]) && is_file("resource/contact/category/".$details["icon"])){
+					                            $zip->addFile("resource/contact/category/".$details["icon"],"contact/category/".$details["icon"]);
+					                        }
+					                    }else{
+					                        if(file_exists("resource/contact/category/preset-icons/".$details["icon"]) && is_file("resource/contact/category/preset-icons/".$details["icon"])){
+					                            $zip->addFile("resource/contact/category/preset-icons/".$details["icon"],"contact/category/preset-icons/".$details["icon"]);
+					                        }
+					                    }
+					                }
+					            }
+					        }
+					    }
+					}
+					
+					$contactTypesMapper = new Contact_Model_Mapper_ContactTypes();
+					$contactTypesModel = $contactTypesMapper->fetchAll("customer_id=".$customer_id);
+					if($contactTypesModel) {
+					    foreach($contactTypesModel as $types) {
+					        $contactTypeDetails = array();
+					        $contactTypesDetailMapper = new Contact_Model_Mapper_ContactTypesDetail();
+					        $contactTypesDetailModel = $contactTypesDetailMapper->fetchAll("contact_types_id=".$types->getContactTypesId());
+					        if($contactTypesDetailModel) {
+					            foreach($contactTypesDetailModel as $types_detail) {
+					                $details = $types_detail->toArray();
+					                if(isset($details["icon"])) {
+					                    if(count(explode('/', $details["icon"])) > 1){
+					                        if(file_exists("resource/contact/types/".$details["icon"]) && is_file("resource/contact/types/".$details["icon"])){
+					                            $zip->addFile("resource/contact/types/".$details["icon"],"contact/types/".$details["icon"]);
+					                        }
+					                    }else{
+					                        if(file_exists("resource/contact/types/preset-icons/".$details["icon"]) && is_file("resource/contact/types/preset-icons/".$details["icon"])){
+					                            $zip->addFile("resource/contact/types/preset-icons/".$details["icon"],"contact/types/preset-icons/".$details["icon"]);
+					                        }
+					                    }
+					                }
+					            }
+					        }
+					    }
+					}
 				}
 				
 				if($reqModuleName==null || $reqModuleName=="events") {
 					// Events
 					$zip->addEmptyDir("events");
+					//Event Category
+					$eventMapper = new Events_Model_Mapper_ModuleEventsCategory();
+					$eventModel = $eventMapper->fetchAll("customer_id=".$customer_id);
+					if($eventModel) {
+					    foreach($eventModel as $event) {
+					        $eventDetails = array();
+					        $eventDetailMapper = new Events_Model_Mapper_ModuleEventsCategoryDetail();
+					        $eventDetailModel = $eventDetailMapper->fetchAll("module_events_category_id=".$event->getModuleEventsCategoryId());
+					        if($eventDetailModel) {
+					            foreach($eventDetailModel as $event_detail) {
+					                $details = $event_detail->toArray();
+					                if(isset($details["icon"])) {
+					                    if(count(explode('/', $details["icon"])) > 1){
+					                        if(file_exists("resource/events/category/".$details["icon"]) && is_file("resource/events/category/".$details["icon"])){
+					                            $zip->addFile("resource/events/category/".$details["icon"],"events/category/".$details["icon"]);
+					                        }
+					                    }else{
+					                        if(file_exists("resource/events/category/preset-icons/".$details["icon"]) && is_file("resource/events/category/preset-icons/".$details["icon"])){
+					                            $zip->addFile("resource/events/category/preset-icons/".$details["icon"],"events/category/preset-icons/".$details["icon"]);
+					                        }
+					                    }
+					                }
+					            }
+					        }
+					    }
+					}
+					// Event Types
+					$eventMapper = new Events_Model_Mapper_ModuleEventsTypes();
+					$eventModel = $eventMapper->fetchAll("customer_id=".$customer_id);
+					if($eventModel) {
+					    foreach($eventModel as $event) {
+					        $eventDetails = array();
+					        $eventDetailMapper = new Events_Model_Mapper_ModuleEventsTypesDetail();
+					        $eventDetailModel = $eventDetailMapper->fetchAll("module_events_types_id=".$event->getModuleEventsTypesId());
+					        if($eventDetailModel) {
+					            foreach($eventDetailModel as $event_detail) {
+					                $details = $event_detail->toArray();
+					                if(isset($details["icon"])) {
+					                    if(count(explode('/', $details["icon"])) > 1){
+					                        if(file_exists("resource/events/types/".$details["icon"]) && is_file("resource/events/types/".$details["icon"])){
+					                            $zip->addFile("resource/events/types/".$details["icon"],"events/types/".$details["icon"]);
+					                        }
+					                    }else{
+					                        if(file_exists("resource/events/types/preset-icons/".$details["icon"]) && is_file("resource/events/types/preset-icons/".$details["icon"])){
+					                            $zip->addFile("resource/events/types/preset-icons/".$details["icon"],"events/types/preset-icons/".$details["icon"]);
+					                        }
+					                    }
+					                }
+					            }
+					        }
+					    }
+					}
+					//Events
 					$eventMapper = new Events_Model_Mapper_ModuleEvents();
 					$eventModel = $eventMapper->fetchAll("customer_id=".$customer_id);
 					if($eventModel) {
@@ -248,35 +365,35 @@ class Default_DownloadController extends Standard_Rest_Controller {
 					}
 				}
 				
-				if($reqModuleName==null || $reqModuleName=="push-message") {
-				    // Push message
-				    $zip->addEmptyDir("push-message");
-				    $pushMessageMapper = new PushMessage_Model_Mapper_PushMessage();
-				    $pushMessageModel = $pushMessageMapper->fetchAll("customer_id=".$customer_id);
-				    if($pushMessageModel) {
-				        foreach($pushMessageModel as $pushMessage) {
-				            $pushMessageDetails = array();
-				            $pushMessageDetailMapper = new PushMessage_Model_Mapper_PushMessageDetail();
-				            $pushMessageDetailModel = $pushMessageDetailMapper->fetchAll("push_message_id=".$pushMessage->getPushMessageId());
-				            if($pushMessageDetailModel) {
-				                foreach($pushMessageDetailModel as $pushMessage_detail) {
-				                    $details = $pushMessage_detail->toArray();
-				                    if(isset($details["icon"])) {
-    				                     if(count(explode('/', $details["icon"])) > 1){
-                                             if(file_exists("resource/push-message/".$details["icon"]) && is_file("resource/push-message/".$details["icon"])){
-                                                 $zip->addFile("resource/push-message/".$details["icon"],"push-message/".$details["icon"]);
-    	                                     }    
-			                             }else{
-			                                 if(file_exists("resource/push-message/preset-icons/".$details["icon"]) && is_file("resource/push-message/preset-icons/".$details["icon"])){
-				                                 $zip->addFile("resource/push-message/preset-icons/".$details["icon"],"push-message/preset-icons/".$details["icon"]);
-				                             }    
-			                            } 
-				                    }
-				                }
-				            }
-				        }
-				    }
-				}
+// 				if($reqModuleName==null || $reqModuleName=="push-message") {
+// 				    // Push message
+// 				    $zip->addEmptyDir("push-message");
+// 				    $pushMessageCategoryMapper = new PushMessage_Model_Mapper_PushMessageCategory();
+// 				    $pushMessageCategoryModel = $pushMessageCategoryMapper->fetchAll("customer_id=".$customer_id);
+// 				    if($pushMessageCategoryModel) {
+// 				        foreach($pushMessageCategoryModel as $pushMessageCategory) {
+// 				            $pushMessageCategoryDetails = array();
+// 				            $pushMessageCategoryDetailMapper = new PushMessage_Model_Mapper_PushMessageCategoryDetail();
+// 				            $pushMessageCategoryDetailModel = $pushMessageCategoryDetailMapper->fetchAll("push_message_category_id=".$pushMessageCategory->getPushMessageCategoryId());
+// 				            if($pushMessageCategoryDetailModel) {
+// 				                foreach($pushMessageCategoryDetailModel as $pushMessage_category_detail) {
+// 				                    $details = $pushMessage_category_detail->toArray();
+// 				                    if(isset($details["icon"])) {
+//     				                     if(count(explode('/', $details["icon"])) > 1){
+//                                              if(file_exists("resource/push-message/".$details["icon"]) && is_file("resource/push-message/".$details["icon"])){
+//                                                  $zip->addFile("resource/push-message/".$details["icon"],"push-message/".$details["icon"]);
+//     	                                     }    
+// 			                             }else{
+// 			                                 if(file_exists("resource/push-message/preset-icons/".$details["icon"]) && is_file("resource/push-message/preset-icons/".$details["icon"])){
+// 				                                 $zip->addFile("resource/push-message/preset-icons/".$details["icon"],"push-message/preset-icons/".$details["icon"]);
+// 				                             }    
+// 			                            } 
+// 				                    }
+// 				                }
+// 				            }
+// 				        }
+// 				    }
+// 				}
 				
 				if($reqModuleName==null || $reqModuleName=="document") {
 				    //Document and Category
@@ -347,8 +464,13 @@ class Default_DownloadController extends Standard_Rest_Controller {
 								foreach($websiteDetailModel as $website_detail) {
 									$websiteDetail = $website_detail->toArray();
 									if($websiteDetail["website_logo"] != null){
-										if(file_exists("resource/website/logos/".$websiteDetail["website_logo"]) && is_file("resource/website/logos/".$websiteDetail["website_logo"]))
-											$zip->addFile("resource/website/logos/".$websiteDetail["website_logo"],"website/".$websiteDetail["website_logo"]);
+									    if(count(explode('/', $websiteDetail["website_logo"])) > 1){
+									        if(file_exists("resource/website/".$websiteDetail["website_logo"]) && is_file("resource/website/".$websiteDetail["website_logo"]))
+											    $zip->addFile("resource/website/".$websiteDetail["website_logo"],"website/".$websiteDetail["website_logo"]);
+									    }else{
+									        if(file_exists("resource/website/preset-icons/".$websiteDetail["website_logo"]) && is_file("resource/website/preset-icons/".$websiteDetail["website_logo"]))
+											    $zip->addFile("resource/website/preset-icons/".$websiteDetail["website_logo"],"website/preset-icons/".$websiteDetail["website_logo"]);
+									    }
 									}
 								}
 							}
@@ -368,9 +490,14 @@ class Default_DownloadController extends Standard_Rest_Controller {
 							if($websiteDetailModel) {
 								foreach($websiteDetailModel as $website_detail) {
 									$websiteDetail = $website_detail->toArray();
-									if(isset($websiteDetail["website_logo"])) {
-										if(file_exists("resource/website-1/logos/".$websiteDetail["website_logo"]) && is_file("resource/website-1/logos/".$websiteDetail["website_logo"]))
-											$zip->addFile("resource/website-1/logos/".$websiteDetail["website_logo"],"website-1/".$websiteDetail["website_logo"]);
+								    if($websiteDetail["website_logo"] != null){
+									    if(count(explode('/', $websiteDetail["website_logo"])) > 1){
+									        if(file_exists("resource/website-1/".$websiteDetail["website_logo"]) && is_file("resource/website-1/".$websiteDetail["website_logo"]))
+											    $zip->addFile("resource/website-1/".$websiteDetail["website_logo"],"website-1/".$websiteDetail["website_logo"]);
+									    }else{
+									        if(file_exists("resource/website-1/preset-icons/".$websiteDetail["website_logo"]) && is_file("resource/website-1/preset-icons/".$websiteDetail["website_logo"]))
+											    $zip->addFile("resource/website-1/preset-icons/".$websiteDetail["website_logo"],"website-1/preset-icons/".$websiteDetail["website_logo"]);
+									    }
 									}
 								}
 							}
@@ -389,9 +516,14 @@ class Default_DownloadController extends Standard_Rest_Controller {
 							if($moduleCmsDetailModel) {
 								foreach($moduleCmsDetailModel as $detail_model) {
 									$details = $detail_model->toArray();
-									if(isset($details["thumb"])) {
-										if(file_exists("resource/module-cms/thumb/".$details["thumb"]) && is_file("resource/module-cms/thumb/".$details["thumb"]))
-											$zip->addFile("resource/module-cms/thumb/".$details["thumb"],"module-cms/".$details["thumb"]);
+									if($details["thumb"] != null){
+									    if(count(explode('/', $details["thumb"])) > 1){
+									        if(file_exists("resource/module-cms/".$details["thumb"]) && is_file("resource/module-cms/".$details["thumb"]))
+											    $zip->addFile("resource/module-cms/".$details["thumb"],"module-cms/".$details["thumb"]);
+									    }else{
+									        if(file_exists("resource/module-cms/preset-icons/".$details["thumb"]) && is_file("resource/module-cms/preset-icons/".$details["thumb"]))
+											    $zip->addFile("resource/module-cms/preset-icons/".$details["thumb"],"module-cms/preset-icons/".$details["thumb"]);
+									    }
 									}
 								}
 							}
@@ -410,9 +542,14 @@ class Default_DownloadController extends Standard_Rest_Controller {
 							if($moduleCmsDetailModel) {
 								foreach($moduleCmsDetailModel as $detail_model) {
 									$details = $detail_model->toArray();
-									if(isset($details["thumb"])) {
-										if(file_exists("resource/module-cms-1/thumb/".$details["thumb"]) && is_file("resource/module-cms-1/thumb/".$details["thumb"]))
-											$zip->addFile("resource/module-cms-1/thumb/".$details["thumb"],"module-cms-1/".$details["thumb"]);
+								    if($details["thumb"] != null){
+									    if(count(explode('/', $details["thumb"])) > 1){
+									        if(file_exists("resource/module-cms-1/".$details["thumb"]) && is_file("resource/module-cms-1/".$details["thumb"]))
+											    $zip->addFile("resource/module-cms-1/".$details["thumb"],"module-cms-1/".$details["thumb"]);
+									    }else{
+									        if(file_exists("resource/module-cms-1/preset-icons/".$details["thumb"]) && is_file("resource/module-cms-1/preset-icons/".$details["thumb"]))
+											    $zip->addFile("resource/module-cms-1/preset-icons/".$details["thumb"],"module-cms-1/preset-icons/".$details["thumb"]);
+									    }
 									}
 								}
 							}
@@ -432,10 +569,62 @@ class Default_DownloadController extends Standard_Rest_Controller {
 							if($moduleCmsDetailModel) {
 								foreach($moduleCmsDetailModel as $detail_model) {
 									$details = $detail_model->toArray();
-									if(isset($details["thumb"])) {
-										if(file_exists("resource/module-cms-2/thumb/".$details["thumb"]) && is_file("resource/module-cms-2/thumb/".$details["thumb"]))
-											$zip->addFile("resource/module-cms-2/thumb/".$details["thumb"],"module-cms-2/".$details["thumb"]);
-										
+								    if($details["thumb"] != null){
+									    if(count(explode('/', $details["thumb"])) > 1){
+									        if(file_exists("resource/module-cms-2/".$details["thumb"]) && is_file("resource/module-cms-2/".$details["thumb"]))
+											    $zip->addFile("resource/module-cms-2/".$details["thumb"],"module-cms-2/".$details["thumb"]);
+									    }else{
+									        if(file_exists("resource/module-cms-2/preset-icons/".$details["thumb"]) && is_file("resource/module-cms-2/preset-icons/".$details["thumb"]))
+											    $zip->addFile("resource/module-cms-2/preset-icons/".$details["thumb"],"module-cms-2/preset-icons/".$details["thumb"]);
+									    }
+									}
+								}
+							}
+						}
+					}
+				}
+				if($reqModuleName==null || $reqModuleName=="parking") {
+					// Parking
+					$zip->addEmptyDir("Parking");
+					$parkingTypeMapper = new Parking_Model_Mapper_ModuleParkingType();
+					$parkingTypeModel = $parkingTypeMapper->fetchAll("customer_id=".$customer_id);
+					if($parkingTypeModel) {
+						foreach($parkingTypeModel as $parkingType) {
+							$parkingTypeDetailMapper = new Parking_Model_Mapper_ModuleParkingTypeDetail();
+							$parkingTypeDetailModel = $parkingTypeDetailMapper->fetchAll("module_parking_type_id=".$parkingType->getModuleParkingTypeId());
+							if($parkingTypeDetailModel) {
+								foreach($parkingTypeDetailModel as $parking_type_detail) {
+									$details = $parking_type_detail->toArray();
+									if(isset($details["icon"]) && $details["icon"] != null) {
+										if(count(explode('/', $details["icon"])) > 1){
+											if(file_exists("resource/parking/".$details["icon"]) && is_file("resource/parking/".$details["icon"]))
+												$zip->addFile("resource/parking/".$details["icon"],"parking/".$details["icon"]);
+										}else{
+											if(file_exists("resource/parking/preset-icons/types/".$details["icon"]) && is_file("resource/parking/preset-icons/types/".$details["icon"]))
+												$zip->addFile("resource/parking/preset-icons/types/".$details["icon"],"parking/preset-icons/types/".$details["icon"]);
+										}
+									}
+								}
+							}
+						}
+					}
+					$parkingMapper = new Parking_Model_Mapper_ModuleParking();
+					$parkingModel = $parkingMapper->fetchAll("customer_id=".$customer_id);
+					if($parkingModel) {
+						foreach($parkingModel as $parking) {
+							$parkingDetailMapper = new Parking_Model_Mapper_ModuleParkingDetail();
+							$parkingDetailModel = $parkingDetailMapper->fetchAll("module_parking_id=".$parking->getModuleParkingId());
+							if($parkingDetailModel) {
+								foreach($parkingDetailModel as $parking_detail) {
+									$details = $parking_detail->toArray();
+									if(isset($details["icon"]) && $details["icon"] != null) {
+										if(count(explode('/', $details["icon"])) > 1){
+											if(file_exists("resource/parking/".$details["icon"]) && is_file("resource/parking/".$details["icon"]))
+												$zip->addFile("resource/parking/".$details["icon"],"parking/".$details["icon"]);
+										}else{
+											if(file_exists("resource/parking/preset-icons/".$details["icon"]) && is_file("resource/parking/preset-icons/".$details["icon"]))
+												$zip->addFile("resource/parking/preset-icons/".$details["icon"],"parking/preset-icons/".$details["icon"]);
+										}
 									}
 								}
 							}

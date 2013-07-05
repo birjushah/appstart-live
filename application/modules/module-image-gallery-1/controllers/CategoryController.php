@@ -162,12 +162,12 @@ class ModuleImageGallery1_CategoryController extends Zend_Controller_Action {
 				$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
 				$user_id = Standard_Functions::getCurrentUser ()->user_id;
 				$date_time = Standard_Functions::getCurrentDateTime ();
-				if($request->getParam("selLogo","0")){
-				    $selIcon = $request->getParam("selLogo","0");
-				}
+				$selIcon = $request->getParam("selLogo","0");
 				$icon_path = $request->getParam("icon_path","");
-				if($selIcon != 0){
+				if($selIcon != "0"){
 				    $allFormValues["icon"] = $selIcon;
+				}elseif($icon_path == "deleted"){
+				    $allFormValues["icon"] = "";
 				}elseif ($icon_path != ""){
 				    $allFormValues["icon"] = "uploaded-icons/".$icon_path;
 				}
@@ -214,7 +214,7 @@ class ModuleImageGallery1_CategoryController extends Zend_Controller_Action {
 					    $currentDetails = $categoryDetail->getDbTable()->fetchAll("module_image_gallery_category_1_id ='".$allFormValues['module_image_gallery_category_1_id']."' AND language_id =".$default_lang_id)->toArray();
 					}
 					if(is_array($currentDetails)){
-					    if(!$allFormValues['icon']){
+					    if(!isset($allFormValues['icon'])){
 					        $allFormValues['icon'] = $currentDetails[0]['icon'];
 					    }
 					}
@@ -280,65 +280,61 @@ class ModuleImageGallery1_CategoryController extends Zend_Controller_Action {
 	$this->_helper->json ( $response );
 }
 
-	public function deleteAction(){
+    public function deleteAction(){
 		$this->_helper->layout ()->disableLayout ();
 		$this->_helper->viewRenderer->setNoRender ();
 		$request = $this->getRequest ();
-		if (($module_image_gallery_1_category_id = $request->getParam ( "id", "" )) != "") {
+		if (($module_image_gallery_category_id = $request->getParam ( "id", "" )) != "") {
 			$model = new ModuleImageGallery1_Model_ModuleImageGalleryCategory1();
 			if($model){
-				try{
-					$mapper = new ModuleImageGallery1_Model_Mapper_ModuleImageGalleryCategory1 ();
-					$mapper->getDbTable ()->getAdapter ()->beginTransaction ();
-					$detailmapper = new ModuleImageGallery1_Model_Mapper_ModuleImageGalleryCategoryDetail1 ();
-					$imageMapper = new ModuleImageGallery1_Model_Mapper_ModuleImageGallery1();
-					$imagedetailMapper = new ModuleImageGallery1_Model_Mapper_ModuleImageGalleryDetail1();
-					$data = $mapper->fetchAll ( "module_image_gallery_category_1_id = " . $module_image_gallery_1_category_id );
-					if ($data) {
-						foreach ( $data as $category) {
-							$dataDetails = $detailmapper->fetchAll("module_image_gallery_category_1_id =" .$category->getModuleImageGalleryCategory1Id());
-							if($dataDetails){
-								foreach($dataDetails as $dataDetail){
-									$deletedRows = $dataDetail->delete();
-								}
-							}
-							$relatedImages = $imageMapper->fetchAll("module_image_gallery_category_1_id =" .$category->getModuleImageGalleryCategory1Id());
-							if($relatedImages){
-								foreach($relatedImages as $relatedImage){
-									$relatedImageDetails = $imagedetailMapper->fetchAll("module_image_gallery_1_id =".$relatedImage->getModuleImageGallery1Id());
-									if($relatedImageDetails){
-										foreach($relatedImageDetails as $relatedImageDetail){
-											$deletedImages = $relatedImageDetail->delete();
-										}
-									}
-									$relatedImage->delete();
-								}
-							}
-							$category->delete ();
-						}
-					}
-					$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
-					$customermoduleMapper = new Admin_Model_Mapper_CustomerModule ();
-					$customermodule = $customermoduleMapper->fetchAll ( "customer_id=" . $customer_id . " AND module_id=" . $this->_module_id );
-					if (is_array ( $customermodule )) {
-						$customermodule = $customermodule [0];
-						$customermodule->setIsPublish ( "NO" );
-						$customermodule->save ();
-					}
-					$mapper->getDbTable ()->getAdapter ()->commit ();
-		
-					$response = array (
-							"success" => array (
-									"deleted_rows" => $deletedRows
-							)
-					);
-				} catch(Exception $e) {
-					$mapper->getDbTable ()->getAdapter ()->rollBack ();
-					$response = array (
-							"errors" => array (
-									"message" => $e->getMessage ()
-							)
-					);
+				$imageMapper = new ModuleImageGallery1_Model_Mapper_ModuleImageGallery1();
+				$imageexist = $imageMapper->fetchAll("module_image_gallery_category_1_id =" .$module_image_gallery_category_id);
+				if($imageexist){
+				    $response = array (
+				            "errors" => array (
+				                    "message" => "Please delete its images first."
+				            )
+				    );
+				}else{
+				    try{
+					    $detailmapper = new ModuleImageGallery1_Model_Mapper_ModuleImageGalleryCategoryDetail1 ();
+					    $mapper = new ModuleImageGallery1_Model_Mapper_ModuleImageGalleryCategory1 ();
+					    $mapper->getDbTable ()->getAdapter ()->beginTransaction ();
+					    $data = $mapper->fetchAll ( "module_image_gallery_category_1_id = " . $module_image_gallery_category_id );
+					    if ($data) {
+					        foreach ( $data as $category) {
+					            $dataDetails = $detailmapper->fetchAll("module_image_gallery_category_1_id =" .$category->getModuleImageGalleryCategory1Id());
+					            if($dataDetails){
+					                foreach($dataDetails as $dataDetail){
+					                    $deletedRows = $dataDetail->delete();
+					                }
+					            }
+					            $category->delete ();
+					        }
+					    }
+					    $customer_id = Standard_Functions::getCurrentUser ()->customer_id;
+					    $customermoduleMapper = new Admin_Model_Mapper_CustomerModule ();
+					    $customermodule = $customermoduleMapper->fetchAll ( "customer_id=" . $customer_id . " AND module_id=" . $this->_module_id );
+					    if (is_array ( $customermodule )) {
+					        $customermodule = $customermodule [0];
+					        $customermodule->setIsPublish ( "NO" );
+					        $customermodule->save ();
+					    }
+					    $mapper->getDbTable ()->getAdapter ()->commit ();
+					    
+					    $response = array (
+					            "success" => array (
+					                    "deleted_rows" => $deletedRows
+					            )
+					    );
+				    } catch(Exception $e) {
+				        $mapper->getDbTable ()->getAdapter ()->rollBack ();
+				        $response = array (
+				                "errors" => array (
+				                        "message" => $e->getMessage ()
+				                )
+				        );
+				    }
 				}
 			}else {
 				$response = array (
@@ -350,8 +346,8 @@ class ModuleImageGallery1_CategoryController extends Zend_Controller_Action {
 		}else{
 			$this->_redirect('/');
 		}
-		$this->_helper->json ( $response );
-		}
+	    $this->_helper->json ( $response );
+	}
 		
 	
 	public function gridAction(){

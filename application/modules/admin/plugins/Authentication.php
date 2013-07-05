@@ -9,6 +9,7 @@ class Admin_Plugin_Authentication extends Zend_Controller_Plugin_Abstract {
 	public function preDispatch(Zend_Controller_Request_Abstract $request) {
 		$resource = $request->getControllerName ();
 		$action = $request->getActionName ();
+		Standard_Functions::$action = strtolower($action);
 		if (strtolower ( $request->getModuleName () ) == "admin") {
 			
 			if (! $this->_auth->hasIdentity () && $resource != "forgot" && $action != "check-login") {

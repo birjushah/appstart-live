@@ -24,6 +24,21 @@ class Contact_Form_Contact extends Standard_Form {
 		) );
 		$this->addElement ( $contact_detail_id );
 		
+		// Module Events ID
+		$contact_category_id = $this->createElement ( "hidden", "contact_category_id", array (
+		        'value' => '',
+		        'filters' => array (
+		                'StringTrim'
+		        )
+		) );
+		$this->addElement ( $contact_category_id);
+		
+		// Type
+		$this->addElement('select','contact_types_id',array(
+		        'label'		 => 'Type:',
+		        'MultiOptions' => $this->_getTypes(),
+		));
+		
 		// Language ID
 		$language_id = $this->createElement ( "hidden", "language_id", array (
 				'value' => '',
@@ -75,17 +90,18 @@ class Contact_Form_Contact extends Standard_Form {
 		$this->addElement ( $plz );
 		
 		//country
-		$countryandcontinents =  Zend_Locale::getTranslationList('Territory','en');
-		asort($countryandcontinents);
-		$countries[""]="Select Country";
-		foreach($countryandcontinents as $key=>$value){
-			if(is_numeric($key)) continue;
-			$countries[$value] = $value;
-		}
+// 		$countryandcontinents =  Zend_Locale::getTranslationList('Territory','en');
+// 		asort($countryandcontinents);
+// 		$countries[""]="Select Country";
+// 		foreach($countryandcontinents as $key=>$value){
+// 			if(is_numeric($key)) continue;
+// 			$countries[$value] = $value;
+// 		}
 		//array_unshift($countries, array("Select Country");
 		$country = $this->createElement('select','country',array(
 				'label' => 'Country:',
-				'Multioptions' => $countries,
+				'Multioptions' => $this->_getCountries(),
+		        'disable' => array("")
 		));
 		$this->addElement($country);
 
@@ -214,16 +230,14 @@ class Contact_Form_Contact extends Standard_Form {
 				'label' => 'Active:',
 				'value' => '1' 
 		) );
-		
-		//Information
-		$information = $this->createElement('textarea', 'information',array(
-				'label' => "Information:",
-				'id' => "content_textarea",
-				'filters' => array (
-						'StringTrim'
-				)
-		));
-		$this->addElement($information);
+		$information = $this->createElement ( "hidden", "information", array (
+		        'value' => '',
+		        'label' => "Information:",
+		        'filters' => array (
+		                'StringTrim'
+		        )
+		) );
+		$this->addElement ( $information );
 		
 		// Submit button
 		$submit = $this->addElement ( 'submit', 'submit', array (
@@ -247,5 +261,37 @@ class Contact_Form_Contact extends Standard_Form {
 				$submit,
 				$reset 
 		) );
+	}
+	private function _getCountries(){
+	    $countries = array(
+            'United Kingdom' => 'United Kingdom',
+            'United States' => 'United States',
+            'Netherlands' => 'Netherlands',
+            'Spain' => 'Spain',
+            'Italia' => 'Italia',
+            'France' => 'France',
+            'India' => 'India',
+	        'Switzerland' => "Switzerland"
+        );
+	    asort($countries);
+	    $countries = array_merge(array("Select Country"=>"Select Country","Switzerland"=>"Switzerland","Germany"=>"Germany","Austria"=>"Austria"),$countries);
+	    return $countries;
+	}
+	private function _getTypes() {
+	    $types = array(""=>"Select Type");
+	    $mapper = new Contact_Model_Mapper_ContactTypes();
+	    $model = $mapper->fetchAll("status=1 AND customer_id=".Standard_Functions::getCurrentUser()->customer_id);
+	    $active_lang_id = Standard_Functions::getCurrentUser ()->active_language_id;
+	    if(!empty($model)){
+	        foreach ($model as $typeModel) {
+	            $mapperDetail = new Contact_Model_Mapper_ContactTypesDetail();
+	            $modelDetail = $mapperDetail->fetchAll("contact_types_id = ".$typeModel->get("contact_types_id"). " AND language_id=".$active_lang_id);
+	        
+	            if(is_array($modelDetail) && is_object($modelDetail[0])) {
+	                $types[$typeModel->getContactTypesId()] = $modelDetail[0]->getTitle();
+	            }
+	        }    
+	    }
+	    return $types;
 	}
 }

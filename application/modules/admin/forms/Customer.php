@@ -118,6 +118,13 @@ class Admin_Form_Customer extends Standard_Form {
 				'Required'	=>	true
 		));
 		
+		// Customer Resources
+		
+		$this->addElement('multiselect','source_id',array(
+		        'label'		 => 'Sources:',
+		        'MultiOptions' => $this->_getParkingSource(),
+		));
+		
 		// Customer Default Language ID
 		$default_language_id = $this->createElement ( 'select', 'default_language_id', array (
 				'label' => 'Default language:',
@@ -312,8 +319,18 @@ class Admin_Form_Customer extends Standard_Form {
 				$options [$lang->getLanguageId ()] = $lang->getTitle();
 			}
 		}
-		
 		return $options;
+	}
+	public function _getParkingSource() {
+	    $options = array();
+	    $mapper = new Parking_Model_Mapper_ModuleParkingSourceDetail();
+	    $model = $mapper->getDbTable()->fetchAll("language_id = 1")->toArray();
+	    if($model) {
+	        foreach($model as $source) {
+	            $options[$source ["module_parking_source_id"]] = $source["title"];
+	        }
+	    }
+	    return $options;
 	}
 	public function _getDefaultLanguages() {
 		$options = array();

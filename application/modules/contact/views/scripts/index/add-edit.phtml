@@ -1,70 +1,30 @@
 <?php $form = $this->form;?>
-<script type="text/javascript" src="<?php echo $this->baseUrl("libs/tinymce/js/tiny_mce.js"); ?>"></script>
-<script type="text/javascript">
-tinyMCE.init({
-	// General options
-	mode : "exact",
-	elements:"content_textarea",
-	theme : "advanced",
-	plugins : "autolink,lists,pagebreak,style,layer,table,advhr,advimage,advlink,emotions,iespell,inlinepopups,insertdatetime,preview,media,searchreplace,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras,template,wordcount,advlist,visualblocks",
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxcore.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/gettheme.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxdropdownbutton.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxscrollbar.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxbuttons.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxtree.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxpanel.js"); ?>"></script>
 
-	// Theme options
-	theme_advanced_buttons1 : "bold,italic,underline,strikethrough,|,styleselect,fontselect,hr,fontsizeselect,formatselect",
-	theme_advanced_buttons2 : "code,|,insertdate,inserttime,preview,|,forecolor,backcolor,|,justifyleft,justifycenter,justifyright,justifyfull",
-	theme_advanced_buttons3 : "",
-	
-	// set value of textarea if null
-	//onchange_callback : "textAreaValueChange",
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/innovaeditor/scripts/innovaeditor.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/innovaeditor/scripts/jquery.innovaeditor.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/innovaeditor/scripts/editor.aksPlugin.js"); ?>"></script>
 
-	//plugins : "autolink,lists,pagebreak,style,layer,table,save,advhr,advimage,advlink,emotions,iespell,inlinepopups,insertdatetime,preview,media,searchreplace,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras,template,wordcount,advlist,visualblocks",
-	//plugins : "paste,pagebreak,table",
-	
-	// Theme options
-	//theme_advanced_buttons1 : "bold,italic,underline,strikethrough,|,undo,redo,|,bullist,numlist,|,outdent,indent,blockquote,|,forecolor,backcolor,|,tablecontrols,|,hr",
-	//theme_advanced_buttons1 : "formatselect,fontselect,fontsizeselect,|,forecolor,backcolor,|,bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,|,code",
-	//theme_advanced_buttons2 : "",
-	//theme_advanced_buttons3 : "tablecontrols,|,hr,removeformat,visualaid,|,sub,sup,|,ltr,rtl",
-	//theme_advanced_buttons4 : "insertlayer,moveforward,movebackward,absolute,|,cite,abbr,acronym,del,ins,attribs,|,visualchars,nonbreaking,pagebreak",
-	theme_advanced_toolbar_location : "top",
-	theme_advanced_toolbar_align : "left",
-	theme_advanced_statusbar_location : "bottom",
-	theme_advanced_resizing : true,
 
-	// Example content CSS (should be your site CSS)
-	content_css : "<?php echo $this->baseUrl("libs/tinymce/css/content.css"); ?>",
-
-	// Drop lists for link/image/media/template dialogs
-	template_external_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/template_list.js"); ?>",
-	external_link_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/link_list.js"); ?>",
-	external_image_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/image_list.js"); ?>",
-	media_external_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/media_list.js"); ?>",
-
-	// Style formats
-	style_formats : [
-		{title : 'Bold text', inline : 'b'},
-		{title : 'Red text', inline : 'span', styles : {color : '#ff0000'}},
-		{title : 'Red header', block : 'h1', styles : {color : '#ff0000'}},
-		{title : 'Example 1', inline : 'span', classes : 'example1'},
-		{title : 'Example 2', inline : 'span', classes : 'example2'},
-		{title : 'Table styles'},
-		{title : 'Table row 1', selector : 'tr', classes : 'tablerow1'}
-	],
-	// Replace values for the template plugin
-	template_replace_values : {
-		username : "Some User",
-		staffid : "991234"
-	}
-});
-//function textAreaValueChange(inst){
-	//content_textarea.value = tinyMCE.get('content_textarea').getContent();
-//}
-</script>
 <script type="text/javascript" src="<?php echo $this->baseUrl("libs/onlytimepicker/onlytimepicker.js"); ?>"></script>
+<link rel="StyleSheet"
+	href="<?php echo $this->baseUrl("libs/tagit/css/jquery.tagedit.css"); ?>"
+	type="text/css" media="all" />
+<script type="text/javascript"
+	src="<?php echo $this->baseUrl("libs/tagit/js/jquery.autoGrowInput.js"); ?>"></script>
+<script type="text/javascript"
+	src="<?php echo $this->baseUrl("libs/tagit/js/jquery.tagedit.js"); ?>"></script>
 <style>
 .timings-label {
 	display: inline;
 	display: inline-block;
-	width: 50px;
+	width: 76px;
 	padding: 5px;
 }
 
@@ -100,6 +60,21 @@ tinyMCE.init({
 div.logo-box td {
 	width: auto;
 }
+.tagedit-list{
+	width:160px !important;
+	border:1px solid #CACED2;
+	border-radius:3px 3px 3px 3px;
+	color:#797979;
+	font:12px Arial,Helvetica;
+	background-color: #FFFFFF;
+	box-shadow:0 2px 4px #DCDDE2 inset;
+	min-height: 20px !important;
+	margin:0 2px;
+}
+.deletebuttons{
+	width:20px !important;
+	padding-left:8px;
+}
 </style>
 <div id="filterBox">
 	<table
@@ -115,6 +90,7 @@ div.logo-box td {
 		action="<?php echo $form->getAction();?>" class="zend_form">
 		<?php echo $form->contact_id->renderViewHelper(); ?>
 		<?php echo $form->contact_detail_id->renderViewHelper(); ?>
+		<?php echo $form->contact_category_id->renderViewHelper(); ?>
 		<?php echo $form->language_id->renderViewHelper(); ?>
 	<table width="100%">
 		<tr>
@@ -130,7 +106,7 @@ div.logo-box td {
 						<td valign="top" rowspan="4" style="padding-top: 10px;">
 							<?php echo $form->information->renderLabel(); ?>
 						</td>
-						<td rowspan="4" width="465">
+						<td rowspan="4" width="465" valign="top">
 							<?php echo $form->information->renderViewHelper(); ?>
 						</td>
 					</tr>
@@ -169,11 +145,11 @@ div.logo-box td {
 							<table class="timings">
 								<thead>
 									<tr>
-										<th width="50px">Order</th>
-										<th width="120px">Day</th>
-										<th width="80px">Open From</th>
-										<th width="80px">Open To</th>
-										<th width="120px" colspan="2">Actions</th>
+										<th width="50px"><?php echo $this->translate("Order"); ?></th>
+										<th width="120px"><?php echo $this->translate("Day");?></th>
+										<th width="80px"><?php echo $this->translate("Open From")?></th>
+										<th width="80px"><?php echo $this->translate("Open To")?></th>
+										<th width="120px" colspan="2"><?php echo $this->translate("Actions")?></th>
 									</tr>
 								</thead>
 								<tbody>
@@ -220,7 +196,7 @@ div.logo-box td {
 								?>
 								</tbody>
 							</table>
-							<div style="margin-top: 10px;"><a class="open-office-timings greay button-grid">Add</a></div>
+							<div style="margin-top: 10px;"><a class="open-office-timings greay button-grid"><?php echo $this->translate("Add")?></a></div>
 							</div>
 						</td>
 					</tr>
@@ -262,12 +238,26 @@ div.logo-box td {
 						<td><label for="logo"><?php echo $this->translate('Logo:')?></label></td>
 						<td>
 							<div class="logo-box" style="width:450px; padding: 5px 15px;">
-								<input id="logo" type="file" name="logo" /> <input id="logo_path" type="hidden" name="logo_path" value="" />
-								(Size: 60px &#215; 60px )
-								<?php if($this->edit && $this->logo_display != ""){ ?>
-									<img class="logoImage" alt="" width="40" src="<?php echo $this->logo_display ?>">
-									<a class="deleteLogo greay button-grid">Delete Logo</a>
-								<?php } ?>
+								<table>
+								    <tr>
+								        <td>
+								            <?php if($this->edit && $this->logo_display != ""){ ?>
+									            <img class="logoImage" alt="" width="64" height="64" src="<?php echo $this->logo_display ?>">
+								            <?php } ?>
+								        </td>
+								        <td>
+								            <input id="logo" type="file" name="logo" size="16" /> <input id="logo_path" type="hidden" name="logo_path" value="" />
+								            (Size: 640px &#215; 250px )
+								        </td>
+								    </tr>
+								    <?php if($this->edit && $this->logo_display != ""){ ?>
+								    <tr id="deleteButtonLogo">
+    								    <td>
+            								<div class="deletebuttons"><a class="deleteLogo custombutton red button-grid">Delete</a></div>
+    								    </td>
+								    </tr>
+								    <?php } ?>
+								</table>
 							</div>
 						</td>
 					</tr>
@@ -277,9 +267,9 @@ div.logo-box td {
 						<td>
         					<label><?php echo $this->translate('Icon:')?></label>
         				</td>
-        				<td valign="top">
+        				<td valign="top" rowspan = "3">
         					<div id="lstLogo" class="logo-box" style="width:470px !important;">
-                				<?php $resource_path = $this->baseUrl("resource/module-image-gallery/preset-icons");?>
+                				<?php $resource_path = $this->baseUrl("resource/contact/preset-icons");?>
                 				<?php foreach ($this->iconpack as $icon):?>
                 				<div class="" style="width:77px !important;">
         							<label for="selLogo_<?php echo $icon; ?>">
@@ -292,19 +282,51 @@ div.logo-box td {
         				</td>
 					</tr>
 					<tr>
-					    <td><?php echo $form->status->renderLabel() ?></td>
-						<td><?php echo $form->status->renderViewHelper()?></td>
-						<td>&nbsp;</td>
-						<td>
-        		        	<div class="logo-box" style="width:470px !important;">
+        				<td><label for="tree"><?php echo $this->translate('Select Category:'); ?></label></td>
+        				<td>
+        					<div id='jqxWidget'>
+        						<div id="dropDownButton">
+        							<div id='jqxTree'></div>
+        						</div>
+        					</div>
+        				</td>
+        			</tr>
+					<tr>
+		    	        <td><?php echo $form->contact_types_id->renderLabel() ?></td>
+		                <td>
+		        	        <?php echo $form->contact_types_id->renderViewHelper()?>
+				        </td>
+			        </tr>
+					<tr>
+					    <td><label>Keywords:</label></td>
+    					<td>
+    						<?php
+    						if (is_array ( $this->keywords )) {
+    							foreach ( $this->keywords as $keyword ) {
+    								?>
+    									<input type="text" name="arrtag[]"
+    							value="<?php echo $keyword;?>" class="tag" id="keywords" />
+    								<?php
+    							}
+    						} else {
+    							?>
+    							<input type="text" name="arrtag[]" value=""
+    							class="tag" id="keywords" />
+    						<?php
+    						}
+    						?>
+    					</td>
+						<td rowspan="4">&nbsp;</td>
+						<td rowspan="4">
+        		        	<div class="logo-box" style="width:450px !important;padding: 5px 15px;">
         		        		<table>
         						<tr>
         							<td>
         								<?php 
-        								$icon_path = $this->baseUrl("resource/module-image-gallery/");
+        								$icon_path = $this->baseUrl("resource/contact/");
         					        	if($this->icon_src!="") {
         					        	?>
-        					        	<img alt="" src="<?php echo $icon_path."/".$this->icon_src;?>" style="width: 64px;" />
+        					        	<img class="iconImage" alt="" src="<?php echo $icon_path."/".$this->icon_src;?>" style="width: 64px;height: 64px;" />
         					        	<?php 
         					        	}
         					        	?>
@@ -319,13 +341,24 @@ div.logo-box td {
         					        	
         								<input type="radio" id="selLogo_0" checked="checked" name="selLogo" value="0" style="margin-left: 10px;" />
         								<label for="selLogo_0"><?php echo $this->translate('Upload:')?></label>
-        								<input id="icon" type="file" name="icon" /> (Size: 120px &#215; 120px )
+        								<input id="icon" type="file" name="icon" size="16" /> (Size: 60px &#215; 60px )
         					        	<input id="icon_path" type="hidden" name="icon_path" value="" />
         				        	</td>
         			        	</tr>
+        			        	<tr id="deleteIconButton">
+        			        	 <?php if($this->icon_src!=""){ ?>
+								    <td>
+        							    <div class="deletebuttons"><a class="deleteIcon red button-grid">Delete</a></div>
+								    </td>
+							    </tr>
+							    <?php } ?>
         			        	</table>
         					</div>
         				</td>
+    			    </tr>
+    			    <tr>
+    			        <td><?php echo $form->status->renderLabel() ?></td>
+						<td><?php echo $form->status->renderViewHelper()?></td>
     			    </tr>
 				</table>
 			</td>
@@ -356,9 +389,9 @@ div.logo-box td {
 		</tr>
 		<tr>
 			<td align="center">
-	        <?php echo $form->submit->renderViewHelper() ?>&nbsp;
-	        <?php echo $form->applyall->renderViewHelper()?>&nbsp;
-			<?php echo $form->reset->renderViewHelper()?>
+	        <?php echo html_entity_decode($form->submit->renderViewHelper()) ?>&nbsp;
+	        <?php echo (Standard_Functions::$action == "edit")? html_entity_decode($form->applyall->renderViewHelper()):""?>&nbsp;
+			<?php echo html_entity_decode($form->reset->renderViewHelper())?>
 			</td>
 		</tr>
 	</table>
@@ -367,37 +400,96 @@ div.logo-box td {
 <!-- timing form popup --> 
 <div id="office-time" style="display: none;">
 	<div class="timings-label">
-		<label>Order</label>
+		<label><?php echo $this->translate("Order")?></label>
 	</div>
 	<div class="timings-input">
 		<input name="order" class="reqCheck" type="text" />
 	</div>
 	<div class="timings-label">
-		<label>Day</label>
+		<label><?php echo $this->translate("Day")?></label>
 	</div>
 	<div class="timings-input">
 		<input name="day" class="reqCheck" type="text" />
 	</div>
 	<div class="timings-label">
-		<label>OrderFrom</label>
+		<label><?php echo $this->translate("From")?></label>
 	</div>
 	<div class="timings-input">
 		<input name="from" class="reqCheck timingplugin" type="text" />
 	</div>
 	<div class="timings-label">
-		<label>Order To</label>
+		<label><?php echo $this->translate("To")?></label>
 	</div>
 	<div class="timings-input">
 		<input name="to" class="reqCheck timingplugin" type="text" />
 	</div>
 	<div class="timings-submit">
 		<input type="button" class="submit-timings" name="submitData"
-			value="submit">
+			value="<?php echo $this->translate("submit")?>">
 	</div>
 </div>
 
 <script type="text/javascript">
 $(document).ready(function() {
+	$('#information').editor({
+		width:650,
+        height: 600,
+        innerWidth:320,
+        css: ['<?php echo $this->baseUrl("libs/innovaeditor/styles/default.css");?>'] ,
+        groups: [
+                ["group1", "", ["Bold", "Italic", "Underline", "Strikethrough", "TextDialog", "RemoveFormat"]],
+		        ["group2", "", ["Undo", "Redo", "SearchDialog", "CharsDialog", "FullScreen"]]
+                ]
+    });
+	var parentIdLabel = "<?php echo $this->parentCategory; ?>";
+	var data = <?php echo $this->categoryTree; ?>;
+	var builddata = function () {
+		var source = [];
+	    var items = [];
+	    items[0]={id:0,label:'Root',selected:false};
+		source[0] = items[0];
+	    for (var i = 0; i < data.length; i++) {
+	        var item = data[i];
+	        var label = item["text"];
+	        var parentid = item["parentId"];
+	        var id = item["id"];
+
+	        if (items[parentid]) {
+	            var item = { id: id, label: label, item: item };
+	            if (!items[parentid].items) {
+	                items[parentid].items = [];
+	            }
+	            items[parentid].items[items[parentid].items.length] = item;
+	            items[id] = item;
+	        }
+	        else {
+	            items[id] = { id: id, label: label, item: item };
+	            source[id] = items[id];
+	        }
+	    }
+	    return source;
+	};
+	$("#dropDownButton").jqxDropDownButton({ width: 170, height: 25 });
+	$('#jqxTree').bind('initialized', function (event) { 
+		var args = event.args;
+		parentIdLabel = (parentIdLabel=="")?"Menu":parentIdLabel;
+    	var dropDownContent = '<div style="position: relative; margin-left: 3px; margin-top: 5px;">' + parentIdLabel + '</div>';
+    	$("#dropDownButton").jqxDropDownButton('setContent', dropDownContent);
+    });	
+	$('#jqxTree').bind('select', function (event) {
+        var args = event.args;
+        var item = $('#jqxTree').jqxTree('getItem', args.element);
+        $("#contact_category_id").attr("value",item.id);
+        var dropDownContent = '<div style="position: relative; margin-left: 3px; margin-top: 5px;">' + item.label + '</div>';
+        $("#dropDownButton").jqxDropDownButton('setContent', dropDownContent);
+    });
+	$('#jqxTree').bind('click', function (event) {
+		$("#dropDownButton").jqxDropDownButton("close");
+	});
+    var source = builddata();
+    $("#jqxTree").jqxTree({source:source,width: 250 });
+    $('#jqxTree').jqxTree('expandAll');
+	var queryAppend = "";
 	$("input:radio[name=selLogo]").on("change",function(){
 		if($('input:radio[name=selLogo]:checked').val() == 0)
 		{
@@ -410,6 +502,13 @@ $(document).ready(function() {
     	$("#logo_path").attr("value","deleted");
     	$(".logoImage").remove();
     	$("#logo").attr("value","");
+    	$("tr#deleteButtonLogo").remove();
+    });
+	$(".deleteIcon").on("click",function(){
+    	$("#icon_path").attr("value","deleted");
+    	$(".iconImage").remove();
+    	$("#icon").attr("value","");
+    	$("tr#deleteIconButton").remove();
     });
 	$('.timingplugin').timeEntry({show24Hours: true});
 	// Clearing the values on Add Timings
@@ -419,13 +518,14 @@ $(document).ready(function() {
 		});
 		$("#office-time").dialog({
     		modal: true,
-    		width: 300,
+    		width: 330,
     		resizable: false,
-    		title: "Add New Entry",
+    		title: "<?php echo $this->translate("Add New Entry")?>",
     		dialogClass: "Add"
     	});
+		$('input[name=to]').val("17:00");
+		$('input[name=from]').val("08:00");
 	});
-
 	$('.timings-submit').on("click",function(){
 		window.createdXML = window.createdXML? window.createdXML: [];
 		var totalRows = window.createdXML.length + 1;
@@ -497,7 +597,7 @@ $(document).ready(function() {
 	$('a[class^=edit-timings-]').live("click",function(){
 		$("#office-time").dialog({
     		modal: true,
-    		width: 300,
+    		width: 330,
     		resizable: false,
     		title: "Edit Entry:",
         	dialogClass: "Edit"
@@ -533,7 +633,9 @@ $(document).ready(function() {
 	                message : "<?php echo $this->translate('Your changes will be saved and applied to all languages. Is it Ok?'); ?>",
 	                buttons : {
 	                    "Yes" : function(self){
-	                        $("#frmAddEditContact").trigger("submit",{all:true});
+		                    this.close();
+		                    queryAppend = "&all=true";
+	                        $("#submit").trigger("click");
 	                    },
 	                    "No"  : function(self){
 	                    	this.close();
@@ -543,12 +645,7 @@ $(document).ready(function() {
 	        e.preventDefault();
 	    }
 	});
-	$("#frmAddEditContact").validator().submit(function(e,customObject){
-		customObject = customObject || {};
-		var queryAppend = "";
-		if(customObject.all){
-			queryAppend = "&all=true";
-		}
+	$("#frmAddEditContact").validator().submit(function(e){
 		var XML = "<node>";
 		$(window.createdXML).each(function(key,value){
 			if(value != undefined){
@@ -563,6 +660,19 @@ $(document).ready(function() {
 		XML += "</node>";
 		var form = $(this);
 		if(!e.isDefaultPrevented()){
+			if($('#contact_category_id').val() == 0){
+				promptus = new prompt({
+		           	reference : self,
+		            element : "#content",
+		            beforeShow : function(){
+		                this.alternateMessage = this.showErrorMessage("Please select some Category!");
+	                } 
+				});
+				setTimeout(function(){
+					promptus.close();
+				}, 2000);
+				return false;
+			}
 			var promptus = false;
 			$(document).queue(function(next){
 				promptus = new prompt({
@@ -628,7 +738,7 @@ $(document).ready(function() {
 					next();
 				}
 			}).queue(function(next){
-				$.ajax({
+			    $.ajax({
 					type : "POST",
 					cache : false,
 					data : form.serialize()+'&xml='+XML+queryAppend,
@@ -732,9 +842,9 @@ $(document).ready(function() {
        	$('#gMap').gmap3({ 
             action: 'addMarker',
             latLng:[$("#latitude").attr("value"),$("#longitude").attr("value")],
-			map: {center:true, zoom:14},
 			options:{
-                animation: google.maps.Animation.DROP
+                animation: google.maps.Animation.DROP,
+                draggable:true
             },
             events:{
             	drag: function(marker, event, data) {
@@ -744,6 +854,12 @@ $(document).ready(function() {
             	}
             }
         });
+       	$('#gMap').gmap3({
+		    action:"panTo",
+		    args: [new google.maps.LatLng($("#latitude").attr("value"),$("#longitude").attr("value"))]
+        });
+		var map = $('#gMap').gmap3("get");
+		map.setZoom(14);
     }
     // Callback to auto set marker based on address
     $("#address, #city, #plz, #country").on("blur",function(){
@@ -754,12 +870,10 @@ $(document).ready(function() {
     		callback:function(results){
     			if (!results) return;
     			var item = results[0];
-    			$("#gMap").gmap3(
-    	    		{action:'clear', name:'marker'},
-    				{
+    			/*$("#gMap").gmap3({action:'clear', name:'marker'});*/
+    			$("#gMap").gmap3({action:'clear', name:'marker'},{
         				action:'addMarker',
     					latLng:item.geometry.location,
-    					map: {center:true, zoom:14},
     					options:{
   				        	draggable: true,
   				        	animation: google.maps.Animation.DROP
@@ -771,11 +885,17 @@ $(document).ready(function() {
   				            	$("#longitude").attr("value",pos.lng());
   				        	}
   				        }
-    				}
-        		);
-    			var pos = item.geometry.location;
-            	$("#latitude").attr("value",pos.lat());
-            	$("#longitude").attr("value",pos.lng());
+    				});
+			var pos = item.geometry.location;
+			$("#latitude").attr("value",pos.lat());
+        	$("#longitude").attr("value",pos.lng());
+            	
+   			$('#gMap').gmap3({
+   			    action:"panTo",
+   			    args: [new google.maps.LatLng($("#latitude").attr("value"),$("#longitude").attr("value"))]
+    		});
+   			var map = $('#gMap').gmap3("get");
+   			map.setZoom(14);
     		}
     	});
 	});
@@ -788,7 +908,6 @@ $(document).ready(function() {
 			{
     			action:'addMarker',
 				latLng:[$("#latitude").attr("value"),$("#longitude").attr("value")],
-				map: {center:true, zoom:14},
 				options:{
 					draggable: true,
 					animation: google.maps.Animation.DROP
@@ -802,8 +921,22 @@ $(document).ready(function() {
 				}
 			}
 		);
+		
+        $('#gMap').gmap3({
+		    action:"panTo",
+		    args: [new google.maps.LatLng($("#latitude").attr("value"),$("#longitude").attr("value"))]
+        });
+		var map = $('#gMap').gmap3("get");
+		map.setZoom(14);
 	});
     $(".timings input[type=checkbox]").trigger("change");
+    function initTag(){
+    	$(function() {
+    		$( "#frmAddEditContact" ).find('input.tag').tagedit({
+    		});
+    	});
+    }
+    initTag();
 });
 //  function which disables open-close text boxes on checkbox:checked 
 //	and opens a comment box and vice versa
@@ -823,28 +956,8 @@ $(document).on('change',".timings input[type=checkbox]",function(){
         }
 	}
 });
-emaildisplay=1;
-function addEmail(){
-	
-	if(emaildisplay<=2){
-		$(".hiddenemail_"+(emaildisplay)).show();				
-		emaildisplay++;
-	}
-	if(emaildisplay==3)
-		$("#addBtnEmail").hide();
-	
-}
-phonedisplay=1;
-function addPhone(){
-	
-	if(phonedisplay<=2){
-		$(".hiddenphone_"+(phonedisplay)).show();				
-		phonedisplay++;
-	}
-	if(phonedisplay==3)
-		$("#addBtnPhone").hide();
-	
-}
+$("#country option[value='Austria'] ").css("border-bottom","1px dashed");
+$("#country option[value='Select Country'] ").css("border-bottom","1px dashed");
 
 // -->
 </script>

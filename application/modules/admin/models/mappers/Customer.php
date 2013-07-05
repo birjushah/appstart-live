@@ -34,9 +34,11 @@ class Admin_Model_Mapper_Customer extends Standard_ModelMapper {
 			$currentDateTime = Standard_Functions::getCurrentDateTime ();
 			// Initialize Current System User
 			$currentUserId = Standard_Functions::getCurrentUser ()->system_user_id;
-			
+			//get the source from options
+			$selectedsources = $options['source_id'];
 			$customer = new Admin_Model_Customer ();
 			// Set the options user Customer
+			unset($options['source_id']);
 			$customer->setOptions ( $options );
 			$customer->setLastUpdatedBy ( $currentUserId );
 			$customer->setLastUpdatedAt ( $currentDateTime );
@@ -46,7 +48,7 @@ class Admin_Model_Mapper_Customer extends Standard_ModelMapper {
 			}
 			// Save the customer and update the customer model
 			$customer = $customer->save ();
-			// Setting the customer languages
+			// Setting the customer languages and Add Parking source (if selected)
 			$languages = $options ["language_id"];
 			$default_language_id = $options ["default_language_id"];
 			$customer_id = $customer->getCustomerId ();
@@ -58,6 +60,18 @@ class Admin_Model_Mapper_Customer extends Standard_ModelMapper {
 					$modelLang->setIsDefault ( ( int ) ($default_language_id == $lang) );
 					$modelLang->save ();
 				}
+				if(is_array($selectedsources)){
+				    foreach ($selectedsources as $source){
+				        $sourcemodel = new Parking_Model_ModuleParkingCustomerSource();
+				        $sourcemodel->setModuleParkingSourceId($source);
+				        $sourcemodel->setCustomerId($customer_id);
+				        $sourcemodel->setCreatedBy($customer_id);
+				        $sourcemodel->setCreatedAt($currentDateTime);
+				        $sourcemodel->setLastUpdatedBy($customer_id);
+				        $sourcemodel->setLastUpdatedAt($currentDateTime);
+				        $sourcemodel->save();
+				    }    
+				}
 			} else {
 				$db->delete ( "customer_language", "customer_id=" . $customer_id . " AND language_id NOT IN(" . (implode ( ",", $languages )) . ")" );
 				foreach ( $languages as $lang ) {
@@ -68,11 +82,30 @@ class Admin_Model_Mapper_Customer extends Standard_ModelMapper {
 					if ($result) {
 						$modelLang = $result [0];
 					}
-					
 					$modelLang->setCustomerId ( $customer_id );
 					$modelLang->setLanguageId ( $lang );
 					$modelLang->setIsDefault ( ( int ) ($default_language_id == $lang) );
 					$modelLang->save ();
+				}
+				if(is_array($selectedsources)){
+				    $db->delete ( "module_parking_customer_source", "customer_id=" . $customer_id . " AND module_parking_source_id NOT IN(" . (implode ( ",", $selectedsources )) . ")" );
+				    foreach ($selectedsources as $source){
+				        $sourcemodel = new Parking_Model_ModuleParkingCustomerSource();
+				        $sourcemapper = new Parking_Model_Mapper_ModuleParkingCustomerSource();
+				        $sourceisthere = $sourcemapper->fetchAll("module_parking_source_id =" . $source . " AND customer_id = " . $customer_id);
+				        $sourcemodel->setCreatedBy($customer_id);
+				        $sourcemodel->setCreatedAt($currentDateTime);
+				        if($sourceisthere){
+				            $sourcemodel = $sourceisthere[0];
+				        }
+				        $sourcemodel->setModuleParkingSourceId($source);
+				        $sourcemodel->setCustomerId($customer_id);
+				        $sourcemodel->setLastUpdatedBy($customer_id);
+				        $sourcemodel->setLastUpdatedAt($currentDateTime);
+				        $sourcemodel->save();
+				    }
+				}else{
+				    $db->delete ( "module_parking_customer_source", "customer_id=" . $customer_id);
 				}
 			}
 			
@@ -129,6 +162,28 @@ class Admin_Model_Mapper_Customer extends Standard_ModelMapper {
 				// Set the user id in customer table only if in add mode
 				$customer->setUserId ( $user->getUserId () );
 				$customer->save ();
+				
+				//also add the default configuration for customer
+				$customerConfiguration = new Admin_Model_CustomerConfiguration();
+				$customerConfiguration->setCustomerId($customer->getCustomerId ());
+				$customerConfiguration->setFontType('HelveticaNeueLTStd');
+				$customerConfiguration->setFontColor('777777');
+				$customerConfiguration->setFontSize('15');
+				$customerConfiguration->setSpacing('6');
+				$customerConfiguration->setThemeColor('999999');
+				$customerConfiguration->setListFontType('HelveticaNeueLTStd');
+				$customerConfiguration->setListFontColor('777777');
+				$customerConfiguration->setListBackgroundColor('e5e5e5');
+				$customerConfiguration->setListFontSize('16');
+				$customerConfiguration->setSeparatorColor('cacaca');
+				$customerConfiguration->setListGradientTop('f2f2f2');
+				$customerConfiguration->setListGradientMiddle('dcdcdc');
+				$customerConfiguration->setListGradientBottom('e5e5e5');
+				$customerConfiguration->setHeaderColor('999999');
+				$customerConfiguration->setHeaderFontType('HelveticaNeueLTStd');
+				$customerConfiguration->setHeaderFontSize('20');
+				$customerConfiguration->setHeaderFontColor('ffffff');
+				$customerConfiguration->save();
 			} else if ($mode == self::$EDIT_MODE) {
 				$userGroupMapper = new Default_Model_Mapper_UserGroup ();
 				$userGroup = $userGroupMapper->fetchAll ( " customer_id = " . $customer->getCustomerId () );
@@ -210,8 +265,9 @@ class Admin_Model_Mapper_Customer extends Standard_ModelMapper {
 							'customer_id' => $customer->getCustomerId (),
 							'module_id' => $rowData ['module_id'],
 							'order_number' => $customerModuleOrder,
-							'visibility' => 0,
+							'visibility' => 1,
 							'screen_name' => $module ['name'],
+					        'icon' => $module['icon'],
 							'last_updated_by' => $currentUserId,
 							'created_by' => $currentUserId,
 							'last_updated_at' => $currentDateTime,
@@ -236,6 +292,9 @@ class Admin_Model_Mapper_Customer extends Standard_ModelMapper {
 							$moduleMapper = new Admin_Model_Mapper_Module ();
 							$moduleModel = $moduleMapper->find ( $customerModule->getModuleId () );
 							$customerModuleDetail->setScreenName ( $moduleModel->getDescription () );
+							$customerModuleDetail->setBackgroundImage ( $module['background_image'] );
+							$customerModuleDetail->setBackgroundColor ( $module['background_color'] );
+							$customerModuleDetail->setBackgroundType ( $module['background_type'] );
 							$customerModuleDetail->setLanguageId ( $language_id );
 							$customerModuleDetail->save ();
 						}
@@ -281,7 +340,7 @@ class Admin_Model_Mapper_Customer extends Standard_ModelMapper {
 				'tm' => 'template_module' 
 		), '*' )->join ( array (
 				"m" => "module" 
-		), " m.module_id = tm.module_id " )->where ( ' m.status = 1 AND tm.status = 1 ' )->where ( $where );
+		), " m.module_id = tm.module_id " )->where ( ' m.status = 1 AND tm.status = 1 ' )->where ( $where )->order('m.order');
 		if ($return_row)
 			return $templateModuleMapper->getDbTable ()->fetchAll ( $templateModuleSql );
 		else

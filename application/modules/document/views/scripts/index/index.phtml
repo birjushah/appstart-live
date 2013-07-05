@@ -1,7 +1,17 @@
 <script type="text/javascript">
 window.documentUploaded = <?php echo $this->documentUploaded?$this->documentUploaded:0;?>;
 window.documentLimit = <?php echo $this->documentlimit?$this->documentlimit:0;?>;
+window.totalcategories = <?php echo $this->totalcategories?$this->totalcategories:0;?>;
 </script>
+
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxcore.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/gettheme.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxdropdownbutton.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxscrollbar.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxbuttons.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxtree.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxpanel.js"); ?>"></script>
+
 <form id="frmFilter">
 <div id="filterBox">
       <table style="width:100%;border:0;border-spacing:0;border-collapse:collapse;">
@@ -53,9 +63,174 @@ window.documentLimit = <?php echo $this->documentlimit?$this->documentlimit:0;?>
 	</tbody>      
 </table>
 
+<div id="zip-import" style="display: none;">
+<form id="frmZipImport" class="zend_form" name="frmZipImport" action="#" method="post">
+<input type="hidden" name="module_document_category_id" id="module_document_category_id" value="0" />
+<table width="100%">
+	<tr>
+		<td><label for="tree"><?php echo $this->translate('Select Category:'); ?></label></td>
+		<td>
+			<div id='jqxWidget'>
+				<div id="dropDownButton">
+					<div id='jqxTree'></div>
+				</div>
+			</div>
+		</td>
+	</tr>
+	<tr>
+		<td>Select File:</td>
+		<td><input type="file" id="zipfile" name="zipfile" accept="application/zip" /> </td>
+	</tr>
+	<tr>
+		<td></td>
+		<td align="right"><input type="checkbox" id="chkOverwrite" name="chkOverwrite" checked="checked" value="1" /> <label for="chkOverwrite">Overwrite Existing</label></td>
+	</tr>
+	<tr>
+		<td colspan="2">
+		<div id="progressbar" style="display: none;">
+			<div id="progress" class="progressbar-completed" style="width:0%;">
+            	<div>&nbsp;</div>
+        	</div>
+        </div>
+        </td>
+	</tr>
+	<tr>
+		<td colspan="2"><input type="submit" name="submit" value="submit" /><div id="error-message" style="float: right;"></div></td>
+	</tr>
+</table>
+</form>
+</div>
+
 <script type="text/javascript">
 var grid ="";
 $(document).ready(function() {
+	$('a[href="<?php echo $this->addlink;?>"]').on('click',function(e){
+		if(!e.isDefaultPrevented()){
+			if(window.totalcategories == 0){
+				 promptus = new prompt({
+	                reference : self,
+	                element : ".dataTables_wrapper"
+	            });
+	            promptus.showErrorMessage("You can not add a document without category.Please add atleast one category.");
+	            setTimeout(function(){
+            		promptus.close();
+                }, 3000);
+				e.preventDefault();
+			}
+		}
+	});
+	var parentIdLabel = "";
+	var data = <?php echo $this->categoryTree; ?>;
+	//console.log(data);
+	//creating data which jqtree plugin can use
+	var builddata = function () {
+		var source = [];
+		var items = [];	
+		// build hierarchical source.
+		items[0]={id:0,label:'Menu',selected:false};
+		source[0] = items[0];
+		for (var i = 0; i < data.length; i++) {
+			var item = data[i];
+			var label = item["text"];
+			var parentid = item["parentId"];
+			var id = item["id"];
+
+			if (items[parentid]) {
+				var item = { id: id, label: label, item: item };
+				if (!items[parentid].items) {
+					items[parentid].items = [];
+				}
+				items[parentid].items[items[parentid].items.length] = item;
+				items[id] = item;
+			}
+			else {
+				items[id] = { id: id, label: label, item: item };
+				source[id] = items[id];
+			}
+		}		
+		return source;
+	}
+	$("#dropDownButton").jqxDropDownButton({ width: 150, height: 25 });
+	$('#jqxTree').bind('initialized', function (event) { 
+		var args = event.args;
+		parentIdLabel = (parentIdLabel=="")?"Menu":parentIdLabel;
+    	var dropDownContent = '<div style="position: relative; margin-left: 3px; margin-top: 5px;">' + parentIdLabel + '</div>';
+    	$("#dropDownButton").jqxDropDownButton('setContent', dropDownContent);
+    });	
+	$('#jqxTree').bind('select', function (event) {
+        var args = event.args;
+        var item = $('#jqxTree').jqxTree('getItem', args.element);
+        $("#module_document_category_id").attr("value",item.id);
+        var dropDownContent = '<div style="position: relative; margin-left: 3px; margin-top: 5px;">' + item.label + '</div>';
+        $("#dropDownButton").jqxDropDownButton('setContent', dropDownContent);
+    });
+	$('#jqxTree').bind('click', function (event) {
+		$("#dropDownButton").jqxDropDownButton("close");
+	});
+    var source = builddata();
+    //console.log(source);
+	$("#jqxTree").jqxTree({source:source,width: 250 });
+	
+	$("#hrefImport").on('click',function(e){
+		$("#zip-import").dialog({
+    		modal: true,
+    		width: 330,
+    		resizable: false,
+    		title: "Import ZIP",
+    		dialogClass: "Import"
+    	});
+	});
+	$("#frmZipImport").on('submit',function(e){
+		if(!e.isDefaultPrevented()){
+			$("#error-message").html("");
+			e.preventDefault();
+			var filename = $("#zipfile").val();
+			if(filename.length == 0) {
+				$("#error-message").html("Please upload file !!!");
+				$("#error-message").css("color","#f00");
+				return;
+			}
+			var ext = filename.substring(filename.lastIndexOf('.') + 1);
+			if(ext.toLowerCase() != 'zip') {
+				$("#error-message").html("Only zip files are allowed to upload !!!");
+				$("#error-message").css("color","#f00");
+				return;
+			}
+			
+			$(document).queue(function(next){
+				$("#progressbar").show();
+				next();
+			}).queue(function(next){
+				$.ajaxFileUpload({
+					url:'<?php echo $this->url(array("module"=>"document","controller"=>"index","action"=>"zip-import")); ?>',
+					secureuri:false,
+					fileElementId:'zipfile',
+					dataType: 'json',
+					data:{upload:'true',category:$("#module_document_category_id").attr("value"),overwrite:($('#chkOverwrite').is(':checked')? 1 : 0)},
+					success: function (data, status)
+					{
+						if(data.success != undefined) {
+							$("#error-message").html("<?php echo $this->translate('Documents imported successfully.')?>");
+							$("#error-message").css("color","#080");
+							setTimeout(function(){
+								location.href=location.href;
+								next();
+							}, 3000);
+						}
+					},
+					error: function (data, status, e)
+					{
+						$("#error-message").html("<?php echo $this->translate('Error uploading zip.')?>");
+						$("#error-message").css("color","#f00");
+						next();
+					}
+				});
+			}).queue(function(next){
+				$("#progressbar").hide();
+				next();
+	  		});
+		}
+	});
 	$('a[href="<?php echo $this->addlink;?>"]').on('click',function(e){
 		if(!e.isDefaultPrevented()){
 			if(window.documentUploaded >= window.documentLimit){

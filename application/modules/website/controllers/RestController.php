@@ -56,10 +56,15 @@ class Website_RestController extends Standard_Rest_Controller {
 							$websiteDetailMapper = new Website_Model_Mapper_ModuleWebsiteDetail();
 							$websiteDetailModel = $websiteDetailMapper->fetchAll("module_website_id=".$website->getModuleWebsiteId());
 							if($websiteDetailModel) {
+								$details = array();
 								foreach($websiteDetailModel as $website_detail) {
 									$websiteDetail = $website_detail->toArray();
-									if($websiteDetail["website_logo"] != null){
-										$websiteDetail["website_logo"] = "resource/website/logos/".$websiteDetail["website_logo"];
+								    if(isset($websiteDetail["website_logo"]) && $websiteDetail["website_logo"] != null){
+									    if(count(explode("/", $websiteDetail["website_logo"])) > 1){
+                                            $websiteDetail["website_logo"] = "resource/website/".$websiteDetail["website_logo"];
+									    }else{
+									        $websiteDetail["website_logo"] = "resource/website/preset-icons/".$websiteDetail["website_logo"];
+									    }
 									}
 									$details[] = $websiteDetail; 
 								}

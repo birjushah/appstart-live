@@ -16,7 +16,7 @@ class Contact_IndexController extends Zend_Controller_Action {
 			$customermodule = $customermodule[0];
 			$this->_customer_module_id = $customermodule->getCustomerModuleId();
 		}
-		$image_dir = Standard_Functions::getResourcePath(). "module-image-gallery/preset-icons";
+		$image_dir = Standard_Functions::getResourcePath(). "contact/preset-icons";
 		if(is_dir($image_dir)){
 		    $direc = opendir($image_dir);
 		    $iconpack = array();
@@ -46,6 +46,27 @@ class Contact_IndexController extends Zend_Controller_Action {
 				"controller" => "index",
 				"action" => "reorder" 
 		), "default", true );
+		$this->view->addtypes = $this->view->url(array (
+		        "module" => "contact",
+		        "controller" => "types",
+		        "action" => "index"
+		), "default", true);
+		$this->view->addcategory = $this->view->url(array (
+		        "module" => "contact",
+		        "controller" => "category",
+		        "action" => "index"
+		), "default", true);
+		
+		//getting total categories
+		$mapper = new Contact_Model_Mapper_ContactCategory();
+		$customer_id = Standard_Functions::getCurrentUser()->customer_id;
+		$DBExpr = new Zend_Db_Expr("COUNT(contact_category_id)");
+		$select = $mapper->getDbTable()->select(false)
+		->setIntegrityCheck(false)
+		->from('module_contact_category',array('count'=>$DBExpr ))
+		->where("customer_id =".$customer_id);
+		$stack = $mapper->getDbTable()->fetchRow($select)->toArray();
+		$this->view->totalcategories = $stack['count'];
 	}
 	public function addAction() {
 		// action body
@@ -67,6 +88,8 @@ class Contact_IndexController extends Zend_Controller_Action {
 		$form->setAction ( $action );
 		$this->view->form = $form;
 		$this->view->logo_path = "";
+		$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
+		$this->view->categoryTree = $this->_getCategoryTree ( $customer_id, $lang_id);
 		$this->view->assign ( array (
 				"partial" => "index/partials/add.phtml" 
 		) );
@@ -159,17 +182,21 @@ class Contact_IndexController extends Zend_Controller_Action {
 			
 			$mapper = new Contact_Model_Mapper_Contact ();
 			$data = $mapper->find ( $contact_id )->toArray ();
+			$form->populate($data);
 			$dataDetails = array ();
 			$details = new Contact_Model_Mapper_ContactDetail ();
 			if ($details->countAll ( "contact_id = " . $contact_id . " AND language_id = " . $lang_id ) > 0) {
 				// Record For Language Found
 				$dataDetails = $details->getDbTable ()->fetchAll ( "contact_id = " . $contact_id . " AND language_id = " . $lang_id )->toArray ();
+				$keywords = $dataDetails [0] ['keywords'];
+				$keywords = explode ( ",", $keywords );
 			} else {
 				// Record For Language Not Found
 				$dataDetails = $details->getDbTable ()->fetchAll ( "contact_id = " . $contact_id . " AND language_id = " . $default_lang_id )->toArray ();
 				$dataDetails [0] ["contact_detail_id"] = "";
 				$dataDetails [0] ["language_id"] = $lang_id;
 			}
+			$dataDetails[0]["ta_information"] = $dataDetails[0]["information"]; 
 			if (isset ( $dataDetails [0] ) && is_array ( $dataDetails [0] )) {
 				//print_r($dataDetails [0]);
 			    if($dataDetails[0]['icon'] != null){
@@ -205,11 +232,23 @@ class Contact_IndexController extends Zend_Controller_Action {
 		} else {
 			$this->_redirect ( '/' );
 		}
+		$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
+		$this->view->categoryTree = $this->_getCategoryTree ( $customer_id, $lang_id);
+		$parent_id = $data["contact_category_id"];
+		$this->view->orignalParent = $parent_id;
+		$detailMapper = new Contact_Model_Mapper_ContactCategoryDetail();
+		if($parent_id != 0){
+		    $details = $detailMapper->getDbTable()->fetchAll("language_id = ".$lang_id." AND contact_category_id =" .$parent_id)->toArray();
+		    $this->view->parentCategory = $details[0]['title'];
+		} else {
+		    $this->view->parentCategory = 'Root';
+		}
 		$this->view->form = $form;
 		$this->view->assign ( array (
 				"partial" => "index/partials/edit.phtml" 
 		) );
 		$this->view->iconpack = $this->_iconpack;
+		$this->view->keywords = $keywords;
 		$this->render ( "add-edit" );
 	}
 	public function saveAction() {
@@ -262,8 +301,16 @@ class Contact_IndexController extends Zend_Controller_Action {
 			$allFlag = $this->_request->getParam("all",false);
 			if ($form->isValid ( $this->_request->getParams () )) {
 				try {
+				    $tags = $this->_request->getParam('arrtag');
+				    $tag = "";
+				    if (!empty($tags)) {
+				        foreach ( $tags as $tags ) {
+				            $tag .= ($tag != "" ? "," : "") . $tags;
+				        }
+				    }
 					$timings = $request->getParam("xml","");
 					$arrFormValues = $form->getValues ();
+					$arrFormValues['keywords'] = $tag;
 					$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
 					$user_id = Standard_Functions::getCurrentUser ()->user_id;
 					$date_time = Standard_Functions::getCurrentDateTime ();
@@ -271,14 +318,14 @@ class Contact_IndexController extends Zend_Controller_Action {
 					$mapper = new Contact_Model_Mapper_Contact ();
 					$mapper->getDbTable ()->getAdapter ()->beginTransaction ();
 					$model = new Contact_Model_Contact ( $arrFormValues );
-					if($request->getParam("selLogo","0")){
-					    $selIcon = $request->getParam("selLogo","0");
-					}
+					$selIcon = $request->getParam("selLogo","0");
 					$icon_path = $request->getParam("icon_path","");
-					if($selIcon != 0){
+					if($selIcon != "0"){
 					    $arrFormValues["icon"] = $selIcon;
-					}elseif ($icon_path != ""){
+					}elseif ($selIcon==0 && $icon_path != "" && $icon_path != "deleted"){
 					    $arrFormValues["icon"] = "uploaded-icons/".$icon_path;
+					}elseif ($icon_path == "deleted"){
+					    $arrFormValues["icon"] = "";
 					}
 					if ($request->getParam ( "contact_id", "" ) == "") {
 						// Add new Record
@@ -307,7 +354,6 @@ class Contact_IndexController extends Zend_Controller_Action {
 								$modelDetails->setCreatedAt ( $date_time );
 								$modelDetails->setLastUpdatedBy ( $user_id );
 								$modelDetails->setLastUpdatedAt ( $date_time );
-								
 								$modelDetails = $modelDetails->save ();
 							}
 						}
@@ -319,6 +365,7 @@ class Contact_IndexController extends Zend_Controller_Action {
 						$modelLanguages = $mapperLanguage->fetchAll ( "customer_id = " . $customer_id );
 						$mapperDetails = new Contact_Model_Mapper_ContactDetail ( $arrFormValues );
 						$mapperDetailsData = $mapperDetails->getDbTable()->fetchAll("contact_id =".$arrFormValues['contact_id'])->toArray();
+						$currentmapperDetailsData = array();
 						if($arrFormValues['contact_detail_id'] != ""){
 						    $currentmapperDetailsData = $mapperDetails->getDbTable()->fetchAll("contact_detail_id =".$arrFormValues['contact_detail_id'])->toArray();
 						}else{
@@ -326,12 +373,12 @@ class Contact_IndexController extends Zend_Controller_Action {
 						}
 						if(is_array($currentmapperDetailsData)){
 						    $arrFormValues['logo'] = $currentmapperDetailsData[0]['logo'];
-						    if(!$arrFormValues['icon']){
+						    if(!isset($arrFormValues['icon'])){
 						        $arrFormValues['icon'] = $currentmapperDetailsData[0]['icon'];
 						    }    
 						}
 						unset($arrFormValues['contact_detail_id'],$arrFormValues['language_id']);
-						if(count($mapperDetails) == count($modelLanguages)){
+						if(count($mapperDetailsData) == count($modelLanguages)){
 						    foreach ($mapperDetailsData as $mapperDetailData) {
 						        $mapperDetailData = array_intersect_key($arrFormValues + $mapperDetailData, $mapperDetailData);
 						        $contactDetailModel = new Contact_Model_ContactDetail($mapperDetailData);
@@ -341,6 +388,7 @@ class Contact_IndexController extends Zend_Controller_Action {
 						        if ($logo_path != "" && $logo_path != "deleted" && $logo_path != "/appstart/public/") {
 						            $contactDetailModel->setLogo ($logo_path);
 						        }
+						        $contactDetailModel->setTimings ( $timings );
 						        $contactDetailModel = $contactDetailModel->save();
 						    }   
 						}else{
@@ -377,7 +425,6 @@ class Contact_IndexController extends Zend_Controller_Action {
 						
 						// Save Contact Details
 						$contact_id = $model->get ( "contact_id" );
-						
 						$modelDetails = new Contact_Model_ContactDetail ( $arrFormValues );
 						if ($logo_path == "deleted" ) {
 							$modelDetails->setLogo ("");
@@ -581,5 +628,36 @@ class Contact_IndexController extends Zend_Controller_Action {
 		$jsonGrid = Zend_Json::encode ( $response );
 		$this->_response->appendBody ( $jsonGrid );
 	}
-	
+	private function _getCategoryTree($customer_id = null, $language_id = null) {
+	    // Get customer_id, module_cms_id ,title, parent_id
+	    $where = "c.customer_id =" . $customer_id;
+	    $data = array();
+	    $this->_getChildrens($where,0,$data,$language_id);
+	    return Zend_Json::encode ( $data );
+	}
+	private function _getChildrens($where, $parent,&$data,$language_id){
+	    $categoryMapper = new Contact_Model_Mapper_ContactCategory();
+	    $select = $categoryMapper->getDbTable ()->select ()
+	    ->setIntegrityCheck ( false )
+	    ->from ( array (
+        'c' => 'module_contact_category'),
+        array (
+                'id' => 'c.contact_category_id',
+                'parentId' => 'c.parent_id') )
+                ->joinLeft ( array (
+                        'cd' => 'module_contact_category_detail'),
+                        "cd.contact_category_id  = c.contact_category_id AND cd.language_id = " . $language_id,
+                        array ('text' => 'cd.title') );
+        $select = $select->where ( "c.parent_id=".$parent." AND ".$where );
+        	
+        $item = $categoryMapper->getDbTable ()->fetchAll ( $select )->toArray ();
+        if(count($item) > 0) {
+            foreach ($item as $child) {
+                $data[] = $child;
+                $this->_getChildrens($where,$child['id'],$data,$language_id);
+            }
+        } else {
+            return false;
+        }
+	}
 }

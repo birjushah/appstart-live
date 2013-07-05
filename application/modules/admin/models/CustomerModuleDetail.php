@@ -7,4 +7,5 @@ class Admin_Model_CustomerModuleDetail extends Standard_Model {
 	private $_background_image;
 	private $_background_color;
 	private $_background_type;
+	private $_list_view_image;
 }

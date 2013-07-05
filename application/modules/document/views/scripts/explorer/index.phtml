@@ -7,14 +7,22 @@
 window.documentUploaded = <?php echo $this->documentUploaded?$this->documentUploaded:0;?>;
 window.documentLimit = <?php echo $this->documentlimit?$this->documentlimit:0;?>;
 </script>
-<script type="text/javascript" src="<?php echo $this->baseUrl("libs/tinymce/js/tiny_mce.js"); ?>"></script>
-<script type="text/javascript">
 
-</script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxcore.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/gettheme.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxdropdownbutton.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxscrollbar.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxbuttons.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxtree.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxpanel.js"); ?>"></script>
+
 <script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqueryui/js/jquery.layout-latest.min.js"); ?>"></script>
 <script type="text/javascript" src="<?php echo $this->baseUrl("libs/jstree/_lib/jquery.hotkeys.js"); ?>"></script>
 <script type="text/javascript" src="<?php echo $this->baseUrl("libs/jstree/jquery.jstree.js"); ?>"></script>
 <script type="text/javascript" src="<?php echo $this->baseUrl("libs/mustache/mustache.js") ?>"></script>
+<link rel="StyleSheet" href="<?php echo $this->baseUrl("libs/tagit/css/jquery.tagedit.css"); ?>"type="text/css" media="all" />
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/tagit/js/jquery.autoGrowInput.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/tagit/js/jquery.tagedit.js"); ?>"></script>
 <style type="text/css">
 .explorer {
 	display:block;
@@ -178,6 +186,7 @@ a.disabled {
 	z-index:2000;
 }
 </style>
+
 <div class="explorer">
 	<div class="ui-layout-north">
 		Document Explorer
@@ -215,6 +224,8 @@ a.disabled {
 						<li><a id="menu_paste" href="javascript:paste();">Paste</a></li>
 						<li class="sap"></li>
 						<li><a id="menu_select_all" href="javascript:select_all();">Select All</a></li>
+						<li class="sap"></li>
+						<li><a id="hrefImport" href="javascript:void(0);">Import</a></li>
 					</ul>
 				</li>
 			</ul>
@@ -253,17 +264,22 @@ a.disabled {
 			    <td>
 		        	<div class="logo-box">
 		        		<table>
-						<tr>
-							<td>
-					        	<img class="editcatimg" alt="" src="" style="width: 64px;" />
-				        	</td>
-				        	<td>
-								<input type="radio" checked="checked" id="selcatLogo_0" name="selcatLogo" value="0" style="margin-left: 10px;" />
-								<label for="selcatLogo_0"><?php echo $this->translate('Upload:')?></label>
-								<input id="caticon" type="file" name="icon" /> (Size: 120px &#215; 120px )
-					        	<input id="icon_cat_path" type="hidden" name="icon_path" value="" />
-				        	</td>
-			        	</tr>
+    						<tr>
+    							<td>
+    					        	<img class="editcatimg" alt="" src="" style="width: 64px;" />
+    				        	</td>
+    				        	<td>
+    								<input type="radio" checked="checked" id="selcatLogo_0" name="selcatLogo" value="0" style="margin-left: 10px;" />
+    								<label for="selcatLogo_0"><?php echo $this->translate('Upload:')?></label>
+    								<input id="caticon" type="file" name="icon" /> (Size: 120px &#215; 120px )
+    					        	<input id="icon_cat_path" type="hidden" name="icon_path" value="" />
+    				        	</td>
+    			        	</tr>
+    			        	<tr id="deleteCatIconButton" style="display:none">
+    						    <td>
+    							    <div class="deletebuttons"><a class="deleteCatIcon red button-grid">Delete</a></div>
+    						    </td>
+    					    </tr>
 			        	</table>
 					</div>
 				</td>
@@ -277,9 +293,9 @@ a.disabled {
 				</tr>
 				<tr>
 			        <td colspan="3" align="center">
-			        	<?php echo $formCategory->submit->renderViewHelper() ?>&nbsp;
-			        	<?php echo $formCategory->applyallcat->renderViewHelper() ?>&nbsp;
-						<?php echo $formCategory->reset->renderViewHelper() ?>
+			        	<?php echo html_entity_decode($formCategory->submit->renderViewHelper()) ?>&nbsp;
+			        	<?php echo html_entity_decode($formCategory->applyallcat->renderViewHelper()) ?>&nbsp;
+						<?php echo html_entity_decode($formCategory->reset->renderViewHelper()) ?>
 					</td>
 				</tr>
 			</tbody>
@@ -316,17 +332,22 @@ a.disabled {
 			    <td>
 		        	<div class="logo-box">
 		        		<table>
-						<tr>
-							<td>
-					        	<img class="editdocimg" alt="" src="" style="width: 64px;" />
-				        	</td>
-				        	<td>
-								<input type="radio" checked="checked" id="seldocLogo_0" name="seldocLogo" value="0" style="margin-left: 10px;" />
-								<label for="seldocLogo_0"><?php echo $this->translate('Upload:')?></label>
-								<input id="docicon" type="file" name="icon" /> (Size: 120px &#215; 120px )
-					        	<input id="icon_doc_path" type="hidden" name="icon_path" value="" />
-				        	</td>
-			        	</tr>
+    						<tr>
+    							<td>
+    					        	<img class="editdocimg" alt="" src="" style="width: 64px;" />
+    				        	</td>
+    				        	<td>
+    								<input type="radio" checked="checked" id="seldocLogo_0" name="seldocLogo" value="0" style="margin-left: 10px;" />
+    								<label for="seldocLogo_0"><?php echo $this->translate('Upload:')?></label>
+    								<input id="docicon" type="file" name="icon" /> (Size: 120px &#215; 120px )
+    					        	<input id="icon_doc_path" type="hidden" name="icon_path" value="" />
+    				        	</td>
+    			        	</tr>
+			        	    <tr id="deleteDocIconButton" style="display:none">
+    						    <td>
+    							    <div class="deletebuttons"><a class="deleteDocIcon red button-grid">Delete</a></div>
+    						    </td>
+    					    </tr>
 			        	</table>
 					</div>
 				</td>
@@ -346,9 +367,23 @@ a.disabled {
 				</td>
 			</tr>
 			<tr>
-		    	<td><?php echo $form->keywords->renderLabel() ?></td>
-		        <td>
-		        	<?php echo $form->keywords->renderViewHelper()?>
+				<td><label>Keywords</label></td>
+				<td>
+					<?php
+					if (is_array ( $this->keywords )) {
+						foreach ( $this->keywords as $keyword ) {
+							?>
+								<input type="text" name="arrtag[]"
+						value="<?php echo $keyword;?>" class="tag" id="keywords" />
+							<?php
+						}
+					} else {
+						?>
+						<input type="text" name="arrtag[]" value=""
+						class="tag" id="keywords" />
+					<?php
+					}
+					?>
 				</td>
 			</tr>
 			<tr>
@@ -359,9 +394,9 @@ a.disabled {
 			</tr>
 			<tr>
 		        <td colspan="3" align="center">
-		        	<?php echo $form->submit->renderViewHelper() ?>&nbsp;
-		        	<?php echo $form->applyalldoc->renderViewHelper() ?>&nbsp;
-					<?php echo $form->reset->renderViewHelper() ?>
+		        	<?php echo html_entity_decode($form->submit->renderViewHelper()) ?>&nbsp;
+		        	<?php echo html_entity_decode($form->applyalldoc->renderViewHelper()) ?>&nbsp;
+					<?php echo html_entity_decode($form->reset->renderViewHelper()) ?>
 				</td>
 			</tr>
 		</tbody>
@@ -376,14 +411,174 @@ a.disabled {
     <input type=radio id=sel{{toggle}}Logo_{{value}} name=sel{{toggle}}Logo value={{value}} />
 </div>
 </script>
+<div id="zip-import" style="display: none;">
+<form id="frmZipImport" class="zend_form" name="frmZipImport" action="#" method="post">
+<input type="hidden" name="zip_category_id" id="zip_category_id" value="0" />
+<table width="100%">
+	<tr>
+		<td><label for="tree"><?php echo $this->translate('Select Category:'); ?></label></td>
+		<td>
+			<div id='jqxWidget'>
+				<div id="dropDownButton">
+					<div id='jqxTree'></div>
+				</div>
+			</div>
+		</td>
+	</tr>
+	<tr>
+		<td>Select File:</td>
+		<td><input type="file" id="zipfile" name="zipfile" accept="application/zip" /> </td>
+	</tr>
+	<tr>
+		<td></td>
+		<td align="right"><input type="checkbox" id="chkOverwrite" name="chkOverwrite" checked="checked" value="1" /> <label for="chkOverwrite">Overwrite Existing</label></td>
+	</tr>
+	<tr>
+		<td colspan="2">
+		<div id="progressbar" style="display: none;">
+			<div id="progress" class="progressbar-completed" style="width:0%;">
+            	<div>&nbsp;</div>
+        	</div>
+        </div>
+        </td>
+	</tr>
+	<tr>
+		<td colspan="2"><input type="submit" name="submit" value="submit" /><div id="error-message" style="float: right;"></div></td>
+	</tr>
+</table>
+</form>
+</div>
+
 <script type="text/javascript">
 window.current_parent = null;
 window._clipboard = new Array();
 window._clipboard_action = null;
 $(document).ready(function(){
+	$("#description").css("width","485px");
+	var parentIdLabel = "";
+	var data = <?php echo $this->categoryTree; ?>;
+	//console.log(data);
+	//creating data which jqtree plugin can use
+	var builddata = function () {
+		var source = [];
+		var items = [];	
+		// build hierarchical source.
+		items[0]={id:0,label:'Root',selected:false};
+		source[0] = items[0];
+		for (var i = 0; i < data.length; i++) {
+			var item = data[i];
+			var label = item["text"];
+			var parentid = item["parentId"];
+			var id = item["id"];
+			
+			if (items[parentid]) {
+				var item = { id: id, label: label, item: item };
+				if (!items[parentid].items) {
+					items[parentid].items = [];
+				}
+				items[parentid].items[items[parentid].items.length] = item;
+				items[id] = item;
+			}
+			else {
+				items[id] = { id: id, label: label, item: item };
+				source[id] = items[id];
+			}
+		}		
+		return source;
+	}
+	$("#dropDownButton").jqxDropDownButton({ width: 150, height: 25 });
+	$('#jqxTree').bind('initialized', function (event) { 
+		var args = event.args;
+		parentIdLabel = (parentIdLabel=="")?"Root":parentIdLabel;
+    	var dropDownContent = '<div style="position: relative; margin-left: 3px; margin-top: 5px;">' + parentIdLabel + '</div>';
+    	$("#dropDownButton").jqxDropDownButton('setContent', dropDownContent);
+    });	
+	$('#jqxTree').bind('select', function (event) {
+        var args = event.args;
+        var item = $('#jqxTree').jqxTree('getItem', args.element);
+        $("#zip_category_id").attr("value",item.id);
+        var dropDownContent = '<div style="position: relative; margin-left: 3px; margin-top: 5px;">' + item.label + '</div>';
+        $("#dropDownButton").jqxDropDownButton('setContent', dropDownContent);
+    });
+	$('#jqxTree').bind('click', function (event) {
+		$("#dropDownButton").jqxDropDownButton("close");
+	});
+    var source = builddata();
+    //console.log(source);
+	$("#jqxTree").jqxTree({source:source,width: 250 });
+	$('#jqxTree').jqxTree('expandAll');
+	$("#hrefImport").on('click',function(e){
+		$("#zip-import").dialog({
+    		modal: true,
+    		width: 330,
+    		resizable: false,
+    		title: "Import ZIP",
+    		dialogClass: "Import"
+    	});
+	});
+	$("#frmZipImport").on('submit',function(e){
+		if(!e.isDefaultPrevented()){
+			$("#error-message").html("");
+			e.preventDefault();
+			var filename = $("#zipfile").val();
+			if(filename.length == 0) {
+				$("#error-message").html("Please upload file !!!");
+				$("#error-message").css("color","#f00");
+				return;
+			}
+			var ext = filename.substring(filename.lastIndexOf('.') + 1);
+			if(ext.toLowerCase() != 'zip') {
+				$("#error-message").html("Only zip files are allowed to upload !!!");
+				$("#error-message").css("color","#f00");
+				return;
+			}
+			
+			$(document).queue(function(next){
+				$("#progressbar").show();
+				next();
+				}).queue(function(next){
+				$.ajaxFileUpload({
+					url:'<?php echo $this->url(array("module"=>"document","controller"=>"index","action"=>"zip-import")); ?>',
+					secureuri:false,
+					fileElementId:'zipfile',
+					dataType: 'json',
+					data:{upload:'true',category:$("#zip_category_id").attr("value"),overwrite:($('#chkOverwrite').is(':checked')? 1 : 0)},
+					success: function (data, status)
+					{
+						if(data.success != undefined) {
+							$("#error-message").html("<?php echo $this->translate('Documents imported successfully.')?>");
+							$("#error-message").css("color","#080");
+							setTimeout(function(){
+								location.href=location.href;
+								next();
+							}, 3000);
+						}
+					},
+					error: function (data, status, e)
+					{
+						$("#error-message").html("<?php echo $this->translate('Error uploading zip.')?>");
+						$("#error-message").css("color","#f00");
+						next();
+					}
+				});
+				}).queue(function(next){
+				$("#progressbar").hide();
+				next();
+	  		});
+		}
+	});
+	
 	$(document).bind('dialogclose', function(event) {
 	    $(".error").css("display","none");
 	});
+	function initTag(){
+    	$(function() {
+    		$( "#frmAddEditDocument" ).find('input.tag').tagedit({
+    				//autocompleteURL: 'server/autocomplete.php'
+    		});
+    	});
+    }
+    initTag();
 	$("input:radio[name=selcatLogo]").live("change",function(){
 		if($('input:radio[name=selcatLogo]:checked').val() == 0)
 		{
@@ -833,6 +1028,19 @@ $(document).ready(function(){
 		}
 	});
 });
+
+$(".deleteCatIcon").on("click",function(){
+	$("#icon_cat_path").attr("value","deleted");
+	$(".editcatimg").remove();
+	$("#caticon").attr("value","");
+	$("tr#deleteCatIconButton").remove();
+});
+$(".deleteDocIcon").on("click",function(){
+	$("#icon_doc_path").attr("value","deleted");
+	$(".editdocimg").remove();
+	$("#docicon").attr("value","");
+	$("tr#deleteDocIconButton").remove();
+});
 function reset_menu() {
 	var count = $(".selected").length;
 	if(count==0) {
@@ -1063,56 +1271,6 @@ function add_document() {
     			resizable: false,
     			title: "Add Document"
     		});
-    		tinyMCE.init({
-    			// General options
-    			mode : "textareas",
-    			theme : "advanced",
-    			plugins : "autolink,lists,pagebreak,style,layer,table,advhr,advimage,advlink,emotions,iespell,inlinepopups,insertdatetime,preview,media,searchreplace,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras,template,wordcount,advlist,autosave,visualblocks",
-    
-    			// Theme options
-    			theme_advanced_buttons1 : "bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,styleselect,formatselect,fontselect,fontsizeselect,|,undo,redo,code",
-    			theme_advanced_buttons2 : "",
-    			theme_advanced_buttons3 : "",
-    			
-    			//plugins : "autolink,lists,pagebreak,style,layer,table,save,advhr,advimage,advlink,emotions,iespell,inlinepopups,insertdatetime,preview,media,searchreplace,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras,template,wordcount,advlist,visualblocks",
-    			//plugins : "paste,pagebreak,table",
-    			
-    			// Theme options
-    			//theme_advanced_buttons1 : "bold,italic,underline,strikethrough,|,undo,redo,|,bullist,numlist,|,outdent,indent,blockquote,|,forecolor,backcolor,|,tablecontrols,|,hr",
-    			//theme_advanced_buttons1 : "formatselect,fontselect,fontsizeselect,|,forecolor,backcolor,|,bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,|,code",
-    			//theme_advanced_buttons2 : "",
-    			//theme_advanced_buttons3 : "tablecontrols,|,hr,removeformat,visualaid,|,sub,sup,|,ltr,rtl",
-    			//theme_advanced_buttons4 : "insertlayer,moveforward,movebackward,absolute,|,cite,abbr,acronym,del,ins,attribs,|,visualchars,nonbreaking,pagebreak",
-    			theme_advanced_toolbar_location : "top",
-    			theme_advanced_toolbar_align : "left",
-    			theme_advanced_statusbar_location : "bottom",
-    			theme_advanced_resizing : true,
-    
-    			// Example content CSS (should be your site CSS)
-    			content_css : "<?php echo $this->baseUrl("libs/tinymce/css/content.css"); ?>",
-    
-    			// Drop lists for link/image/media/template dialogs
-    			template_external_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/template_list.js"); ?>",
-    			external_link_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/link_list.js"); ?>",
-    			external_image_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/image_list.js"); ?>",
-    			media_external_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/media_list.js"); ?>",
-    
-    			// Style formats
-    			style_formats : [
-    				{title : 'Bold text', inline : 'b'},
-    				{title : 'Red text', inline : 'span', styles : {color : '#ff0000'}},
-    				{title : 'Red header', block : 'h1', styles : {color : '#ff0000'}},
-    				{title : 'Example 1', inline : 'span', classes : 'example1'},
-    				{title : 'Example 2', inline : 'span', classes : 'example2'},
-    				{title : 'Table styles'},
-    				{title : 'Table row 1', selector : 'tr', classes : 'tablerow1'}
-    			],
-    			// Replace values for the template plugin
-    			template_replace_values : {
-    				username : "Some User",
-    				staffid : "991234"
-    			}
-    		});
 		}
 	}
 }
@@ -1164,7 +1322,8 @@ function edit(language) {
 							var output = Mustache.render(template,iconData);
 							$("#lstcatLogo").append(output);
 						}
-						if(json.data.caticonpath != ""){
+						if(typeof json.data.caticonpath != "undefined" && json.data.caticonpath != null){
+							$("tr#deleteCatIconButton").css({display:'block'});
 							$(".editcatimg").attr("src",json.data.caticonpath);
 							$("#selcatLogo_0").removeAttr("disabled");
 							$("#selcatLogo_0").attr("checked","checked");
@@ -1234,7 +1393,8 @@ function edit(language) {
 							var output = Mustache.render(template,iconData);
 							$("#lstdocLogo").append(output);
 						}
-						if(json.data.dociconpath != ""){
+						if(typeof json.data.dociconpath != "undefined" && json.data.dociconpath != null){
+							$("tr#deleteDocIconButton").css({display:'block'});
 							$(".editdocimg").attr("src",json.data.dociconpath);
 							$("#seldocLogo_0").removeAttr("disabled");
 							$("#seldocLogo_0").attr("checked","checked");
@@ -1247,56 +1407,6 @@ function edit(language) {
 							width: 785,
 							resizable: false,
 							title: "Edit Document"
-						});
-						tinyMCE.init({
-							// General options
-							mode : "textareas",
-							theme : "advanced",
-							plugins : "autolink,lists,pagebreak,style,layer,table,advhr,advimage,advlink,emotions,iespell,inlinepopups,insertdatetime,preview,media,searchreplace,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras,template,wordcount,advlist,autosave,visualblocks",
-
-							// Theme options
-							theme_advanced_buttons1 : "bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,styleselect,formatselect,fontselect,fontsizeselect,|,undo,redo,code",
-							theme_advanced_buttons2 : "",
-							theme_advanced_buttons3 : "",
-							
-							//plugins : "autolink,lists,pagebreak,style,layer,table,save,advhr,advimage,advlink,emotions,iespell,inlinepopups,insertdatetime,preview,media,searchreplace,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras,template,wordcount,advlist,visualblocks",
-							//plugins : "paste,pagebreak,table",
-							
-							// Theme options
-							//theme_advanced_buttons1 : "bold,italic,underline,strikethrough,|,undo,redo,|,bullist,numlist,|,outdent,indent,blockquote,|,forecolor,backcolor,|,tablecontrols,|,hr",
-							//theme_advanced_buttons1 : "formatselect,fontselect,fontsizeselect,|,forecolor,backcolor,|,bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,|,code",
-							//theme_advanced_buttons2 : "",
-							//theme_advanced_buttons3 : "tablecontrols,|,hr,removeformat,visualaid,|,sub,sup,|,ltr,rtl",
-							//theme_advanced_buttons4 : "insertlayer,moveforward,movebackward,absolute,|,cite,abbr,acronym,del,ins,attribs,|,visualchars,nonbreaking,pagebreak",
-							theme_advanced_toolbar_location : "top",
-							theme_advanced_toolbar_align : "left",
-							theme_advanced_statusbar_location : "bottom",
-							theme_advanced_resizing : true,
-
-							// Example content CSS (should be your site CSS)
-							content_css : "<?php echo $this->baseUrl("libs/tinymce/css/content.css"); ?>",
-
-							// Drop lists for link/image/media/template dialogs
-							template_external_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/template_list.js"); ?>",
-							external_link_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/link_list.js"); ?>",
-							external_image_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/image_list.js"); ?>",
-							media_external_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/media_list.js"); ?>",
-
-							// Style formats
-							style_formats : [
-								{title : 'Bold text', inline : 'b'},
-								{title : 'Red text', inline : 'span', styles : {color : '#ff0000'}},
-								{title : 'Red header', block : 'h1', styles : {color : '#ff0000'}},
-								{title : 'Example 1', inline : 'span', classes : 'example1'},
-								{title : 'Example 2', inline : 'span', classes : 'example2'},
-								{title : 'Table styles'},
-								{title : 'Table row 1', selector : 'tr', classes : 'tablerow1'}
-							],
-							// Replace values for the template plugin
-							template_replace_values : {
-								username : "Some User",
-								staffid : "991234"
-							}
 						});
 						next();
 					},
@@ -1335,8 +1445,24 @@ function remove() {
                                     type: "GET",
                                     dataType: "json",
                                     success: function(json){
+                                    	if(json.success != undefined){ 
+                                        	prompt.showSuccessMessage("<?php echo $this->translate('Category deleted successfully.'); ?>");
+                                        	setTimeout(function(){
+                                        		prompt.close();
+                                        		next();
+                                            }, 1000);
+                                        } else if(json.errors != undefined){
+                                            var errorMessage = "<?php echo $this->translate('Unable to delete document:'); ?><br />";
+                                            errorMessage += json.errors.message;
+                                        	prompt.showErrorMessage(errorMessage);
+                                        	setTimeout(function(){
+                                        		prompt.close();
+                                        		next();
+                                            }, 2000);
+                                        }   
                                     },
                                     error: function(){
+                                    	
                                     }
                                 });
                 			} else {
@@ -1349,13 +1475,28 @@ function remove() {
                                     type: "GET",
                                     dataType: "json",
                                     success: function(json){
-                                    	window.documentUploaded--;
+                                    	if(json.success != undefined){
+                                        	prompt.showSuccessMessage("<?php echo ($this->translate('Document deleted successfully.')); ?>");
+                                        	window.documentUploaded--;
+                                        	setTimeout(function(){
+                                        		prompt.close();
+                                        		next();
+                                            }, 1000);
+                                        } else if(json.errors != undefined){
+                                            var errorMessage = "<?php echo ($this->translate('Unable to delete document:')); ?><br />";
+                                            errorMessage += json.errors.message;
+                                        	prompt.showErrorMessage(errorMessage);
+                                        	setTimeout(function(){
+                                        		prompt.close();
+                                        		next();
+                                            }, 2000);
+                                        }
                                     },
                                     error: function(){
                                     }
                                 });
                 			}
-                		}).promise().done(next);
+                		}).promise().done();
                     }).queue(function(next){
                     	$("#divTree").jstree("refresh",-1);
                     	next();

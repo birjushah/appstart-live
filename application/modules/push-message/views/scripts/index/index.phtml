@@ -1,3 +1,6 @@
+<script>
+window.totalcategories = <?php echo $this->totalcategories?$this->totalcategories:0;?>;
+</script>
 <form id="frmFilter">
 <div id="filterBox">
       <table style="width:100%;border:0;border-spacing:0;border-collapse:collapse;">
@@ -31,7 +34,8 @@
 	<thead>
 		<tr>
 	        <th scope="col"><?php echo $this->translate('Title'); ?></th>
-		    <th scope="col"><?php echo $this->translate('Description'); ?></th>
+            <th scope="col"><?php echo $this->translate('Category'); ?></th>
+	        <th scope="col"><?php echo $this->translate('Description'); ?></th>
             <th scope="col"><?php echo $this->translate('Date/Time'); ?></th>
 		    <th scope="col"><?php echo $this->translate('Status'); ?></th>
 		    <th scope="col"><?php echo $this->translate('Order'); ?></th>
@@ -48,11 +52,26 @@
 <script type="text/javascript">
 var grid ="";
 $(document).ready(function() {
-
+	$('a[href="<?php echo $this->addlink;?>"]').on('click',function(e){
+		if(!e.isDefaultPrevented()){
+			if(window.totalcategories == 0){
+				 promptus = new prompt({
+	                reference : self,
+	                element : ".dataTables_wrapper"
+	            });
+	            promptus.showErrorMessage("You can not add a push message without category.Please add atleast one category.");
+	            setTimeout(function(){
+            		promptus.close();
+                }, 3000);
+				e.preventDefault();
+			}
+		}
+	});
 	grid = dataTable({
-		aaSorting: [[ 3, "asc" ]],
+		aaSorting: [[ 4, "asc" ]],
 		"aoColumns": [
 						{ "sName": "pmd.title" },
+						{ "sName": "pmcd.title" },
 						{ "sName": "pmd.description" },
                         { "sName": "pmd.message_date" },
 						{ "sName": "pm.status" },

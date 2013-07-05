@@ -24,11 +24,15 @@
 				<td><?php echo $form->settings->renderLabel() ?></td>
 				<td><?php echo $form->settings->renderViewHelper()  ?></td>
 			</tr>
+			<tr>
+				<td><?php echo $form->publish->renderLabel() ?></td>
+				<td><?php echo $form->publish->renderViewHelper()  ?></td>
+			</tr>
 			<!-- Submit -->
 			<tr>
 				<td align="center" colspan="2">
-				<?php echo $form->submit->renderViewHelper() ?>&nbsp;
-				<?php echo $form->reset->renderViewHelper()?>
+				<?php echo html_entity_decode($form->submit->renderViewHelper()) ?>&nbsp;
+				<?php echo html_entity_decode($form->reset->renderViewHelper())?>
 			</td>
 			</tr>
 		</table>

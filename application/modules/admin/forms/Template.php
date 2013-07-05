@@ -84,7 +84,7 @@ class Admin_Form_Template extends Standard_Form
     	$models = $mapper->fetchAll();
     	if($models) {
 	    	foreach($models as $module) {
-	    		$options[$module->getModuleId()] = $module->getName();
+	    		$options[$module->getModuleId()] = $module->getDescription();
 	    	}
     	}
     	return $options;

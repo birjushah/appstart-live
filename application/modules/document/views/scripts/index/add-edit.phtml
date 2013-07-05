@@ -1,62 +1,24 @@
 <?php $form = $this->form;?>
+<style>
+.tagedit-list{
+	border:1px solid #CACED2;
+	border-radius:3px 3px 3px 3px;
+	color:#797979;
+	font:12px Arial,Helvetica;
+	background-color: #FFFFFF;
+	box-shadow:0 2px 4px #DCDDE2 inset;
+	min-height: 20px !important;
+	margin:0 2px;
+}
+</style>
 <script type="text/javascript">
 window.documentUploaded = <?php echo $this->documentUploaded?$this->documentUploaded:0;?>;
 window.documentLimit = <?php echo $this->documentlimit?$this->documentlimit:0;?>;
 </script>
-<script type="text/javascript" src="<?php echo $this->baseUrl("libs/tinymce/js/tiny_mce.js"); ?>"></script>
-<script type="text/javascript">
-tinyMCE.init({
-	// General options
-	mode : "textareas",
-	theme : "advanced",
-	plugins : "autolink,lists,pagebreak,style,layer,table,advhr,advimage,advlink,emotions,iespell,inlinepopups,insertdatetime,preview,media,searchreplace,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras,template,wordcount,advlist,visualblocks",
 
-	// Theme options
-	theme_advanced_buttons1 : "newdocument,|,bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,styleselect,formatselect,fontselect,fontsizeselect",
-	theme_advanced_buttons2 : "cut,copy,paste,pastetext,pasteword,|,search,replace,|,bullist,numlist,|,outdent,indent,blockquote,|,undo,redo,|,link,unlink,anchor,image,cleanup,help,code,|,insertdate,inserttime,preview,|,forecolor,backcolor",
-	theme_advanced_buttons3 : "tablecontrols,|,hr,removeformat,visualaid,|,sub,sup,|,charmap,emotions,iespell,media,advhr,|,print,|,ltr,rtl,|,fullscreen",
-	theme_advanced_buttons4 : "insertlayer,moveforward,movebackward,absolute,|,styleprops,|,cite,abbr,acronym,del,ins,attribs,|,visualchars,nonbreaking,template,pagebreak,restoredraft,visualblocks",
-	
-	//plugins : "autolink,lists,pagebreak,style,layer,table,save,advhr,advimage,advlink,emotions,iespell,inlinepopups,insertdatetime,preview,media,searchreplace,print,contextmenu,paste,directionality,fullscreen,noneditable,visualchars,nonbreaking,xhtmlxtras,template,wordcount,advlist,visualblocks",
-	//plugins : "paste,pagebreak,table",
-	
-	// Theme options
-	//theme_advanced_buttons1 : "bold,italic,underline,strikethrough,|,undo,redo,|,bullist,numlist,|,outdent,indent,blockquote,|,forecolor,backcolor,|,tablecontrols,|,hr",
-	//theme_advanced_buttons1 : "formatselect,fontselect,fontsizeselect,|,forecolor,backcolor,|,bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,|,code",
-	//theme_advanced_buttons2 : "",
-	//theme_advanced_buttons3 : "tablecontrols,|,hr,removeformat,visualaid,|,sub,sup,|,ltr,rtl",
-	//theme_advanced_buttons4 : "insertlayer,moveforward,movebackward,absolute,|,cite,abbr,acronym,del,ins,attribs,|,visualchars,nonbreaking,pagebreak",
-	theme_advanced_toolbar_location : "top",
-	theme_advanced_toolbar_align : "left",
-	theme_advanced_statusbar_location : "bottom",
-	theme_advanced_resizing : true,
-
-	// Example content CSS (should be your site CSS)
-	content_css : "<?php echo $this->baseUrl("libs/tinymce/css/content.css"); ?>",
-
-	// Drop lists for link/image/media/template dialogs
-	template_external_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/template_list.js"); ?>",
-	external_link_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/link_list.js"); ?>",
-	external_image_list_url : "<?php echo $this->url(array("module"=>"module-cms","controller"=>"index","action" => "get-images"),"default",true); ?>",
-	media_external_list_url : "<?php echo $this->baseUrl("libs/tinymce/js/lists/media_list.js"); ?>",
-
-	// Style formats
-	style_formats : [
-		{title : 'Bold text', inline : 'b'},
-		{title : 'Red text', inline : 'span', styles : {color : '#ff0000'}},
-		{title : 'Red header', block : 'h1', styles : {color : '#ff0000'}},
-		{title : 'Example 1', inline : 'span', classes : 'example1'},
-		{title : 'Example 2', inline : 'span', classes : 'example2'},
-		{title : 'Table styles'},
-		{title : 'Table row 1', selector : 'tr', classes : 'tablerow1'}
-	],
-	// Replace values for the template plugin
-	template_replace_values : {
-		username : "Some User",
-		staffid : "991234"
-	}
-});
-</script>
+<link rel="StyleSheet" href="<?php echo $this->baseUrl("libs/tagit/css/jquery.tagedit.css"); ?>"type="text/css" media="all" />
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/tagit/js/jquery.autoGrowInput.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/tagit/js/jquery.tagedit.js"); ?>"></script>
 <script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxcore.js"); ?>"></script>
 <script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/gettheme.js"); ?>"></script>
 <script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxdropdownbutton.js"); ?>"></script>
@@ -120,31 +82,38 @@ tinyMCE.init({
 			    <td>
 		        	<div class="logo-box">
 		        		<table>
-						<tr>
-							<td>
-								<?php 
-								$icon_path = $this->baseUrl("resource/document/");
-					        	if($this->icon_src!="") {
-					        	?>
-					        	<img alt="" src="<?php echo $icon_path."/".$this->icon_src;?>" style="width: 64px;" />
-					        	<?php 
-					        	}
-					        	?>
-				        	</td>
-				        	<td>
-				        		<?php
-				        		$checked = "";
-					        	if($this->icon_src!="") {
-					        		$checked = "checked='checked'";
-								}
-								?>
-					        	
-								<input type="radio" id="selLogo_0" checked="checked" name="selLogo" value="0" style="margin-left: 10px;" />
-								<label for="selLogo_0"><?php echo $this->translate('Upload:')?></label>
-								<input id="icon" type="file" name="icon" /> (Size: 120px &#215; 120px )
-					        	<input id="icon_path" type="hidden" name="icon_path" value="" />
-				        	</td>
-			        	</tr>
+    						<tr>
+    							<td>
+    								<?php 
+    								$icon_path = $this->baseUrl("resource/document/");
+    					        	if($this->icon_src!="") {
+    					        	?>
+    					        	<img class="iconImage" alt="" src="<?php echo $icon_path."/".$this->icon_src;?>" style="width: 64px;" />
+    					        	<?php 
+    					        	}
+    					        	?>
+    				        	</td>
+    				        	<td>
+    				        		<?php
+    				        		$checked = "";
+    					        	if($this->icon_src!="") {
+    					        		$checked = "checked='checked'";
+    								}
+    								?>
+    					        	
+    								<input type="radio" id="selLogo_0" checked="checked" name="selLogo" value="0" style="margin-left: 10px;" />
+    								<label for="selLogo_0"><?php echo $this->translate('Upload:')?></label>
+    								<input id="icon" type="file" name="icon" /> (Size: 120px &#215; 120px )
+    					        	<input id="icon_path" type="hidden" name="icon_path" value="" />
+    				        	</td>
+    			        	</tr>
+    			        	<tr id="deleteIconButton">
+    			        	 <?php if($this->icon_src!=""){ ?>
+    						    <td>
+    							    <div class="deletebuttons"><a class="deleteIcon red button-grid">Delete</a></div>
+    						    </td>
+    					    </tr>
+    					    <?php } ?>
 			        	</table>
 					</div>
 				</td>
@@ -163,9 +132,23 @@ tinyMCE.init({
 				</td>
 			</tr>
 			<tr>
-		    	<td><?php echo $form->keywords->renderLabel() ?></td>
-		        <td>
-		        	<?php echo $form->keywords->renderViewHelper()?>
+				<td><label>Keywords</label></td>
+				<td>
+					<?php
+					if (is_array ( $this->keywords )) {
+						foreach ( $this->keywords as $keyword ) {
+							?>
+								<input type="text" name="arrtag[]"
+						value="<?php echo $keyword;?>" class="tag" id="keywords" />
+							<?php
+						}
+					} else {
+						?>
+						<input type="text" name="arrtag[]" value=""
+						class="tag" id="keywords" />
+					<?php
+					}
+					?>
 				</td>
 			</tr>
 			<tr>
@@ -176,9 +159,9 @@ tinyMCE.init({
 			</tr>
 			<tr>
 		        <td colspan="3" align="center">
-		        	<?php echo $form->submit->renderViewHelper() ?>&nbsp;
-		        	<?php echo $form->applyalldoc->renderViewHelper()?>&nbsp;
-					<?php echo $form->reset->renderViewHelper() ?>
+		        	<?php echo html_entity_decode($form->submit->renderViewHelper()) ?>&nbsp;
+		        	<?php echo (Standard_Functions::$action == "edit")? html_entity_decode($form->applyalldoc->renderViewHelper()):""?>&nbsp;
+					<?php echo html_entity_decode($form->reset->renderViewHelper()) ?>
 				</td>
 			</tr>
 		</tbody>
@@ -188,6 +171,7 @@ tinyMCE.init({
 <script type="text/javascript">
 // <!--
 $(document).ready(function() {
+	$("#description").css("width","485px");
 	$("#applyalldoc").on("click",function(e){
 		if(!e.isDefaultPrevented()){
 	    	var promptus = new prompt({
@@ -196,6 +180,7 @@ $(document).ready(function() {
 	                message : "<?php echo $this->translate('Your changes will be saved and applied to all languages. Is it Ok?'); ?>",
 	                buttons : {
 	                    "Yes" : function(self){
+		                    this.close();
 	                        $("#frmAddEditDocument").trigger("submit",{all:true});
 	                    },
 	                    "No"  : function(self){
@@ -208,35 +193,32 @@ $(document).ready(function() {
 	});
 	var parentIdLabel = "<?php echo $this->parentCategory; ?>";
 	var data = <?php echo $this->categoryTree; ?>;
-	//console.log(data);
-	//creating data which jqtree plugin can use
 	var builddata = function () {
 		var source = [];
-		var items = [];	
-		// build hierarchical source.
-		items[0]={id:0,label:'Menu',selected:false};
+	    var items = [];
+	    items[0]={id:0,label:'Root',selected:false};
 		source[0] = items[0];
-		for (var i = 0; i < data.length; i++) {
-			var item = data[i];
-			var label = item["text"];
-			var parentid = item["parentId"];
-			var id = item["id"];
+	    for (var i = 0; i < data.length; i++) {
+	        var item = data[i];
+	        var label = item["text"];
+	        var parentid = item["parentId"];
+	        var id = item["id"];
 
-			if (items[parentid]) {
-				var item = { id: id, label: label, item: item };
-				if (!items[parentid].items) {
-					items[parentid].items = [];
-				}
-				items[parentid].items[items[parentid].items.length] = item;
-				items[id] = item;
-			}
-			else {
-				items[id] = { id: id, label: label, item: item };
-				source[id] = items[id];
-			}
-		}		
-		return source;
-	}
+	        if (items[parentid]) {
+	            var item = { id: id, label: label, item: item };
+	            if (!items[parentid].items) {
+	                items[parentid].items = [];
+	            }
+	            items[parentid].items[items[parentid].items.length] = item;
+	            items[id] = item;
+	        }
+	        else {
+	            items[id] = { id: id, label: label, item: item };
+	            source[id] = items[id];
+	        }
+	    }
+	    return source;
+	};
 	$("input:radio[name=selLogo]").on("change",function(){
 		if($('input:radio[name=selLogo]:checked').val() == 0)
 		{
@@ -245,10 +227,24 @@ $(document).ready(function() {
 			$("#icon").attr("disabled","disabled");
 		}			
 	});
+	$(".deleteIcon").on("click",function(){
+    	$("#icon_path").attr("value","deleted");
+    	$(".iconImage").remove();
+    	$("#icon").attr("value","");
+    	$("tr#deleteIconButton").remove();
+    });
+	function initTag(){
+    	$(function() {
+    		$( "#frmAddEditDocument" ).find('input.tag').tagedit({
+    				//autocompleteURL: 'server/autocomplete.php'
+    		});
+    	});
+    }
+    initTag();
 	$("#dropDownButton").jqxDropDownButton({ width: 150, height: 25 });
 	$('#jqxTree').bind('initialized', function (event) { 
 		var args = event.args;
-		parentIdLabel = (parentIdLabel=="")?"Menu":parentIdLabel;
+		parentIdLabel = (parentIdLabel=="")?"Root":parentIdLabel;
     	var dropDownContent = '<div style="position: relative; margin-left: 3px; margin-top: 5px;">' + parentIdLabel + '</div>';
     	$("#dropDownButton").jqxDropDownButton('setContent', dropDownContent);
     });	
@@ -263,8 +259,8 @@ $(document).ready(function() {
 		$("#dropDownButton").jqxDropDownButton("close");
 	});
     var source = builddata();
-    //console.log(source);
 	$("#jqxTree").jqxTree({source:source,width: 250 });
+	$('#jqxTree').jqxTree('expandAll');
 	$("#frmAddEditDocument").validator().submit(function(e,customObject){
 		if(window.documentUploaded >= window.documentLimit){
 			 promptus = new prompt({
@@ -294,7 +290,7 @@ $(document).ready(function() {
 			if($('#module_document_category_id').val() == 0){
 				promptus = new prompt({
 		           	reference : self,
-		            element : "#frmAddEditDocument",
+		            element : "#content",
 		            beforeShow : function(){
 		                this.alternateMessage = this.showErrorMessage("Please select some Category!");
 	                } 

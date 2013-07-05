@@ -1,6 +1,8 @@
 <?php
 class Events_Model_ModuleEvents extends Standard_Model {
 	private $_module_events_id;
+	private $_module_events_category_id;
+	private $_module_events_types_id;
 	private $_customer_id;
 	private $_order;
 	private $_status;

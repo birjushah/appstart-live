@@ -5,6 +5,8 @@ class Admin_Model_CustomerModule extends Standard_Model {
 	private $_customer_id;
 	private $_order_number;
 	private $_visibility;
+	private $_label_1;
+	private $_label_2;
 	private $_status;
 	private $_share;
 	private $_icon;

@@ -64,6 +64,16 @@ class ModuleImageGallery_IndexController extends Zend_Controller_Action {
 		$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
 		$categories = $this->_getCategories ( $customer_id );
 		
+		//getting total categories
+		$mapper = new ModuleImageGallery_Model_Mapper_ModuleImageGalleryCategory();
+		$customer_id = Standard_Functions::getCurrentUser()->customer_id;
+		$DBExpr = new Zend_Db_Expr("COUNT(module_image_gallery_category_id)");
+		$select = $mapper->getDbTable()->select(false)
+		->setIntegrityCheck(false)
+		->from('module_image_gallery_category',array('count'=>$DBExpr ))
+		->where("customer_id =".$customer_id);
+		$stack = $mapper->getDbTable()->fetchRow($select)->toArray();
+		$this->view->totalcategories = $stack['count'];
 		//Send the image limit and total uploaded image
 		$this->view->imagesUploaded = $this->_total_uploaded_images;
 		$this->view->imagesLimit = $this->_upload_image_limit;
@@ -243,6 +253,8 @@ class ModuleImageGallery_IndexController extends Zend_Controller_Action {
 		$this->render ( "add-edit" );
 	}
 	public function editAction() {
+	    $request = $this->getRequest ();
+	    ModuleImageGallery_Form_ModuleImageGallery::$lang = $request->getParam ( "lang", "" );
 		$form = new ModuleImageGallery_Form_ModuleImageGallery ();
 		$action = $this->view->url ( array (
 				"module" => "module-image-gallery",
@@ -255,7 +267,6 @@ class ModuleImageGallery_IndexController extends Zend_Controller_Action {
 				"partial" => "index/partials/add.phtml" 
 		) );
 		$this->view->form = $form;
-		$request = $this->getRequest ();
 		$keywords = array ();
 		if ($request->getParam ( "id", "" ) != "" && $request->getParam ( "lang", "" ) != "") {
 			$mapper = new ModuleImageGallery_Model_Mapper_ModuleImageGallery ();
@@ -326,7 +337,7 @@ class ModuleImageGallery_IndexController extends Zend_Controller_Action {
 				$adapter->receive ();
 				if ($adapter->getFileName ( $image_name ) != "") {
 					$response = array (
-							"success" => array_pop ( explode ('\\' , $adapter->getFileName ( $image_name ) ) ) 
+							"success" => array_pop ( explode ('/' , $adapter->getFileName ( $image_name ) ) ) 
 					);
 				} else {
 					$response = array (

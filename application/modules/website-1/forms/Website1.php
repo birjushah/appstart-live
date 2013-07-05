@@ -85,7 +85,7 @@ class Website1_Form_Website1 extends Standard_Form {
 		//Website Thumb 
 		$thumb = $this->createElement('file','website_logo');
 		$thumb->setLabel(false)
-			 ->setDestination(Standard_Functions::getResourcePath(). "website/logos/")
+			 ->setDestination(Standard_Functions::getResourcePath(). "website/uploaded-icons/")
 			 ->addValidator('Size', false, 10485760)
 			 ->addValidator('Extension', false, 'jpeg,jpg,png,gif');
 		$this->addElement($thumb);

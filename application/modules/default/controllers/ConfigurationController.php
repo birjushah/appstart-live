@@ -234,6 +234,8 @@ class Default_ConfigurationController extends Zend_Controller_Action {
 			), array (
 					"cm_customer_module_id" => "cm.customer_module_id",
 					"cm_visibility" => "cm.visibility",
+			        "cm_label_1" => "cm.label_1",
+			        "cm_label_2" => "cm.label_2",
 					"cm.customer_id",
 					"cm_order_number" => "cm.order_number",
 					"cm_icon" => "cm.icon",
@@ -247,7 +249,8 @@ class Default_ConfigurationController extends Zend_Controller_Action {
 					"d_screen_name" => "d.screen_name",
 					"d_background_image" => "d.background_image",
 					"d_background_color" => "d.background_color",
-					"d_background_type" => "d.background_type" 
+					"d_background_type" => "d.background_type",
+			        "d_list_view_image" => "d.list_view_image" 
 			) )->where ( "cm.customer_module_id=" . $customer_module_id );
 			$response = $mapper->getDbTable ()->fetchAll ( $select )->toArray ();
 			if (! $response) {
@@ -256,6 +259,8 @@ class Default_ConfigurationController extends Zend_Controller_Action {
 				), array (
 						"cm_customer_module_id" => "cm.customer_module_id",
 						"cm_visibility" => "cm.visibility",
+				        "cm_label_1" => "cm.label_1",
+				        "cm_label_2" => "cm.label_2",
 						"cm.customer_id",
 						"cm_order_number" => "cm.order_number",
 						"cm_icon" => "cm.icon",
@@ -303,23 +308,38 @@ class Default_ConfigurationController extends Zend_Controller_Action {
 		$request = $this->getRequest ();
 		$response = array ();
 		if ($request->getParam ( "upload", "" ) != "") {
-			$element = $request->getParam ( "upload" );
 			$adapter = new Zend_File_Transfer_Adapter_Http ();
-			$adapter->setDestination ( Standard_Functions::getResourcePath () . "default/images/" . str_replace ( "_image", "", $element ) );
+			$adapter->setDestination ( Standard_Functions::getResourcePath () . "default/images/icon/custom-uploaded" );
 			$adapter->receive ();
-			
-			if ($adapter->getFileName ( $element ) != "") {
+			if ($adapter->getFileName ( "icon" ) != "") {
 				$response = array (
-						"success" => array_pop ( explode ( '/', $adapter->getFileName ( $element ) ) ) 
+						"success" => "custom-uploaded/".array_pop ( explode ( '/', str_replace("\\","/",$adapter->getFileName ( "icon" ) ) ) )
 				);
 			} else {
 				$response = array (
 						"errors" => "Error Occured" 
 				);
 			}
+			echo Zend_Json::encode ( $response );
+			exit ();
 		}
-		echo Zend_Json::encode ( $response );
-		exit ();
+		
+		if ($request->getParam ( "uploadlistimage", "" ) != "") {
+		    $adapter = new Zend_File_Transfer_Adapter_Http ();
+		    $adapter->setDestination ( Standard_Functions::getResourcePath () . "default/images/listviewimage");
+		    $adapter->receive ();
+		    if ($adapter->getFileName ( "list_view_image" ) != "") {
+		        $response = array (
+		                "success" => array_pop ( explode ( '/', str_replace("\\","/",$adapter->getFileName ( "list_view_image" ) ) ))
+		        );
+		    } else {
+		        $response = array (
+		                "errors" => "Error Occured"
+		        );
+		    }
+		    echo Zend_Json::encode ( $response );
+		    exit ();
+		}
 	}
 	public function saveModuleAction() {
 		$this->_helper->layout ()->disableLayout ();
@@ -331,7 +351,7 @@ class Default_ConfigurationController extends Zend_Controller_Action {
 		if ($this->_request->isPost ()) {
 			$form->removeElement ( "icon" );
 			$form->removeElement ( "background_image" );
-			
+			$form->removeElement ( "list_view_image");
 			if ($form->isValid ( $this->_request->getParams () )) {
 				$mapper = new Admin_Model_Mapper_CustomerModule ();
 				$mapper->getDbTable ()->getAdapter ()->beginTransaction ();
@@ -370,6 +390,14 @@ class Default_ConfigurationController extends Zend_Controller_Action {
 					    }else{
 					        $details->setBackgroundColor ( $request->getParam ( "background_color" ) );
 					    }
+					    if($request->getParam("list_view_image_path", "") != ""){
+					        $image = $request->getParam ( "list_view_image_path" );
+			                if($image == "deleted"){
+			                    $details->setListViewImage ("");
+			                }else{
+			                    $details->setListViewImage ( $request->getParam ( "list_view_image_path" ) );
+			                }
+					    }
 					    $details->save ();
 					}else{
 					    $customerLanguageMapper = new Admin_Model_Mapper_CustomerLanguage ();
@@ -379,7 +407,12 @@ class Default_ConfigurationController extends Zend_Controller_Action {
 					        foreach ($records as $record){
 					            $record->setScreenName ( $request->getParam ( "screen_name" ) );
 					            if ($request->getParam ( "background_image", "" ) !== null) {
-					                $record->setBackgroundImage ( $request->getParam ( "background_image" ) );
+					                $language = $record->getLanguageId();
+					                $id = $request->getParam ( "background_image" );
+					                if($id != null){
+					                    $id = $this->_getImageForMyLAnguage($language,$id);
+					                }
+					                $record->setBackgroundImage ($id);
 					            }
 					            if ($request->getParam ( "background_type", "" ) != "") {
 					                $record->setBackgroundType ( $request->getParam ( "background_type" ) );
@@ -389,12 +422,22 @@ class Default_ConfigurationController extends Zend_Controller_Action {
 					            }else{
 					                $record->setBackgroundColor ( $request->getParam ( "background_color" ) );
 					            }
+					            if($request->getParam("list_view_image_path", "") != ""){
+					                $image = $request->getParam ( "list_view_image_path" );
+					                if($image == "deleted"){
+					                    $record->setListViewImage ("");
+					                }else{
+					                    $record->setListViewImage ( $request->getParam ( "list_view_image_path" ) );
+					                }
+					            }
 					            $record->save ();
 					        }
 					    }else{
-					        foreach ($records as $record){
-					            $record->delete();
-					        }
+					    	if(is_array($records)) {
+						        foreach ($records as $record){
+						            $record->delete();
+						        }
+					    	}
 					        if (is_array ( $customerLanguageModel )) {
 					            foreach ( $customerLanguageModel as $languages ) {
 					                $details = new Admin_Model_CustomerModuleDetail ();
@@ -402,7 +445,12 @@ class Default_ConfigurationController extends Zend_Controller_Action {
 					                $details->setLanguageId ( $languages->getLanguageId () );
 					                $details->setScreenName ( $request->getParam ( "screen_name" ) );
 					                if ($request->getParam ( "background_image", "" ) !== null) {
-					                    $details->setBackgroundImage ( $request->getParam ( "background_image" ) );
+					                    $language = $languages->getLanguageId ();
+					                    $id = $request->getParam ( "background_image" );
+					                    if($id != null){
+					                        $id = $this->_getImageForMyLAnguage($language,$id);
+					                    }
+					                    $details->setBackgroundImage ( $id );
 					                }
 					                if ($request->getParam ( "background_type", "" ) != "") {
 					                    $details->setBackgroundType ( $request->getParam ( "background_type" ) );
@@ -410,20 +458,35 @@ class Default_ConfigurationController extends Zend_Controller_Action {
 					                if ($request->getParam ( "background_color", "" ) !== null) {
 					                    $details->setBackgroundColor ( $request->getParam ( "background_color" ) );
 					                }
+					                if($request->getParam("list_view_image_path", "") != ""){
+    					                $image = $request->getParam ( "list_view_image_path" );
+    					                if($image == "deleted"){
+    					                    $details->setListViewImage ("");
+    					                }else{
+    					                    $details->setListViewImage ( $request->getParam ( "list_view_image_path" ) );
+    					                }
+					                }
 					                $details->save ();
 					            }
 					        }
 					    }
 					}
 					
-					$model = $mapper->find ( $customer_module_id ); 
+					$model = $mapper->find ( $customer_module_id );
 					if($request->getParam("selIcon") != '0') {
 						$sel_icon = $request->getParam("selIcon");
 						$model->setIcon ($sel_icon);
 					}elseif($request->getParam ( "icon_path", "" ) != "") {
-						$model->setIcon ( $request->getParam ( "icon_path" ) );
+						$image = $request->getParam ( "icon_path" );
+						if($image == "deleted"){
+						    $model->setIcon ("");
+						}else{
+						    $model->setIcon ( $image );
+						}
 					}
 					$model->setVisibility ( $request->getParam ( "visibility", "0" ) );
+					$model->setLabel1 ( $request->getParam ( "label_1", "0" ) );
+					$model->setLabel2 ( $request->getParam ( "label_2", "0" ) );
 					$model->setIsPublish("NO");
 					$model->save ();
 					$mapper->getDbTable ()->getAdapter ()->commit ();
@@ -525,18 +588,51 @@ class Default_ConfigurationController extends Zend_Controller_Action {
 		return $slice;
 	}
 
+// 	public function _getIcons($customer_module_id){
+// 		$customerModuleMapper = new Admin_Model_Mapper_CustomerModule();
+// 		$moduleDetails = $customerModuleMapper->getDbTable()->fetchAll("customer_module_id = ". $customer_module_id)->toArray();
+// 		$module_id = $moduleDetails[0]['module_id'];
+// 		$selected_icon = null;
+// 		if($moduleDetails[0]['icon'] != ""){
+// 			$selected_icon = $moduleDetails[0]['icon'];
+// 		}
+// 		$iconMapper = new Default_Model_Mapper_ModuleIcon();
+// 		$iconDetails = $iconMapper->getDbTable()->fetchAll("module_id = ". $module_id)->toArray();
+// 		foreach($iconDetails as $icon){
+// 			$icons[] = $icon["module_icon_path"];
+// 		}
+// 		return array ("icons" =>$icons,"selected" =>$selected_icon);
+// 	}
+
 	public function _getIcons($customer_module_id){
-		$customerModuleMapper = new Admin_Model_Mapper_CustomerModule();
+	    $customerModuleMapper = new Admin_Model_Mapper_CustomerModule();
 		$moduleDetails = $customerModuleMapper->getDbTable()->fetchAll("customer_module_id = ". $customer_module_id)->toArray();
 		$module_id = $moduleDetails[0]['module_id'];
+		$selected_icon = null;
 		if($moduleDetails[0]['icon'] != ""){
 			$selected_icon = $moduleDetails[0]['icon'];
 		}
-		$iconMapper = new Default_Model_Mapper_ModuleIcon();
-		$iconDetails = $iconMapper->getDbTable()->fetchAll("module_id = ". $module_id)->toArray();
-		foreach($iconDetails as $icon){
-			$icons[] = $icon["module_icon_path"];
-		}
-		return array ("icons" =>$icons,"selected" =>$selected_icon);
+	    $image_dir = Standard_Functions::getResourcePath(). "default/images/icon";
+	    if(is_dir($image_dir)){
+	        $direc = opendir($image_dir);
+	        $iconpack = array();
+	        while($icon = readdir($direc)){
+	            if(is_file($image_dir."/".$icon) && getimagesize($image_dir."/".$icon)){
+	                $iconpack[] = $icon;
+	            }
+	        }
+	    }
+	    return array("icons" =>$iconpack,"selected" => $selected_icon); 
+	}
+	
+	public function _getImageForMyLAnguage($language,$id){
+	    $mapper = new HomeWallpaper_Model_Mapper_HomeWallpaperDetail();
+	    $model = $mapper->getDbTable()->fetchAll("home_wallpaper_detail_id = ".$id)->toArray();
+	    $modelforlang = $mapper->getDbTable()->fetchAll("home_wallpaper_id ='".$model[0]['home_wallpaper_id']."' AND language_id = ".$language)->toArray();
+	    if(!empty($modelforlang)){
+	        return $modelforlang[0]['home_wallpaper_detail_id'];
+	    }else{
+	        return "";
+	    }
 	}
 }

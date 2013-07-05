@@ -8,6 +8,9 @@ class Document_IndexController extends Zend_Controller_Action
 	var $_upload_document_limit;
     public function init()
     {
+    	ini_set('post_max_size', '200M');
+    	ini_set('upload_max_filesize', '100M');
+    	
 		/* Initialize action controller here */
     	$modulesMapper = new Admin_Model_Mapper_Module();
     	$module = $modulesMapper->fetchAll("name ='document'");
@@ -22,9 +25,9 @@ class Document_IndexController extends Zend_Controller_Action
     	    $this->_customer_module_id = $customermodule->getCustomerModuleId();
     	}
     	$image_dir = Standard_Functions::getResourcePath(). "document/preset-icons";
+		$iconpack = array();
     	if(is_dir($image_dir)){
     	    $direc = opendir($image_dir);
-    	    $iconpack = array();
     	    while($icon = readdir($direc)){
     	        if(is_file($image_dir."/".$icon) && getimagesize($image_dir."/".$icon)){
     	            $iconpack[] = $icon;
@@ -52,6 +55,7 @@ class Document_IndexController extends Zend_Controller_Action
     public function indexAction()
     {
         // action body
+        $this->view->import = "javascript:void(0);";
     	$this->view->addlink = $this->view->url ( array (
 					    			"module" => "document",
 					    			"controller" => "index",
@@ -79,6 +83,20 @@ class Document_IndexController extends Zend_Controller_Action
     			"action" => "index"
     	), "default", true);
     	
+    	//getting total categories
+    	$mapper = new Document_Model_Mapper_ModuleDocumentCategory();
+    	$customer_id = Standard_Functions::getCurrentUser()->customer_id;
+    	$DBExpr = new Zend_Db_Expr("COUNT(module_document_category_id)");
+    	$select = $mapper->getDbTable()->select(false)
+    	->setIntegrityCheck(false)
+    	->from('module_document_category',array('count'=>$DBExpr ))
+    	->where("customer_id =".$customer_id);
+    	$stack = $mapper->getDbTable()->fetchRow($select)->toArray();
+    	$this->view->totalcategories = $stack['count'];
+    	
+    	$language_id = Standard_Functions::getCurrentUser ()->default_language_id;
+    	$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
+    	$this->view->categoryTree = $this->_getCategoryTree ( $customer_id, $language_id);
     	$this->view->documentUploaded = $this->_total_uploaded_document;
     	$this->view->documentlimit = $this->_upload_document_limit;
     }
@@ -146,6 +164,8 @@ class Document_IndexController extends Zend_Controller_Action
     		if($details->countAll("module_document_id = ".$document_id." AND language_id = ".$lang_id) > 0) {
     			// Record For Language Found
     			$dataDetails = $details->getDbTable()->fetchAll("module_document_id = ".$document_id." AND language_id = ".$lang_id)->toArray();
+    			$keywords = $dataDetails [0] ['keywords'];
+    			$keywords = explode ( ",", $keywords );
     		} else {
     			// Record For Language Not Found
     			$dataDetails = $details->getDbTable()->fetchAll("module_document_id = ".$document_id." AND language_id = ".$default_lang_id)->toArray();
@@ -183,7 +203,7 @@ class Document_IndexController extends Zend_Controller_Action
     			$details = $detailMapper->getDbTable()->fetchAll("language_id = ".$language_id." AND module_document_category_id =" .$parent_id)->toArray();
     			$this->view->parentCategory = $details[0]['title'];
     		} else {
-    			$this->view->parentCategory = 'Menu';
+    			$this->view->parentCategory = 'Root';
     		}
     		
     	} else {
@@ -197,26 +217,40 @@ class Document_IndexController extends Zend_Controller_Action
         $this->view->documentUploaded = $this->_total_uploaded_document;
         $this->view->documentlimit = $this->_upload_document_limit;
     	$this->view->iconpack = $this->_iconpack;
+    	$this->view->keywords = $keywords;
     	$this->render ( "add-edit" );
     }
     private function _getCategoryTree($customer_id = null, $language_id = null) {
-    	// Get customer_id, module_cms_id ,title, parent_id
-    	$categoryMapper = new Document_Model_Mapper_ModuleDocumentCategory();
-    	$select = $categoryMapper->getDbTable ()->select ()
-    	->setIntegrityCheck ( false )
-    	->from ( array (
-    			'c' => 'module_document_category'),
-    			array (
-    					'id' => 'c.module_document_category_id',
-    					'parentId' => 'c.parent_id') )
-    					->joinLeft ( array (
-    							'cd' => 'module_document_category_detail'),
-    							"cd.module_document_category_id  = c.module_document_category_id AND cd.language_id = " . $language_id,
-    							array ('text' => 'cd.title') );
-		$select = $select->where ( 'c.customer_id = ' . $customer_id );
-		$data = $categoryMapper->getDbTable ()->fetchAll ( $select );
-		return Zend_Json::encode ( $data->toArray () );
-    }
+		// Get customer_id, module_cms_id ,title, parent_id
+		$where = "c.customer_id =" . $customer_id;
+		$data = array();
+		$this->_getChildrens($where,0,$data,$language_id);
+		return Zend_Json::encode ( $data );
+	}
+	private function _getChildrens($where, $parent,&$data,$language_id){
+	    $categoryMapper = new Document_Model_Mapper_ModuleDocumentCategory();
+		$select = $categoryMapper->getDbTable ()->select ()
+							->setIntegrityCheck ( false )
+							->from ( array (
+									'c' => 'module_document_category'), 
+									array (
+										'id' => 'c.module_document_category_id',
+										'parentId' => 'c.parent_id') )
+							->joinLeft ( array (
+									'cd' => 'module_document_category_detail'), 
+									"cd.module_document_category_id  = c.module_document_category_id AND cd.language_id = " . $language_id, 
+									array ('text' => 'cd.title') );
+		$select = $select->where ( "c.parent_id=".$parent." AND ".$where );
+		$item = $categoryMapper->getDbTable ()->fetchAll ( $select )->toArray ();
+	    if(count($item) > 0) {
+	        foreach ($item as $child) {
+	            $data[] = $child;
+	            $this->_getChildrens($where,$child['id'],$data,$language_id);
+	        }
+	    } else {
+	        return false;
+	    }
+	}
     
     public function saveAction()
     {
@@ -270,7 +304,15 @@ class Document_IndexController extends Zend_Controller_Action
     			
     			try {
     				// Save Document
+    			    $tags = $this->_request->getParam('arrtag');
+    			    $tag = "";
+    			    if (!empty($tags)) {
+    			        foreach ( $tags as $tags ) {
+    			            $tag .= ($tag != "" ? "," : "") . $tags;
+    			        }
+    			    }
     				$allFormValues = $form->getValues();
+    				$allFormValues['keywords'] = $tag;
     				$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
     				$user_id = Standard_Functions::getCurrentUser ()->user_id;
     				$date_time = Standard_Functions::getCurrentDateTime ();
@@ -279,16 +321,19 @@ class Document_IndexController extends Zend_Controller_Action
     				$allFormValues["size"] = filesize(Standard_Functions::getResourcePath(). "document/uploads/" . $document_path);
     				$type = strtoupper(array_pop(explode(".", $document_path)));
     				$allFormValues["type"] = $type;
-    				if($request->getParam("seldocLogo","0")){
-    				    $selIcon = $request->getParam("seldocLogo","0");
+    				$selIcon = "";
+    				if($request->getParam("seldocLogo")){
+    				    $selIcon = $request->getParam("seldocLogo");
     				}
-    				if($request->getParam("selLogo","0")){
-    				    $selIcon = $request->getParam("selLogo","0");
+    				if($request->getParam("selLogo")){
+    				    $selIcon = $request->getParam("selLogo");
     				}
     				$icon_path = $request->getParam("icon_path","");
-    				if($selIcon != 0){
+    				if($selIcon != "0"){
     				    $allFormValues["icon"] = $selIcon;
-    				}elseif ($icon_path != ""){
+    				}elseif($icon_path == "deleted"){
+    				    $allFormValues["icon"] = "";    
+    				}elseif ($icon_path != "" && $selIcon==0){
     				    $allFormValues["icon"] = "uploaded-icons/".$icon_path;
     				}
     			    $parent_id = $allFormValues["module_document_category_id"];
@@ -337,7 +382,7 @@ class Document_IndexController extends Zend_Controller_Action
 						    $currentDetails = $documentDetailMapper->getDbTable()->fetchAll("module_document_id ='".$allFormValues['module_document_id']."' AND language_id =".$default_lang_id)->toArray();
 						}
 						if(is_array($currentDetails)){
-						    if(!$allFormValues['icon']){
+						    if(!isset($allFormValues['icon'])){
 						        $allFormValues['icon'] = $currentDetails[0]['icon'];
 						    }
 						}
@@ -602,7 +647,7 @@ class Document_IndexController extends Zend_Controller_Action
     									'0' => $this->view->translate('Inactive')
     								),
                                     'mdcd.title' => array (
-                                        null => $this->view->translate('Menu'),
+                                        null => $this->view->translate('Root'),
                                     ),
     							)
     						)
@@ -629,13 +674,15 @@ class Document_IndexController extends Zend_Controller_Action
     			$details = $mapper->fetchAll("module_document_id=".$row [7] ["d.module_document_id"]." AND language_id=".$default_lang_id);
     			if(is_array($details)) {
     				$details = $details[0];
+    				$keywords = $details->getKeywords();
+    				$keywords = str_replace(',', ' ', $keywords);
     				$row [7] ["dd.title"] = $row[0] = $details->getTitle();
     				$row [7] ["dd.type"] = $row[1] = $details->getType();
     				$row [7] ["dd.size"] = $row[2] = $details->getSize();
-    				$row [7] ["dd.keywords"] = $row[3] = $details->getSize();
+    				$row [7] ["dd.keywords"] = $row[3] = $keywords;
     			}
     		}
-    		
+    		$row [4] = str_replace(',', ' ', $row [4]);
     		$response ['aaData'] [$rowId] = $row;
     		if($languages) {
     			foreach ($languages as $lang) {
@@ -664,4 +711,177 @@ class Document_IndexController extends Zend_Controller_Action
     	$jsonGrid = Zend_Json::encode ( $response );
     	$this->_response->appendBody ( $jsonGrid );
     }
+    
+    public function zipImportAction() {
+    	$this->_helper->layout ()->disableLayout ();
+    	$this->_helper->viewRenderer->setNoRender ();
+    	set_time_limit(0);
+    	
+    	$request = $this->getRequest ();
+    	$response = array ();
+    	$parent = $request->getParam ( "category", 0 );
+		$overwrite = $request->getParam ( "overwrite", 1 );
+    	if($request->getParam ( "upload", "" ) != "") {
+    		$destination = Standard_Functions::getResourcePath(). "/document/temp/tmp".time();
+    		mkdir($destination,0777,true);
+
+    		$adapter = new Zend_File_Transfer_Adapter_Http();
+    		$adapter->setDestination($destination);
+    		$adapter->receive();
+    		if($adapter->getFileName("zipfile")!="")
+    		{
+    			$filename = array_pop(explode('/',str_replace("\\", "/", $adapter->getFileName("zipfile"))));
+    			
+    			while(!is_readable($destination."/".$filename)) {}
+    			$zip = new ZipArchive();
+    			$zip->open($destination."/".$filename);
+				$extract_path = $destination."/".str_ireplace(".zip", "", strtolower($filename));
+    			if($zip->extractTo($extract_path) === true) {
+					$mapper = new Document_Model_Mapper_ModuleDocumentCategory();
+					try {
+						$mapper->getDbTable()->getAdapter()->beginTransaction();
+						$this->storeZip($parent,$extract_path,$this->_getCategoryDirPath($parent),$overwrite);
+						$mapper->getDbTable()->getAdapter()->commit();
+						$response = array (
+							"success" => "success"
+						);
+					} catch (Exception $e) {
+						$mapper->getDbTable()->getAdapter()->rollBack();
+						$response = array (
+								"errors" => $e->getMessage()
+						);
+					}
+    			} else {
+    				$response = array (
+    						"errors" => "Unable to extract zip"
+    				);
+    			}
+    			$zip->close();    			
+    		} else {
+    			$response = array (
+    					"errors" => "Error Occured"
+    			);
+    		}
+    	
+    		echo Zend_Json::encode($response);
+    		exit;
+    	}
+    }
+	public function _getCategoryDirPath($category_id) {
+		if($category_id != 0) {
+			$document_category = new Document_Model_ModuleDocumentCategory();
+			$document_category->populate($category_id);
+			
+			$default_lang_id = Standard_Functions::getCurrentUser ()->default_language_id;
+			$details = new Document_Model_Mapper_ModuleDocumentCategoryDetail();
+			$dataDetails = $details->getDbTable()->fetchAll("module_document_category_id = ".
+					$document_category->getModuleDocumentCategoryId()." AND language_id = ".$default_lang_id)->toArray();
+			
+			return $this->_getCategoryDirPath($document_category->getParentId())."/".$dataDetails[0]['title'];
+		}
+		return "";
+	}
+	public function storeZip($parent_id,$path,$destination_dir,$overwrite) {
+		$dir = scandir($path);
+		foreach ($dir as $key => $value) {
+			if (!in_array($value,array(".",".."))) {
+				$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
+				$user_id = Standard_Functions::getCurrentUser ()->user_id;
+				$date_time = Standard_Functions::getCurrentDateTime ();
+				
+				$destination = Standard_Functions::getResourcePath(). "document/uploads/".$customer_id."/".$destination_dir."/".$value;
+				if (is_dir($path . "/" . $value)) {
+					$title = $value;
+					if(!file_exists($destination))
+						mkdir($destination,0777,true);
+					
+					// Store Dir in DB and set $dir_id
+					$mapper = new Document_Model_Mapper_ModuleDocumentCategory();
+					$model = new Document_Model_ModuleDocumentCategory();
+					$maxOrder = $mapper->getNextOrder ( $parent_id,$customer_id );
+					$model->setOrder ( $maxOrder + 1 );
+					$model->setParentId ( $parent_id );
+					$model->setCustomerId ( $customer_id );
+					$model->setStatus ( 1 );
+					$model->setCreatedBy ( $user_id );
+					$model->setCreatedAt ( $date_time );
+					$model->setLastUpdatedBy ( $user_id );
+					$model->setLastUpdatedAt ( $date_time );
+					$model = $model->save ();
+					
+					// Save Details
+					$document_category_id = $model->getModuleDocumentCategoryId();
+					$mapperLanguage = new Admin_Model_Mapper_CustomerLanguage();
+					$modelLanguages = $mapperLanguage->fetchAll("customer_id = ".$customer_id);
+					if(is_array($modelLanguages)) {
+						foreach($modelLanguages as $languages) {
+							$modelDetails = new Document_Model_ModuleDocumentCategoryDetail();
+							$modelDetails->setModuleDocumentCategoryId($document_category_id);
+							$modelDetails->setTitle ($title);
+							$modelDetails->setIcon ("");
+							$modelDetails->setLanguageId ($languages->getLanguageId());
+							$modelDetails->setCreatedBy ( $user_id );
+							$modelDetails->setCreatedAt ( $date_time );
+							$modelDetails->setLastUpdatedBy ( $user_id );
+							$modelDetails->setLastUpdatedAt ( $date_time );
+							$modelDetails = $modelDetails->save();
+						}
+					}
+					
+					$this->storeZip($document_category_id,$path . "/" . $value,$destination_dir."/".$value, $overwrite);
+				} else {
+					if($overwrite==0 && file_exists($destination)) {
+						return;
+					} else if(file_exists($destination)) {
+						unlink($destination);
+						rename($path . "/" . $value,$destination);
+					} else {
+						rename($path . "/" . $value,$destination);
+					}
+					
+					// Store File In DB
+					$mapper = new Document_Model_Mapper_ModuleDocument();
+					$model = new Document_Model_ModuleDocument();
+					$maxOrder = $mapper->getNextOrder ( $parent_id,$customer_id );
+					$model->setOrder ( $maxOrder + 1 );
+					$model->setModuleDocumentCategoryId ( $parent_id );
+					$model->setCustomerId ( $customer_id );
+					$model->setStatus ( 1 );
+					$model->setCreatedBy ( $user_id );
+					$model->setCreatedAt ( $date_time );
+					$model->setLastUpdatedBy ( $user_id );
+					$model->setLastUpdatedAt ( $date_time );
+					$model = $model->save ();
+					
+					// Save Details
+					$document_id = $model->getModuleDocumentId();
+					$mapperLanguage = new Admin_Model_Mapper_CustomerLanguage();
+					$modelLanguages = $mapperLanguage->fetchAll("customer_id = ".$customer_id);
+					if(is_array($modelLanguages)) {
+						$title = explode(".",$value);
+						$ext = array_pop($title);
+						$title = str_ireplace(".".$ext, "", $value);
+						$size = filesize($destination);
+						foreach($modelLanguages as $languages) {
+							$modelDetails = new Document_Model_ModuleDocumentDetail();
+							$modelDetails->setModuleDocumentId($document_id);
+							$modelDetails->setTitle ( $title );
+							$modelDetails->setType ( strtoupper($ext) );
+							$modelDetails->setDocumentPath ( $customer_id.$destination_dir."/".$value );
+							$modelDetails->setDescription ("");
+							$modelDetails->setIcon ("");
+							$modelDetails->setSize ($size);
+							$modelDetails->setKeywords ($title.",".$ext);
+							$modelDetails->setLanguageId ($languages->getLanguageId());
+							$modelDetails->setCreatedBy ( $user_id );
+							$modelDetails->setCreatedAt ( $date_time );
+							$modelDetails->setLastUpdatedBy ( $user_id );
+							$modelDetails->setLastUpdatedAt ( $date_time );
+							$modelDetails = $modelDetails->save();
+						}
+					}
+				}
+			}
+		}
+	}
 }

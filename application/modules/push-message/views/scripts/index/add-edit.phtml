@@ -1,6 +1,23 @@
 <?php $form = $this->form; ?>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxcore.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/gettheme.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxdropdownbutton.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxscrollbar.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxbuttons.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxtree.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxpanel.js"); ?>"></script>
 <style>
-
+#remainingdiv{
+	float:right;
+	color:gray;
+}
+.sendnow{
+	color:gray;
+}
+.notes{
+	padding-top:0px !important;
+	padding-bottom:0px !important;
+}
 </style>
 <div id="filterBox">
       <table style="width:100%;border:0;border-spacing:0;border-collapse:collapse;">
@@ -13,19 +30,29 @@
 <div class="boxBorderBottom">
 <form id="frmAddEditPushMessage" method="<?php echo $form->getMethod();?>" action="<?php echo $form->getAction();?>" class="zend_form">
 	<?php  echo $form->push_message_id->renderViewHelper();?>
+	<?php echo $form->push_message_category_id->renderViewHelper(); ?>
 	<?php  echo $form->language_id->renderViewHelper();?>
 	<?php  echo $form->push_message_detail_id->renderViewHelper();?>
 	
 	<table style="margin:10px 0;">
 		<tbody>
-			
+			<tr>
+				<td><label for="tree"><?php echo $this->translate('Select Category:'); ?></label></td>
+				<td>
+					<div id='jqxWidget'>
+						<div id="dropDownButton">
+							<div id='jqxTree'></div>
+						</div>
+					</div>
+				</td>
+			</tr>
 			<tr>
 		    	<td><?php echo $form->title->renderLabel() ?></td>
 		        <td>
 		        	<?php echo $form->title->renderViewHelper()?>
 				</td>
 			</tr>
-			
+			<!-- 
 			<tr>
 				<td valign="top">
 					<label><?php echo $this->translate('Icon:')?></label>
@@ -79,16 +106,50 @@
 					</div>
 				</td>
 			</tr>
-			
+			 -->
 			<tr>
-		    	<td><?php echo $form->description->renderLabel() ?></td>
+		    	<td valign="middle"><?php echo $form->description->renderLabel() ?></td>
 		        <td>
 		        	<?php echo $form->description->renderViewHelper()?>
 				</td>
 			</tr>
 			<tr>
+			    <td class="notes">&nbsp;</td>
+			    <td class="notes" colspan="2">
+			        <div id="remainingdiv"><i>(Remaning chars:&nbsp;<span id="remaning">255</span>)</i></div>
+			    </td>
+			</tr>
+			<tr>
 				<td><?php echo $form->message_date->renderLabel() ?></td>
 				<td><?php echo $form->message_date->renderViewHelper() ?></td>
+			</tr>
+			<tr>
+			    <td>&nbsp;</td>
+			    <td><div class="sendnow"><i>Send Now</i> &nbsp;<input type =checkbox name="sendnow" id="sendnow" /></div></td>
+			</tr>
+			<tr>
+				<td><?php echo $form->phone->renderLabel() ?></td>
+				<td><?php echo $form->phone->renderViewHelper() ?></td>
+			</tr>
+			<tr>
+				<td><?php echo $form->email->renderLabel() ?></td>
+				<td><?php echo $form->email->renderViewHelper() ?></td>
+			</tr>
+			<tr>
+				<td><?php echo $form->website->renderLabel() ?></td>
+				<td><?php echo $form->website->renderViewHelper() ?></td>
+			</tr>
+			<tr>
+				<td><?php echo $form->code->renderLabel() ?></td>
+				<td><?php echo $form->code->renderViewHelper() ?></td>
+			</tr>
+			<tr>
+				<td><?php echo $form->module_id->renderLabel() ?></td>
+				<td><?php echo $form->module_id->renderViewHelper() ?></td>
+			</tr>
+			<tr>
+				<td><?php echo $form->notes->renderLabel() ?></td>
+				<td><?php echo $form->notes->renderViewHelper() ?></td>
 			</tr>
 			<tr>
 		    	<td><?php echo $form->status->renderLabel() ?></td>
@@ -99,9 +160,9 @@
 			<tr>
 		    	<td></td>
 		        <td>
-		        	<?php echo $form->submit->renderViewHelper() ?>&nbsp;
-		        	<?php echo $form->applyall->renderViewHelper()?>&nbsp;
-					<?php echo $form->reset->renderViewHelper() ?>
+		        	<?php echo html_entity_decode($form->submit->renderViewHelper()) ?>&nbsp;
+		        	<?php echo (Standard_Functions::$action == "edit")? html_entity_decode($form->applyall->renderViewHelper()):""?>&nbsp;
+					<?php echo html_entity_decode($form->reset->renderViewHelper())?>
 				</td>
 			</tr>
 		</tbody>
@@ -130,16 +191,72 @@ $(document).ready(function() {
 	        e.preventDefault();
 	    }
 	});
-	$("#description").on("keydown",function(){
-		if($("#description").attr("value").length>=255) return false;
-	});
-	$("#description").on("keyup",function(){
-		if($("#description").attr("value").length>=255){
-			alert('Not more than 255 chars Please');
-		$("#description").attr("value","");
-		}
+	var parentIdLabel = "<?php echo $this->parentCategory; ?>";
+	var data = <?php echo $this->categoryTree; ?>;
+	var builddata = function () {
+		var source = [];
+	    var items = [];
+	    items[0]={id:0,label:'Menu',selected:false};
+		source[0] = items[0];
+	    for (var i = 0; i < data.length; i++) {
+	        var item = data[i];
+	        var label = item["text"];
+	        var parentid = item["parentId"];
+	        var id = item["id"];
 
+	        if (items[parentid]) {
+	            var item = { id: id, label: label, item: item };
+	            if (!items[parentid].items) {
+	                items[parentid].items = [];
+	            }
+	            items[parentid].items[items[parentid].items.length] = item;
+	            items[id] = item;
+	        }
+	        else {
+	            items[id] = { id: id, label: label, item: item };
+	            source[id] = items[id];
+	        }
+	    }
+	    return source;
+	};
+	$("#dropDownButton").jqxDropDownButton({ width: 150, height: 25 });
+	$('#jqxTree').bind('initialized', function (event) { 
+		var args = event.args;
+		parentIdLabel = (parentIdLabel=="")?"Menu":parentIdLabel;
+    	var dropDownContent = '<div style="position: relative; margin-left: 3px; margin-top: 5px;">' + parentIdLabel + '</div>';
+    	$("#dropDownButton").jqxDropDownButton('setContent', dropDownContent);
+    });	
+	$('#jqxTree').bind('select', function (event) {
+        var args = event.args;
+        var item = $('#jqxTree').jqxTree('getItem', args.element);
+        $("#push_message_category_id").attr("value",item.id);
+        var dropDownContent = '<div style="position: relative; margin-left: 3px; margin-top: 5px;">' + item.label + '</div>';
+        $("#dropDownButton").jqxDropDownButton('setContent', dropDownContent);
+    });
+	$('#jqxTree').bind('click', function (event) {
+		$("#dropDownButton").jqxDropDownButton("close");
 	});
+    var source = builddata();
+    $("#jqxTree").jqxTree({source:source,width: 250 });
+    $('#jqxTree').jqxTree('expandAll');
+	function maxLength(el) {	
+		if (!('maxLength' in el)) {
+			var max = el.attributes.maxLength.value;
+			el.onkeypress = function () {
+				if (this.value.length >= max)
+					return false;
+			};
+		}
+	}
+	maxLength(document.getElementById("description"));
+
+	$("#description").on("keyup", function(){
+	    var max_characters = 255;
+	    var total_used = $("#description").val().length;
+	    var remaining = max_characters - total_used;
+	    $("#remaning").text(remaining);
+	});
+	$("#description").trigger("keyup");
 	$("input:radio[name=selLogo]").on("change",function(){
 		if($('input:radio[name=selLogo]:checked').val() == 0)
 		{
@@ -155,7 +272,8 @@ $(document).ready(function() {
 		dateFormat: 'dd/mm/yy', 
 		showSecond: false,
 		timeFormat: 'hh:mm',
-		firstDay:1
+		firstDay:1,
+		minDate:new Date()
 	});
 	$("#frmAddEditPushMessage").validator().submit(function(e,customObject){
 		customObject = customObject || {};
@@ -163,9 +281,30 @@ $(document).ready(function() {
 		if(customObject.all){
 			queryAppend = "&all=true";
 		}
+		var orignalParentId = <?php echo ($this->orignalParent != "")?$this->orignalParent:"''" ?>;
+		var currentParentId =  $("#push_message_category_id").val();
+		if(orignalParentId != currentParentId){
+			var parent = '&parent=changed';
+		}else{
+			var parent = '&parent=intact'
+		}
 		var form = $(this);
 		var self = this;
 		if(!e.isDefaultPrevented()){
+			if($('#push_message_category_id').val() == 0){
+				promptus = new prompt({
+		           	reference : self,
+		            element : "#content",
+		            beforeShow : function(){
+		                this.alternateMessage = this.showErrorMessage("Please select some Category!");
+	                } 
+				});
+				setTimeout(function(){
+					promptus.close();
+				}, 2000);
+				return false;
+			}
+			var promptus = false;
 			promptus = new prompt({
             	reference : form,
                 element : "#frmAddEditPushMessage",
@@ -177,6 +316,12 @@ $(document).ready(function() {
                                 prompt.showLoadingMessage("<?php echo $this->translate('Please wait while saving Message..'); ?>");
                                 next();
                             }).queue(function(next){
+                            	if($('.sendnow input[type=checkbox]').is(":checked")){
+                            		$("#message_date").removeAttr("disabled");
+                            		var currentdate = new Date();
+                                	var datetime = currentdate.getDate()+"/"+(currentdate.getMonth()+1)+"/"+currentdate.getFullYear()+" "+currentdate.getHours()+":"+currentdate.getMinutes();
+                                	$("#message_date").attr("value",""+datetime+"");
+                        		}
                 				if($('input:radio[name=selLogo]:checked').val() == 0 && $('#icon').attr("value")!="") {
                 					$.ajaxFileUpload({
                 						url:'<?php echo $form->getAction(); ?>',
@@ -245,6 +390,13 @@ $(document).ready(function() {
                 }
 			});
 		e.preventDefault();
+		}
+	});
+	$(document).on('change',".sendnow input[type=checkbox]",function(){
+		if($(this).is(":checked")){
+			$("#message_date").attr("disabled","disabled");
+		} else {
+			$("#message_date").removeAttr("disabled");
 		}
 	});
 });

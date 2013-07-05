@@ -44,6 +44,7 @@ class Default_LoginController extends Zend_Controller_Action {
 						}
 						$identity->group_id = $identity->user_group_id;
 						$identity->user_group = $group->name;
+						$identity->publish = $group->getPublish();
 						
 						$languageMapper = new Admin_Model_Mapper_CustomerLanguage();
 						$language = $languageMapper->fetchAll("customer_id = ".$group->getCustomerId()." AND is_default=1");

@@ -1,0 +1,223 @@
+<?php $form = $this->form;?>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxcore.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/gettheme.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxdropdownbutton.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxscrollbar.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxbuttons.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxtree.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxpanel.js"); ?>"></script>
+
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/colorpicker/jquery.colorpicker.js"); ?>"></script>
+<link href="<?php echo $this->baseUrl("libs/colorpicker/jquery.colorpicker.css"); ?>" rel="stylesheet" type="text/css"/>
+<script src="<?php echo $this->baseUrl("libs/colorpicker/i18n/jquery.ui.colorpicker-en.js"); ?>"></script>
+
+<div id="filterBox">
+      <table style="width:100%;border:0;border-spacing:0;border-collapse:collapse;">
+        <tr>
+          <td valign="middle"><?php echo $this->partial($this->partial,array()); ?></td>
+          <td align="right"><h2><?php echo $this->language; ?></h2></td>
+        </tr>
+      </table>
+</div>
+<div class="boxBorderBottom">
+<form id="frmAddEditContactTypes" method="<?php echo $form->getMethod();?>" action="<?php echo $form->getAction();?>" class="zend_form">
+	<?php echo $form->contact_types_id->renderViewHelper(); ?>
+	<?php echo $form->contact_types_detail_id->renderViewHelper(); ?>
+	<?php echo $form->language_id->renderViewHelper(); ?>
+	<table style="margin:10px 0;">
+		<tbody>
+			<tr>
+		    	<td><?php echo $form->title->renderLabel() ?></td>
+		        <td>
+		        	<?php echo $form->title->renderViewHelper()?>
+				</td>
+			</tr>
+			
+			<tr>
+    			<td valign="top">
+    					<label><?php echo $this->translate('Icon:')?></label>
+    			</td>
+    			<td valign="top">
+    				<div id="lstLogo" class="logo-box">
+        				<?php $resource_path = $this->baseUrl("resource/contact/types/preset-icons");?>
+        				<?php foreach ($this->iconpack as $icon):?>
+        				<div class="">
+    						<label for="selLogo_<?php echo $icon; ?>">
+    							<img src="<?php echo $resource_path . "/" . $icon; ?>" width="64" />
+    						</label>
+    						<input type="radio" id="selLogo_<?php echo $icon; ?>" name="selLogo" value="<?php echo $icon; ?>" />
+    					</div>
+        				<?php endforeach;?>
+    				</div>
+    			</td>
+			</tr>
+			<tr>
+		        <td>&nbsp;</td>
+			    <td>
+		        	<div class="logo-box">
+		        		<table>
+    						<tr>
+    							<td>
+    								<?php 
+    								$icon_path = $this->baseUrl("resource/contact/types/");
+    					        	if($this->icon_src!="") {
+    					        	?>
+    					        	<img class="iconImage" alt="" src="<?php echo $icon_path."/".$this->icon_src;?>" style="width: 64px;" />
+    					        	<?php 
+    					        	}
+    					        	?>
+    				        	</td>
+    				        	<td>
+    				        		<?php
+    				        		$checked = "";
+    					        	if($this->icon_src!="") {
+    					        		$checked = "checked='checked'";
+    								}
+    								?>
+    					        	
+    								<input type="radio" id="selLogo_0" checked="checked" name="selLogo" value="0" style="margin-left: 10px;" />
+    								<label for="selLogo_0"><?php echo $this->translate('Upload:')?></label>
+    								<input id="icon" type="file" name="icon" /> (Size: 60px &#215; 60px )
+    					        	<input id="icon_path" type="hidden" name="icon_path" value="" />
+    				        	</td>
+    			        	</tr>
+    			        	<tr id="deleteIconButton">
+    			        	 <?php if($this->icon_src!=""){ ?>
+    						    <td>
+    							    <div class="deletebuttons"><a class="deleteIcon red button-grid">Delete</a></div>
+    						    </td>
+    					    </tr>
+					    <?php } ?>
+			        	</table>
+					</div>
+				</td>
+			</tr>
+			<tr>
+		    	<td><?php echo $form->status->renderLabel() ?></td>
+		        <td>
+		        	<?php echo $form->status->renderViewHelper()?>
+				</td>
+			</tr>
+			<tr>
+		        <td colspan="3" align="center">
+		        	<?php echo html_entity_decode($form->submit->renderViewHelper()) ?>&nbsp;
+		        	<?php echo (Standard_Functions::$action == "edit")? html_entity_decode($form->applyallcat->renderViewHelper()):""?>&nbsp;
+					<?php echo html_entity_decode($form->reset->renderViewHelper())?>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</form>
+</div>
+<script type="text/javascript">
+// <!--
+$(document).ready(function() {
+	$("input:radio[name=selLogo]").on("change",function(){
+		if($('input:radio[name=selLogo]:checked').val() == 0)
+		{
+			$("#icon").removeAttr("disabled");
+		} else {
+			$("#icon").attr("disabled","disabled");
+		}			
+	});
+	$(".deleteIcon").on("click",function(){
+    	$("#icon_path").attr("value","deleted");
+    	$(".iconImage").remove();
+    	$("#icon").attr("value","");
+    	$("tr#deleteIconButton").remove();
+    });
+	$("#applyallcat").on("click",function(e){
+		if(!e.isDefaultPrevented()){
+	    	var promptus = new prompt({
+	            	reference :"#frmAddContactEventsTypes",
+	                element : "#content",
+	                message : "<?php echo $this->translate('Your changes will be saved and applied to all languages. Is it Ok?'); ?>",
+	                buttons : {
+	                    "Yes" : function(self){
+		                    this.close();
+	                        $("#frmAddEditContactTypes").trigger("submit",{all:true});
+	                    },
+	                    "No"  : function(self){
+	                    	this.close();
+	                    },
+	                }
+	            });
+	        e.preventDefault();
+	    }
+	});
+	
+	$("#frmAddEditContactTypes").validator().submit(function(e,customObject){
+		customObject = customObject || {};
+		var queryAppend = "";
+		if(customObject.all){
+			queryAppend = "&all=true";
+		}
+		
+		var form = $(this);
+		if(!e.isDefaultPrevented()){
+			var promptus = false;
+			$(document).queue(function(next){
+				promptus = new prompt({
+	            	reference : form,
+	                element : "#content",
+	                beforeShow : function(){
+		                this.alternateMessage = this.showLoadingMessage("<?php echo $this->translate('Saving Contact Types...')?>");
+	                }
+	            });
+	            next();
+			}).queue(function(next){
+				if($('input:radio[name=selLogo]:checked').val() == 0 && $('#icon').attr("value")!="") {
+					$.ajaxFileUpload({
+						url:'<?php echo $form->getAction(); ?>',
+						secureuri:false,
+						fileElementId:'icon',
+						dataType: 'json',
+						data:{iconupload:'true'},
+						success: function (data, status)
+						{
+							if(data.success != undefined) {
+								$("#icon_path").attr("value",data.success);
+								next();
+							}
+						},
+						error: function (data, status, e)
+						{
+							promptus.showErrorMessage("<?php echo $this->translate('Error uploading icon.')?>");
+							setTimeout(function(){
+								promptus.close();
+							}, 2000);
+							
+						}
+					});
+				} else {
+					next();
+				}
+			}).queue(function(next){
+				$.ajax({
+					type : "POST",
+					cache : false,
+					data : form.serialize() + queryAppend,
+					url : "<?php echo $form->getAction(); ?>",
+					success : function(json){
+						if(json["errors"] != undefined){
+							form.data("validator").invalidate(json["errors"]);
+							next();
+						} else if(json["success"] != undefined){
+							promptus.showSuccessMessage("<?php echo $this->translate('Contact type saved successfully.')?>");
+							setTimeout(function(){
+								location.href = "<?php echo $this->url(array("module"=>"contact","controller"=>"types","action" => "index"),"default",true);?>";
+							}, 2000);
+						}
+					},
+					error : next
+	  			});
+			}).queue(function(next){
+				promptus.close();
+				next();
+	  		});
+			e.preventDefault();
+		}
+	});
+});
+// -->
+</script>

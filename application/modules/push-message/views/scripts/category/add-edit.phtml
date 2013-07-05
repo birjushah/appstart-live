@@ -1,0 +1,208 @@
+<?php $form = $this->form;?>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxcore.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/gettheme.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxdropdownbutton.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxscrollbar.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxbuttons.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxtree.js"); ?>"></script>
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/jqwidget/js/jqxpanel.js"); ?>"></script>
+
+<script type="text/javascript" src="<?php echo $this->baseUrl("libs/colorpicker/jquery.colorpicker.js"); ?>"></script>
+<link href="<?php echo $this->baseUrl("libs/colorpicker/jquery.colorpicker.css"); ?>" rel="stylesheet" type="text/css"/>
+<script src="<?php echo $this->baseUrl("libs/colorpicker/i18n/jquery.ui.colorpicker-en.js"); ?>"></script>
+
+<div id="filterBox">
+      <table style="width:100%;border:0;border-spacing:0;border-collapse:collapse;">
+        <tr>
+          <td valign="middle"><?php echo $this->partial($this->partial,array()); ?></td>
+          <td align="right"><h2><?php echo $this->language; ?></h2></td>
+        </tr>
+      </table>
+</div>
+<div class="boxBorderBottom">
+<form id="frmAddEditPushMessageCategory" method="<?php echo $form->getMethod();?>" action="<?php echo $form->getAction();?>" class="zend_form">
+	<?php echo $form->push_message_category_id->renderViewHelper(); ?>
+	<?php echo $form->push_message_category_detail_id->renderViewHelper(); ?>
+	<?php echo $form->language_id->renderViewHelper(); ?>
+	<?php echo $form->parent_id->renderViewHelper(); ?>
+	<table style="margin:10px 0;">
+		<tbody>
+			<tr>
+				<td><label for="tree"><?php echo $this->translate('Select Category:'); ?></label></td>
+				<td>
+					<div id='jqxWidget'>
+						<div id="dropDownButton">
+							<div id='jqxTree'></div>
+						</div>
+					</div>
+				</td>
+			</tr>
+			<tr>
+		    	<td><?php echo $form->title->renderLabel() ?></td>
+		        <td>
+		        	<?php echo $form->title->renderViewHelper()?>
+				</td>
+			</tr>
+			
+			<tr>
+				<td valign="top">
+					<?php echo $form->color->renderLabel() ?>
+				</td>
+				<td valign="top">
+					<?php echo $form->color->renderViewHelper()?>
+				</td>
+			</tr>
+			<tr>
+		    	<td><?php echo $form->status->renderLabel() ?></td>
+		        <td>
+		        	<?php echo $form->status->renderViewHelper()?>
+				</td>
+			</tr>
+			<tr>
+		        <td colspan="3" align="center">
+		        	<?php echo html_entity_decode($form->submit->renderViewHelper()) ?>&nbsp;
+		        	<?php echo (Standard_Functions::$action == "edit")? html_entity_decode($form->applyallcat->renderViewHelper()):""?>&nbsp;
+					<?php echo html_entity_decode($form->reset->renderViewHelper())?>
+				</td>
+			</tr>
+		</tbody>
+	</table>
+</form>
+</div>
+<script type="text/javascript">
+// <!--
+$(document).ready(function() {
+	$("#color").colorpicker({
+		parts: 'draggable',
+		showOn: 'both',
+		regional: 'en',
+		buttonColorize: true,
+		showNoneButton: false,
+		alpha: true,
+		close : function(){
+			var self = $(this);
+			$(this).parent().find("button").css({background:"#"+self.val()});
+		}
+	});
+	
+	$("#applyallcat").on("click",function(e){
+		if(!e.isDefaultPrevented()){
+	    	var promptus = new prompt({
+	            	reference :"#frmAddEditPushMessageCategory",
+	                element : "#content",
+	                message : "<?php echo $this->translate('Your changes will be saved and applied to all languages. Is it Ok?'); ?>",
+	                buttons : {
+	                    "Yes" : function(self){
+		                    this.close();
+	                        $("#frmAddEditPushMessageCategory").trigger("submit",{all:true});
+	                    },
+	                    "No"  : function(self){
+	                    	this.close();
+	                    },
+	                }
+	            });
+	        e.preventDefault();
+	    }
+	});
+	var parentIdLabel = "<?php echo $this->parentCategory; ?>";
+	var data = <?php echo $this->categoryTree; ?>;
+	var builddata = function () {
+		var source = [];
+	    var items = [];
+	    items[0]={id:0,label:'Root',selected:false};
+		source[0] = items[0];
+	    for (var i = 0; i < data.length; i++) {
+	        var item = data[i];
+	        var label = item["text"];
+	        var parentid = item["parentId"];
+	        var id = item["id"];
+
+	        if (items[parentid]) {
+	            var item = { id: id, label: label, item: item };
+	            if (!items[parentid].items) {
+	                items[parentid].items = [];
+	            }
+	            items[parentid].items[items[parentid].items.length] = item;
+	            items[id] = item;
+	        }
+	        else {
+	            items[id] = { id: id, label: label, item: item };
+	            source[id] = items[id];
+	        }
+	    }
+	    return source;
+	};
+	$("#dropDownButton").jqxDropDownButton({ width: 150, height: 25 });
+	$('#jqxTree').bind('initialized', function (event) { 
+		var args = event.args;
+		parentIdLabel = (parentIdLabel=="")?"Root":parentIdLabel;
+    	var dropDownContent = '<div style="position: relative; margin-left: 3px; margin-top: 5px;">' + parentIdLabel + '</div>';
+    	$("#dropDownButton").jqxDropDownButton('setContent', dropDownContent);
+    });	
+	$('#jqxTree').bind('select', function (event) {
+        var args = event.args;
+        var item = $('#jqxTree').jqxTree('getItem', args.element);
+        $("#parent_id").attr("value",item.id);
+        var dropDownContent = '<div style="position: relative; margin-left: 3px; margin-top: 5px;">' + item.label + '</div>';
+        $("#dropDownButton").jqxDropDownButton('setContent', dropDownContent);
+    });
+	$('#jqxTree').bind('click', function (event) {
+		$("#dropDownButton").jqxDropDownButton("close");
+	});
+    var source = builddata();
+    $("#jqxTree").jqxTree({source:source,width: 250 });
+    $('#jqxTree').jqxTree('expandAll');
+	$("#frmAddEditPushMessageCategory").validator().submit(function(e,customObject){
+		customObject = customObject || {};
+		var queryAppend = "";
+		if(customObject.all){
+			queryAppend = "&all=true";
+		}
+		var orignalParentId = <?php echo ($this->orignalParent != "")?$this->orignalParent:"''" ?>;
+		var currentParentId = $("#parent_id").val();
+		if(orignalParentId != currentParentId){
+			var parent = '&parent=changed';
+		}else{
+			var parent = '&parent=intact';
+		}
+		var form = $(this);
+		if(!e.isDefaultPrevented()){
+			var promptus = false;
+			$(document).queue(function(next){
+				promptus = new prompt({
+	            	reference : form,
+	                element : "#content",
+	                beforeShow : function(){
+		                this.alternateMessage = this.showLoadingMessage("<?php echo $this->translate('Saving Push Message Category...')?>");
+	                }
+	            });
+	            next();
+			}).queue(function(next){
+				$.ajax({
+					type : "POST",
+					cache : false,
+					data : form.serialize() + queryAppend + parent,
+					url : "<?php echo $form->getAction(); ?>",
+					success : function(json){
+						if(json["errors"] != undefined){
+							form.data("validator").invalidate(json["errors"]);
+							next();
+						} else if(json["success"] != undefined){
+							promptus.showSuccessMessage("<?php echo $this->translate('Push Message Category saved successfully.')?>");
+							setTimeout(function(){
+								location.href = "<?php echo $this->url(array("module"=>"push-message","controller"=>"category","action" => "index"),"default",true);?>";
+							}, 2000);
+						}
+					},
+					error : next
+	  			});
+			}).queue(function(next){
+				promptus.close();
+				next();
+	  		});
+			e.preventDefault();
+		}
+	});
+});
+// -->
+</script>

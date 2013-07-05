@@ -2,6 +2,7 @@
 class ModuleCms_IndexController extends Zend_Controller_Action {
 	var $_module_id;
 	var $_customer_module_id;
+	var $_iconpack;
 	public function init() {
 		/* Initialize Action Controller Here.. */
 		$modulesMapper = new Admin_Model_Mapper_Module ();
@@ -16,6 +17,8 @@ class ModuleCms_IndexController extends Zend_Controller_Action {
 		    $customermodule = $customermodule[0];
 		    $this->_customer_module_id = $customermodule->getCustomerModuleId();
 		}
+		$iconpack = Standard_Functions::getIconset("module-cms");
+		$this->_iconpack = $iconpack;
 	}
 	public function indexAction() {
 		$active_lang_id = Standard_Functions::getCurrentUser ()->active_language_id;
@@ -68,7 +71,7 @@ class ModuleCms_IndexController extends Zend_Controller_Action {
 		if($parent_id != 0){
 			$details = $detailMapper->getDbTable()->fetchAll("language_id = ".$language_id." AND module_cms_id =" .$parent_id)->toArray();
 			$this->view->parentTitle = $details[0]['title'];
-		}else{$this->view->parentTitle = 'Root Parents';}	
+		}else{$this->view->parentTitle = 'Menu';}	
 		if ($this->_request->isPost ()) {
 			$this->_helper->layout ()->disableLayout ();
 			$this->_helper->viewRenderer->setNoRender ();
@@ -149,7 +152,6 @@ class ModuleCms_IndexController extends Zend_Controller_Action {
 		$language = new Admin_Model_Mapper_Language();
 		$lang = $language->find($lang_id);
 		$this->view->language = $lang->getTitle();
-		
 		$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
 		$language_id = Standard_Functions::getCurrentUser ()->active_language_id;
 		$this->view->moduleCmsTree = $this->_getModuleCmsTree ( $customer_id, $language_id, false );
@@ -163,6 +165,19 @@ class ModuleCms_IndexController extends Zend_Controller_Action {
 		), "default", true );
 		$form->setMethod ( 'POST' );
 		$form->setAction ( $action );
+		//Send the Customer font family
+		$customermapper = new Admin_Model_Mapper_CustomerConfiguration();
+		$select = $customermapper->getDbTable()->select(false)
+		->setIntegrityCheck(false)
+		->from('customer_configuration')
+		->where("customer_id =".$customer_id);
+		$conf_details = $customermapper->getDbTable()->fetchRow($select);
+		if($conf_details){
+		    $conf_details = $conf_details->toArray();
+		}else{
+		    $conf_details = array();
+		}
+		$default_font = !empty($conf_details)?$conf_details['font_type']:"Arial";
 		$this->view->form = $form;
 		$this->view->uploadimagelink = $this->view->url ( array (
 				"module" => "module-cms",
@@ -172,8 +187,10 @@ class ModuleCms_IndexController extends Zend_Controller_Action {
 		$this->view->publicUrl = $this->view->baseUrl();
 		//$this->view->timyMceImages = $this->getTinyMceImages();
 		$this->view->assign ( array (
-				"partial" => "index/partials/add.phtml" 
+				"partial" => "index/partials/add.phtml",
+		        "defaultfont" => $default_font 
 		) );
+		$this->view->iconpack = $this->_iconpack;
 		$this->render ( "add-edit" );
 	}
 	public function saveAction() {
@@ -184,9 +201,9 @@ class ModuleCms_IndexController extends Zend_Controller_Action {
 		$default_lang_id = Standard_Functions::getCurrentUser ()->default_language_id;
 		$response = array ();
 		if ($this->_request->isPost ()) {
-			if ($request->getParam ( "upload", "" ) != "") {
+			if ($request->getParam ( "iconupload", "" ) != "") {
 				$adapter = new Zend_File_Transfer_Adapter_Http ();
-				$adapter->setDestination ( Standard_Functions::getResourcePath () . "module-cms/images" );
+				$adapter->setDestination ( Standard_Functions::getResourcePath () . "module-cms/uploaded-icons" );
 				$adapter->receive ();
 				if ($adapter->getFileName ( "thumb" ) != "") {
 					$response = array (
@@ -206,6 +223,7 @@ class ModuleCms_IndexController extends Zend_Controller_Action {
 			if ($form->isValid ( $this->_request->getParams () )) {
 				try {
 					$allFormValues = $form->getValues ();
+					echo $allFormValues['content']; die;
 					$parent_id = $allFormValues['parent_id'];
 					$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
 					$user_id = Standard_Functions::getCurrentUser ()->user_id;
@@ -219,6 +237,15 @@ class ModuleCms_IndexController extends Zend_Controller_Action {
 					if ($request->getParam ( "module_cms_id", "" ) == "" || $request->getParam("parent") == "changed") {
 						$maxOrder = $mapper->getNextOrder ( $parent_id,$customer_id );
 						$model->setOrder ( $maxOrder + 1 );
+					}
+				    $selIcon = $request->getParam("selLogo","0");
+					$icon_path = $request->getParam("icon_path","");
+					if($selIcon != "0"){
+					    $allFormValues["thumb"] = $selIcon;
+					}elseif($icon_path == "deleted"){
+					    $allFormValues["thumb"] = "";
+					}elseif ($selIcon==0 && $icon_path != ""){
+					    $allFormValues["thumb"] = "uploaded-icons/".$icon_path;
 					}
 					if ($request->getParam ( "module_cms_id", "" ) == "") {
 						// Add new cms
@@ -238,16 +265,6 @@ class ModuleCms_IndexController extends Zend_Controller_Action {
 								$modelDetails = new ModuleCms_Model_ModuleCmsDetail ( $allFormValues );
 								$modelDetails->setModuleCmsId ( $module_cms_id );
 								$modelDetails->setLanguageId ( $languages->getLanguageId () );
-								if (! is_dir ( $upload_dir )) {
-									mkdir ( $upload_dir, 755 );
-								}
-								if (!$is_uploaded_image && $thumb_path != "") {
-									$filename = $this->moveUploadFile ( $source_dir, $upload_dir, $thumb_path );
-									$modelDetails->setThumb ($filename);
-									$is_uploaded_image = true;
-								} else if($request->getParam ( "thumb_path" ,null) !== null) {
-									$modelDetails->setThumb ($thumb_path );
-								}
 								$modelDetails = $modelDetails->save ();
 							}
 						}
@@ -265,7 +282,9 @@ class ModuleCms_IndexController extends Zend_Controller_Action {
 					        $currentCmsDetails = $cmsDetailMapper->getDbTable()->fetchAll("module_cms_id ='".$allFormValues['module_cms_id']."' AND language_id =".$default_lang_id)->toArray();
 					    }
 					    if(is_array($currentCmsDetails)){
-					        $allFormValues['thumb'] = $currentCmsDetails[0]['thumb'];
+					        if(!isset($allFormValues['thumb'])){
+						        $allFormValues['thumb'] = $currentCmsDetails[0]['thumb'];
+						    }
 					    }
 					    $cmsDetails = $cmsDetailMapper->getDbTable()->fetchAll("module_cms_id =".$allFormValues['module_cms_id'])->toArray();
 					    unset($allFormValues['module_cms_detail_id'],$allFormValues['language_id']);
@@ -305,14 +324,6 @@ class ModuleCms_IndexController extends Zend_Controller_Action {
 						$source_dir = Standard_Functions::getResourcePath () . "module-cms/images/";
 						$upload_dir = Standard_Functions::getResourcePath () . "module-cms/thumb/";
 						$modelDetails = new ModuleCms_Model_ModuleCmsDetail ( $allFormValues );
-						if (! is_dir ( $upload_dir )) {
-							mkdir ( $upload_dir, 755 );
-						}
-						if ($thumb_path != "") {
-							$filename = $this->moveUploadFile ( $source_dir, $upload_dir,$thumb_path );
-							$modelDetails->setThumb ($filename);
-							$is_uploaded_image = true;
-						}
 						$modelDetails = $modelDetails->save ();
 					}
 					$customermoduleMapper = new Admin_Model_Mapper_CustomerModule ();
@@ -447,11 +458,10 @@ class ModuleCms_IndexController extends Zend_Controller_Action {
 			$delete = '<a href="' . $deleteUrl . '" class="button-grid greay grid_delete" >'.$this->view->translate('Delete').'</a>';
 			$sap = '';
 			$image_path = $row[4]["cd.thumb"];
-			$image_uri = "resource/module-cms/images/";
-			$ext_image_path = array_pop ( explode ( ".", $image_path ) );
-			if ($image_path!="" && file_exists ( $image_uri . str_replace ( "." . $ext_image_path, "_thumb." . $ext_image_path, $image_path ) )) {
-				$image_path = str_replace ( "." . $ext_image_path, "_thumb." . $ext_image_path, $image_path );
-			}	
+			$image_uri = "resource/module-cms/";
+			if(count(explode('/', $image_path)) == 1 && $image_path != null){
+			    $image_path = "preset-icons/".$image_path;
+			}
 			$response['aaData'][$rowId][1] = "<img src='" .$this->view->baseUrl($image_uri.$image_path). "' />";
 			$response ['aaData'] [$rowId] [4] = $defaultEdit . $sap . $delete;
 		}
@@ -488,13 +498,13 @@ class ModuleCms_IndexController extends Zend_Controller_Action {
 			}
 			if (isset ( $dataDetails [0] ) && is_array ( $dataDetails [0] )) {
 				$form->populate ( $dataDetails [0] );
-				$image_path = $dataDetails[0]['thumb'];
-				$image_uri = "resource/module-cms/thumb/";
-				$ext_image_path = array_pop ( explode ( ".", $image_path ) );
-				if ($image_path!="" && file_exists ( $image_uri . str_replace ( "." . $ext_image_path, "_thumb." . $ext_image_path, $image_path ) )) {
-					$image_path = str_replace ( "." . $ext_image_path, "_thumb." . $ext_image_path, $image_path );
+				if($dataDetails[0]['thumb'] != null){
+				    if(count(explode('/',$dataDetails[0]['thumb'])) > 1){
+				        $this->view->icon_src = $dataDetails[0]['thumb'];
+				    }else{
+				        $this->view->icon_src = "preset-icons/".$dataDetails[0]['thumb'];
+				    }
 				}
-				$this->view->image_thumb = $this->view->baseUrl($image_uri ."/" . $image_path);
 				//sending the parent category title to view
 				$this->view->parentId = $data['parent_id'];
 				if($data['parent_id'] != 0){
@@ -504,7 +514,7 @@ class ModuleCms_IndexController extends Zend_Controller_Action {
 						$this->view->parentCategory = $dataDetails[0]['title'];
 					} else {$this->view->parentCategory = $parentLabel[0]['title'];}
 				}else{
-					$this->view->parentCategory = "Parent";
+					$this->view->parentCategory = "Menu";
 				}
 			}
 			$action = $this->view->url ( array (
@@ -527,6 +537,7 @@ class ModuleCms_IndexController extends Zend_Controller_Action {
 		$this->view->assign ( array (
 				"partial" => "index/partials/edit.phtml" 
 		) );
+		$this->view->iconpack = $this->_iconpack;
 		$this->render ( "add-edit" );
 	}
 	public function deleteAction() {
@@ -536,88 +547,111 @@ class ModuleCms_IndexController extends Zend_Controller_Action {
 		
 		if (($module_cms_id = $request->getParam ( "id", "" )) != "") {
 			$childs = $this->_getChilds($module_cms_id);
-			array_unshift($childs, $module_cms_id);
-			$model = new ModuleCms_Model_ModuleCms ();
-			if ($model) {
-				try {
-					$modelMapper = new ModuleCms_Model_Mapper_ModuleCms ();
-					$modelMapper->getDbTable ()->getAdapter ()->beginTransaction ();
-					foreach ($childs as $child) {
-						$modelDetailMapper = new ModuleCms_Model_Mapper_ModuleCmsDetail ();	
-						$data = $modelMapper->getDbTable()->fetchAll ( "module_cms_id =".$child);
-						if ($data) {
-							$dataDetails = $modelDetailMapper->fetchAll("module_cms_id =" .$child);
-							foreach($dataDetails as $dataDetail){
-								$deletedRows = $dataDetail->delete();
-							}
-							$data[0]->delete();
-						}
-					}
-					$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
-					$customermoduleMapper = new Admin_Model_Mapper_CustomerModule ();
-					$customermodule = $customermoduleMapper->fetchAll ( "customer_id=" . $customer_id . " AND module_id=" . $this->_module_id );
-					if (is_array ( $customermodule )) {
-						$customermodule = $customermodule [0];
-						$customermodule->setIsPublish ( "NO" );
-						$customermodule->save ();
-					}
-					
-					$modelMapper->getDbTable ()->getAdapter ()->commit ();
-					
-					$response = array (
-							"success" => array (
-									"deleted_rows" => $deletedRows 
-							) 
-					);
-				} catch ( Exception $e ) {
-					
-					//$modelMapper->getDbTable ()->getAdapter ()->rollBack ();
-					$response = array (
-							"errors" => array (
-									"message" => $e->getMessage () 
-							) 
-					);
-				}
-			} else {
-				$response = array (
-						"errors" => array (
-								"message" => "No user to delete." 
-						) 
+			if($childs){
+			    $response = array (
+			            "errors" => array (
+			                    "message" => "Please delete its child first."
+			            )
 				);
+			}else{
+    			$model = new ModuleCms_Model_ModuleCms ();
+    			if ($model) {
+    				try {
+    					$modelMapper = new ModuleCms_Model_Mapper_ModuleCms ();
+    					$modelMapper->getDbTable ()->getAdapter ()->beginTransaction ();
+    					$modelDetailMapper = new ModuleCms_Model_Mapper_ModuleCmsDetail ();	
+    					$data = $modelMapper->getDbTable()->fetchAll ( "module_cms_id =".$module_cms_id);
+    					if ($data) {
+    						$dataDetails = $modelDetailMapper->fetchAll("module_cms_id =" .$module_cms_id);
+    						foreach($dataDetails as $dataDetail){
+    							$deletedRows = $dataDetail->delete();
+    						}
+    						$data[0]->delete();
+    					}
+    					$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
+    					$customermoduleMapper = new Admin_Model_Mapper_CustomerModule ();
+    					$customermodule = $customermoduleMapper->fetchAll ( "customer_id=" . $customer_id . " AND module_id=" . $this->_module_id );
+    					if (is_array ( $customermodule )) {
+    						$customermodule = $customermodule [0];
+    						$customermodule->setIsPublish ( "NO" );
+    						$customermodule->save ();
+    					}
+    					
+    					$modelMapper->getDbTable ()->getAdapter ()->commit ();
+    					
+    					$response = array (
+    							"success" => array (
+    									"deleted_rows" => $deletedRows 
+    							) 
+    					);
+    				} catch ( Exception $e ) {
+    					
+    					//$modelMapper->getDbTable ()->getAdapter ()->rollBack ();
+    					$response = array (
+    							"errors" => array (
+    									"message" => $e->getMessage () 
+    							) 
+    					);
+    				}
+    			} else {
+    				$response = array (
+    						"errors" => array (
+    								"message" => "No user to delete." 
+    						) 
+    				);
+    			}
 			}
+			
 		} else {
 			$this->_redirect ( '/' );
 		}
 		
 		$this->_helper->json ( $response );
 	}
-	private function _getModuleCmsTree($customer_id = null, $language_id = null, $getOnlyParents = false ,$nochilds = false) {
+    private function _getModuleCmsTree($customer_id = null, $language_id = null, $getOnlyParents = false, $nochilds = false) {
 		// Get customer_id, module_cms_id ,title, parent_id
 		$moduleCmsMapper = new ModuleCms_Model_Mapper_ModuleCms ();
-		$select = $moduleCmsMapper->getDbTable ()->select ()->setIntegrityCheck ( false )->from ( array (
-				'mc' => 'module_cms' 
-		), array (
-				'id' => 'mc.module_cms_id',
-				'parentId' => 'mc.parent_id',
-		) )->joinLeft ( array (
-				'mcd' => 'module_cms_detail' 
-		), "mcd.module_cms_id  = mc.module_cms_id", array (
-				'text' => 'mcd.title' 
-		) );
+		$where = "";
 		if($getOnlyParents){
 			$parent_ids = $this->_getParentIds();
-			$select = $select->where("mc.customer_id ='".$customer_id."' AND mcd.language_id ='".$language_id."' AND mc.module_cms_id IN('".$parent_ids."')");
+			$where = "mc.customer_id ='".$customer_id."' AND mcd.language_id ='".$language_id."' AND mc.module_cms_id IN('".$parent_ids."')";
 		} elseif($nochilds) {
 			$blacklisted = array();			
 			$blacklisted = $this->_getChilds($nochilds);
 			$string = is_array($blacklisted)?implode("','",$blacklisted):false;
-			$select = $select->where ( "mc.module_cms_id NOT IN('".$string."') AND mc.parent_id !='".$nochilds."' AND mc.module_cms_id != '".$nochilds."' AND mc.customer_id = '" . $customer_id . "' AND mcd.language_id =".$language_id );
+			$where = "mc.module_cms_id NOT IN('".$string."') AND mc.parent_id !='".$nochilds."' AND mc.module_cms_id != '".$nochilds."' AND mc.customer_id = '" . $customer_id . "' AND mcd.language_id =".$language_id ;
 		} else{
-			$select = $select->where ( "mc.customer_id = '".$customer_id."' AND mcd.language_id =".$language_id );
+			$where =  "mc.customer_id = '".$customer_id."' AND mcd.language_id =".$language_id ;
 		}
-		$select->order(array('mc.parent_id',"mc.order"));
-		$data = $moduleCmsMapper->getDbTable ()->fetchAll ( $select );
-		return Zend_Json::encode ( $data->toArray() );
+		
+		$data = array();
+		$this->_getChildrens($where,0,$data);
+		
+		return Zend_Json::encode ( $data );
+	}
+	
+	private function _getChildrens($where, $parent,&$data){
+	    $moduleCmsMapper = new ModuleCms_Model_Mapper_ModuleCms ();
+	    $select = $moduleCmsMapper->getDbTable ()->select ()->setIntegrityCheck ( false )->from ( array (
+	            'mc' => 'module_cms'
+	    ), array (
+	            'id' => 'mc.module_cms_id',
+	            'parentId' => 'mc.parent_id'
+	    ) )->joinLeft ( array (
+	            'mcd' => 'module_cms_detail'
+	    ), "mcd.module_cms_id  = mc.module_cms_id", array (
+	            'text' => 'mcd.title'
+	    ) );
+	    $select = $select->where ("mc.parent_id=".$parent." AND ".$where);
+	    $item = $moduleCmsMapper->getDbTable ()->fetchAll ( $select )->toArray ();
+	    if(count($item) > 0) {
+	        foreach ($item as $child) {
+	        	$data[] = $child;
+	        	$this->_getChildrens($where,$child['id'],$data);
+	        }
+	    } else {
+	        return false;
+	    }
 	}
 	
 	private function _getParentIds(){
@@ -665,85 +699,6 @@ class ModuleCms_IndexController extends Zend_Controller_Action {
 		return $idstack;
 	}
 
-	private function moveUploadFile($source_dir, $dest_dir, $filename) {
-		$source_file_name = $filename;
-		$expension = array_pop ( explode ( ".", $filename ) );
-		try {
-			$i = 1;
-			while ( file_exists ( $dest_dir . $filename ) ) {
-				$filename = str_replace ( "." . $expension, "_" . $i ++ . "." . $expension, $source_file_name );
-			}
-			if (! is_dir ( $dest_dir )) {
-				mkdir ( $dest_dir, 755 );
-			}
-			while(!file_exists($source_dir . $source_file_name)) {
-			}
-				
-			if (copy ( $source_dir . $source_file_name, $dest_dir . $filename )) {
-				
-			}
-			$thumbname = str_replace ( "." . $expension, "_thumb." . $expension, $filename );
-			$this->generateThumb ( $dest_dir . $filename, $dest_dir . $thumbname, 0, 75 );
-		} catch ( Exception $ex ) {
-				
-		}
-		return $filename;
-	}
-	
-	public function generateThumb($src, $dest, $destWidth = 0, $destHeight = 0) {
-		/* read the source image */
-		$stype = array_pop ( explode ( ".", $src ) );
-		switch ($stype) {
-			case 'gif' :
-				$source_image = imagecreatefromgif ( $src );
-				break;
-			case 'jpg' :
-			case 'jpeg' :
-				$source_image = imagecreatefromjpeg ( $src );
-				break;
-			case 'png' :
-				$source_image = imagecreatefrompng ( $src );
-				break;
-		}
-	
-		$width = imagesx ( $source_image );
-		$height = imagesy ( $source_image );
-	
-		$desired_height = 0;
-		$desired_width = 0;
-		if ($destWidth == 0) {
-			$desired_height = $destHeight;
-			$desired_width = floor ( $width * ($destHeight / $height) );
-		} else {
-			$desired_height = floor ( $destHeight * ($destWidth / $width) );
-			$desired_width = $destWidth;
-		}
-	
-		/* create a new, "virtual" image */
-		$virtual_image = imagecreatetruecolor ( $desired_width, $desired_height );
-		
-		imagealphablending($virtual_image, false);
-		imagesavealpha($virtual_image, true);
-		
-		imagealphablending($source_image, true);
-		/* copy source image at a resized size */
-		imagecopyresampled ( $virtual_image, $source_image, 0, 0, 0, 0, $desired_width, $desired_height, $width, $height );
-	
-		/* create the physical thumbnail image to its destination */
-		
-		switch ($stype) {
-			case 'gif' :
-				imagegif ( $virtual_image, $dest );
-				break;
-			case 'jpg' :
-			case 'jpeg' :
-				imagejpeg ( $virtual_image, $dest );
-				break;
-			case 'png' :
-				imagepng ( $virtual_image, $dest,0 );
-				break;
-		}
-	}
 	public function getImagesAction()
 	{
 		$customer_id = Standard_Functions::getCurrentUser()->customer_id;
@@ -751,7 +706,7 @@ class ModuleCms_IndexController extends Zend_Controller_Action {
 		$delimiter = ""; // for eye candy... code gets new lines
 
 		$output .= 'var tinyMCEImageList = new Array(';
-		$directory = APPLICATION_PATH."/../public/resource/module-image-gallery/thumb/".$customer_id; // Use your correct (relative!) path here
+		$directory = Standard_Functions::getResourcePath()."module-image-gallery/thumb/".$customer_id; // Use your correct (relative!) path here
 		// Since TinyMCE3.x you need absolute image paths in the list...
 		//$abspath = preg_replace('~^/?(.*)/[^/]+$~', '/$1', $_SERVER['SCRIPT_NAME']);
 		if (is_dir($directory)) {

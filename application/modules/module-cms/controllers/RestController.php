@@ -58,8 +58,13 @@ class ModuleCms_RestController extends Standard_Rest_Controller {
 							if($moduleCmsDetailModel) {
 								foreach($moduleCmsDetailModel as $detail_model) {
 									$details = $detail_model->toArray();
-									if(isset($details["thumb"])) {
-										$details["thumb"] = "resource/module-cms/thumb/".$details["thumb"];
+									$details["content"] = ($details["content"]!="") ? $this->getNativeContent($details["content"]) : "";
+								    if(isset($details["thumb"]) && $details["thumb"] != null){
+									    if(count(explode("/", $details["thumb"])) > 1){
+                                            $details["thumb"] = "resource/module-cms/".$details["thumb"];
+									    }else{
+									        $details["thumb"] = "resource/module-cms/preset-icons/".$details["thumb"];
+									    }
 									}
 									$cmsDetails[] = $details;
 								}
@@ -80,6 +85,28 @@ class ModuleCms_RestController extends Standard_Rest_Controller {
 				$this->_sendError($ex->getMessage());
 			}
 		}
+	}
+	public function getNativeContent($content) {
+	    $dom = new DOMDocument;
+	    libxml_use_internal_errors(true);
+	
+	    $dom->loadHTML( "<html>".$content ."</html>" );
+	    $xpath = new DOMXPath( $dom );
+	    libxml_clear_errors();
+	
+	    $doc = $dom->getElementsByTagName("html")->item(0);
+	    $src = $xpath->query(".//@src");
+	
+	    foreach ( $src as $s ) {
+	        $s->nodeValue = str_replace('/appstart/public', '', $s->nodeValue);
+	        if(stripos($s->nodeValue, "/resource/")===0) {
+	            $s->nodeValue = ".".$s->nodeValue;
+	        }
+	        $s->nodeValue = 'data:image/' . filetype($s->nodeValue) . ';base64,' . base64_encode(file_get_contents($s->nodeValue));
+	    }
+	
+	    $output = $dom->saveXML( $doc );
+	    return $output;
 	}
 	/* (non-PHPdoc)
 	 * @see Zend_Rest_Controller::headAction()

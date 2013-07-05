@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<config>
+    <nav> 
+    	<Modules>
+    		<pages>
+				<Parking>
+		    		<label>Parking</label>
+					<module>parking</module>			
+					<controller>index</controller>
+					<action>index</action>
+		            <order>10</order>
+		            <resource>parking</resource>
+		            <pages>
+						<add>
+							<label>Add Parking</label>
+							<module>parking</module>			
+							<controller>index</controller>
+							<action>add</action>
+							<resource>parking</resource>
+							<visible>false</visible>
+						</add>
+						<edit>
+							<label>Edit Parking</label>
+							<module>parking</module>			
+							<controller>index</controller>
+							<action>edit</action>
+							<resource>parking</resource>
+							<visible>false</visible>
+						</edit>
+						<reorder>
+							<label>Reorder Parking</label>
+							<module>parking</module>			
+							<controller>index</controller>
+							<action>reorder</action>
+							<resource>parking</resource>
+							<visible>false</visible>
+						</reorder>
+						<types>
+							<label>Parking Types</label>
+							<module>parking</module>			
+							<controller>type</controller>
+							<action>index</action>
+							<visible>false</visible>
+				            <resource>parking</resource>
+				            <pages>
+				            	<add>
+									<label>Add Parking Types</label>
+									<module>parking</module>			
+									<controller>type</controller>
+									<action>add</action>
+									<resource>parking</resource>
+									<visible>false</visible>
+								</add>
+								<edit>
+									<label>Edit Parking Types</label>
+									<module>parking</module>			
+									<controller>type</controller>
+									<action>edit</action>
+									<resource>parking</resource>
+									<visible>false</visible>
+								</edit>
+								<reorder>
+									<label>Reorder Parking Types</label>
+									<module>parking</module>			
+									<controller>type</controller>
+									<action>reorder</action>
+									<resource>parking</resource>
+									<visible>false</visible>
+								</reorder>
+				            </pages>
+						</types>
+					</pages>
+		    	</Parking>
+		    </pages>
+    	</Modules>
+	</nav>
+</config>

@@ -116,6 +116,18 @@ class Admin_CustomerController extends Zend_Controller_Action {
 			$customerConfigurationForm->populate ( $customerConfigurationData );
 		
 		$customerConfigurationForm->getElement ( 'customer_id' )->setAttrib ( "id", "configuration_customer_id" );
+		
+		// Populate Source
+		$sourceMapper = new Parking_Model_Mapper_ModuleParkingCustomerSource();
+		$sources = $sourceMapper->fetchAll("customer_id=".$customer_id);
+		if(is_array($sources)) {
+		    $selected = array();
+		    foreach($sources as $source) {
+		        $selected[] = $source->getModuleParkingSourceId();
+		    }
+		    $customerForm->getElement ( 'source_id' )->setValue($selected);
+		}
+		
 		// Set forms for view
 		$this->view->customerForm = $customerForm;
 		$this->view->customerConfigurationForm = $customerConfigurationForm;

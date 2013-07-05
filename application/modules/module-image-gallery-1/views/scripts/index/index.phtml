@@ -1,6 +1,7 @@
 <script type="text/javascript">
 window.imagesUploaded = <?php echo $this->imagesUploaded?$this->imagesUploaded:0;?>;
 window.imagesLimit = <?php echo $this->imagesLimit?$this->imagesLimit:0;?>;
+window.totalcategories = <?php echo $this->totalcategories?$this->totalcategories:0;?>;
 </script>
 <form id="frmFilter">
 	<div id="filterBox">
@@ -76,6 +77,17 @@ $(document).ready(function() {
                 }, 3000);
 				e.preventDefault();
 			}
+			if(window.totalcategories == 0){
+				 promptus = new prompt({
+	                reference : self,
+	                element : ".dataTables_wrapper"
+	            });
+	            promptus.showErrorMessage("You can not add an image without category.Please add atleast one category.");
+	            setTimeout(function(){
+        		promptus.close();
+            }, 3000);
+				e.preventDefault();
+			}
 		}
 	});
 
@@ -90,6 +102,17 @@ $(document).ready(function() {
 	            setTimeout(function(){
             		promptus.close();
                 }, 3000);
+				e.preventDefault();
+			}
+			if(window.totalcategories == 0){
+				 promptus = new prompt({
+	                reference : self,
+	                element : ".dataTables_wrapper"
+	            });
+	            promptus.showErrorMessage("You can not add an image without category.Please add atleast one category.");
+	            setTimeout(function(){
+        		promptus.close();
+            }, 3000);
 				e.preventDefault();
 			}
 		}

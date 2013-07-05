@@ -63,7 +63,7 @@ class ModuleCms_Form_ModuleCms extends Standard_Form{
 		//Cms Thumb 
 		$thumb = $this->createElement('file','thumb');
 		$thumb->setLabel(false)
-			 ->setDestination(Standard_Functions::getResourcePath(). "module-cms/images/")
+			 ->setDestination(Standard_Functions::getResourcePath(). "module-cms/uploaded-icons/")
 			 ->addValidator('Size', false, 10485760)
 			 ->addValidator('Extension', false, 'jpeg,jpg,png,gif');
 		$this->addElement($thumb);
@@ -83,10 +83,36 @@ class ModuleCms_Form_ModuleCms extends Standard_Form{
 		));
 		$this->addElement($content);
 		
-		//Background Color
-		// $this->addElement('text','background_color', array(
-		// 		'label' => 'Background Color:'
-		// ));
+		// Label 1
+		$label_1 = $this->createElement ( "text", "label_1", array (
+		        'label' => 'Label 1 (Text):',
+		        'size' => '90',
+		        'filters' => array (
+		                'StringTrim'
+		        )
+		) );
+		$this->addElement ($label_1);
+		
+		// Label 1 Color
+		$label_1_color = $this->createElement ( "text", "label_1_color", array (
+		        'label' => 'Label 1 (Color):',
+		        'size' => '15',
+		        'maxlength' => '6',
+		        'filters' => array (
+		                'StringTrim'
+		        )
+		) );
+		$this->addElement ( $label_1_color );
+		
+		// Label 2
+		$label_2 = $this->createElement ( "text", "label_2", array (
+		        'label' => 'Label 2:',
+		        'size' => '90',
+		        'filters' => array (
+		                'StringTrim'
+		        )
+		) );
+		$this->addElement ($label_2);
 
 		$this->addElement('checkbox', 'status', array(
 				'label'      => 'Active',

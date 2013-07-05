@@ -1,8 +1,8 @@
 <?php
 class HomeWallpaper_Form_HomeWallpaper extends Standard_Form {
+	public static $_module_id;
 	public function init() {
 		$this->setMethod ( 'POST' );
-		
 		$notEmptyValidator = new Zend_Validate_NotEmpty ();
 		$notEmptyValidator->setMessage ( 'Enter Valid Value For The Field.' );
 		
@@ -56,12 +56,12 @@ class HomeWallpaper_Form_HomeWallpaper extends Standard_Form {
 		$this->addElement ( $image_title);
 
 		// link_to_module
-		$link_to_module = $this->createElement ( "text", "link_to_module", array (
+		$link_to_module = $this->createElement ( "select", "link_to_module", array (
 				'label' => 'Link to module:',
-				'size' => '90',
+				'MultiOptions' => $this->_getLinkModule (),
 				'filters' => array (
-						'StringTrim' 
-				) 
+						'StringTrim'
+				)
 		) );
 		$this->addElement ( $link_to_module );
 		
@@ -79,7 +79,7 @@ class HomeWallpaper_Form_HomeWallpaper extends Standard_Form {
 		// Submit button
 		$submit = $this->addElement ( 'submit', 'submit', array (
 				'ignore' => true,
-				'class' => "button" 
+				'class' => "button"
 		) );
 		
 		// Submit For ALL button
@@ -98,5 +98,26 @@ class HomeWallpaper_Form_HomeWallpaper extends Standard_Form {
 				$submit,
 				$reset
 		) );
+	}
+	public function _getLinkModule () 
+	{
+		$modules = array(""=>"Select Module");
+		$mapper = new Admin_Model_Mapper_CustomerModule();
+		$model = $mapper->fetchAll("status=1 AND customer_id=".Standard_Functions::getCurrentUser()->customer_id);
+		$active_lang_id = Standard_Functions::getCurrentUser ()->active_language_id;
+		foreach ($model as $customerModule) {
+			if(self::$_module_id != $customerModule->getModuleId()) {
+				$mapperDetail = new Admin_Model_Mapper_CustomerModuleDetail();
+				$modelDetail = $mapperDetail->fetchAll("customer_module_id = ".$customerModule->get("customer_module_id"). " AND language_id=".$active_lang_id);
+				
+				if(is_array($modelDetail) && is_object($modelDetail[0])) {
+					$modules[$customerModule->getModuleId()] = $modelDetail[0]->getScreenName();
+				}
+			}
+		}
+		$modules = array_filter($modules,function($element){
+			return ($element != "");
+		});
+		return $modules;
 	}
 }

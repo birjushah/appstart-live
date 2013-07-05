@@ -165,7 +165,7 @@ $(document).ready(function() {
         $("#dropDownButton").jqxDropDownButton('setContent', dropDownContent);        
     });
     var source = builddata();
-    //console.log(source);
 	$("#jqxTree").jqxTree({source:source,width: 250 });
+	$('#jqxTree').jqxTree('expandAll');
 });
 </script>

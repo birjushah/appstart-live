@@ -1,4 +1,4 @@
-<?php
+<?php 
 class Contact_ConfigController extends Zend_Controller_Action {
 	public function init() {
 		/* Initialize action controller here */
@@ -6,10 +6,10 @@ class Contact_ConfigController extends Zend_Controller_Action {
 	public function installAction() {
 		$this->_helper->layout ()->disableLayout ();
 		$this->_helper->viewRenderer->setNoRender ( true );
-		
+
 		$db = Standard_Functions::getDefaultDbAdapter ();
 		try {
-			
+				
 			// Create Table Contact If Not Exsist
 			$sql = "CREATE TABLE IF NOT EXISTS `contact` (
 						`contact_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -28,9 +28,9 @@ class Contact_ConfigController extends Zend_Controller_Action {
 						CONSTRAINT `fk_contact_update` FOREIGN KEY (`last_updated_by`) REFERENCES `user` (`user_id`),
 						CONSTRAINT `fk_customer` FOREIGN KEY (`customer_id`) REFERENCES `customer` (`customer_id`)
 					) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
-			
+				
 			$db->query ( $sql );
-			
+				
 			// Create Table Contact If Not Exsist
 			$sql = "CREATE TABLE IF NOT EXISTS `contact_detail` (
 					  `contact_detail_id` int(11) NOT NULL AUTO_INCREMENT,
@@ -64,9 +64,9 @@ class Contact_ConfigController extends Zend_Controller_Action {
 					  CONSTRAINT `fk_cd_updated` FOREIGN KEY (`last_updated_by`) REFERENCES `user` (`user_id`),
 					  CONSTRAINT `fk_contact` FOREIGN KEY (`contact_id`) REFERENCES `contact` (`contact_id`)
 					) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
-				
+
 			$db->query ( $sql );
-			
+				
 			// Create Resource Dir
 			mkdir ( Standard_Functions::getResourcePath () . "contact", 0755 );
 			mkdir ( Standard_Functions::getResourcePath () . "contact/images", 0755 );
@@ -79,4 +79,3 @@ class Contact_ConfigController extends Zend_Controller_Action {
 		// action body
 	}
 }
-

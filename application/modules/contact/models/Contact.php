@@ -1,6 +1,8 @@
 <?php
 class Contact_Model_Contact extends Standard_Model {
 	private $_contact_id;
+	private $_contact_category_id;
+	private $_contact_types_id;
 	private $_customer_id;
 	private $_order;
 	private $_status;

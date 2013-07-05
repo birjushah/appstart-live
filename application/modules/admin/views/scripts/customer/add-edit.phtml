@@ -2,6 +2,11 @@
 $customerForm = $this->customerForm;
 $customerConfigurationForm = $this->customerConfigurationForm;
 ?>
+<style>
+ul.available{
+	height:92px !important;
+}
+</style>
 <script type="text/javascript" src="<?php echo $this->baseUrl("libs/colorpicker/jquery.colorpicker.js"); ?>"></script>
 <link href="<?php echo $this->baseUrl("libs/colorpicker/jquery.colorpicker.css"); ?>" rel="stylesheet" type="text/css"/>
 <script src="<?php echo $this->baseUrl("libs/colorpicker/i18n/jquery.ui.colorpicker-en.js"); ?>"></script>
@@ -40,14 +45,12 @@ $customerConfigurationForm = $this->customerConfigurationForm;
 					<tr>
 						<td><?php echo $customerForm->password->renderLabel() ?></td>
 						<td><?php echo $customerForm->password->renderViewHelper()?></td>
-						<td><?php echo $customerForm->address->renderLabel() ?></td>
-						<td><?php echo $customerForm->address->renderViewHelper()?></td>
+						<td rowspan="3"><?php echo $customerForm->address->renderLabel() ?></td>
+						<td rowspan="3"><?php echo $customerForm->address->renderViewHelper()?></td>
 					
 					</tr>
 					<tr>
-						<td rowspan="3"><?php echo $customerForm->language_id->renderLabel() ?></td>
-						<td rowspan="3"><?php echo $customerForm->language_id->renderViewHelper()?></td>
-						<td><?php echo $customerForm->country->renderLabel() ?></td>
+					    <td><?php echo $customerForm->country->renderLabel() ?></td>
 						<td><?php echo $customerForm->country->renderViewHelper()?></td>
 					</tr>
 					<tr>
@@ -55,6 +58,8 @@ $customerConfigurationForm = $this->customerConfigurationForm;
 						<td><?php echo $customerForm->plz->renderViewHelper()?></td>
 					</tr>
 					<tr>
+						<td rowspan="3"><?php echo $customerForm->language_id->renderLabel() ?></td>
+						<td rowspan="3"><?php echo $customerForm->language_id->renderViewHelper()?></td>
 						<td><?php echo $customerForm->default_language_id->renderLabel() ?></td>
 						<td><?php echo $customerForm->default_language_id->renderViewHelper()?></td>
 					</tr>
@@ -63,16 +68,23 @@ $customerConfigurationForm = $this->customerConfigurationForm;
 						<td><?php echo $customerForm->business_type_id->renderViewHelper()?></td>
 					</tr>
 					<tr>
-						<td><?php echo $customerForm->template_id->renderLabel() ?></td>
-						<td><?php echo $customerForm->template_id->renderViewHelper()?></td>
+    					<td><?php echo $customerForm->template_id->renderLabel() ?></td>
+    					<td><?php echo $customerForm->template_id->renderViewHelper()?></td>
+					</tr>
+					
+					<tr>
+						<td rowspan="3"><?php echo $customerForm->source_id->renderLabel() ?></td>
+						<td rowspan="3"><?php echo $customerForm->source_id->renderViewHelper()?></td>
+						<td><?php echo $customerForm->contact_person_phone->renderLabel() ?></td>
+						<td><?php echo $customerForm->contact_person_phone->renderViewHelper()?></td>
+					</tr>
+					<tr>
 						<td><?php echo $customerForm->contact_person_email->renderLabel() ?></td>
 						<td><?php echo $customerForm->contact_person_email->renderViewHelper()?></td>
 					</tr>
 					<tr>
-						<td><?php echo $customerForm->status->renderLabel() ?></td>
+					    <td><?php echo $customerForm->status->renderLabel() ?></td>
 						<td><?php echo $customerForm->status->renderViewHelper()?></td>
-						<td><?php echo $customerForm->contact_person_phone->renderLabel() ?></td>
-						<td><?php echo $customerForm->contact_person_phone->renderViewHelper()?></td>
 					</tr>
 					<tr>
 						<td><?php echo $customerForm->start_date_time->renderLabel() ?></td>
@@ -82,7 +94,7 @@ $customerConfigurationForm = $this->customerConfigurationForm;
 					</tr>
 				</tbody>
 			</table>
-			<div class="customer_submit"><?php echo $customerForm->submit->renderViewHelper().$customerForm->reset->renderViewHelper();?></div>
+			<div class="customer_submit"><?php echo html_entity_decode($customerForm->submit->renderViewHelper().$customerForm->reset->renderViewHelper());?></div>
 		</form>
 	</div>
 
@@ -120,6 +132,50 @@ $customerConfigurationForm = $this->customerConfigurationForm;
 						<td><?php echo $customerConfigurationForm->separator_color->renderViewHelper()?></td>
 					</tr>
 					<tr>
+						<td><?php echo $customerConfigurationForm->header_font_type->renderLabel() ?></td>
+						<td><?php echo $customerConfigurationForm->header_font_type->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $customerConfigurationForm->header_color->renderLabel() ?></td>
+						<td><?php echo $customerConfigurationForm->header_color->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $customerConfigurationForm->header_font_color->renderLabel() ?></td>
+						<td><?php echo $customerConfigurationForm->header_font_color->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $customerConfigurationForm->header_font_size->renderLabel() ?></td>
+						<td><?php echo $customerConfigurationForm->header_font_size->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $customerConfigurationForm->list_gradient_top->renderLabel(); ?></td>
+						<td><?php echo $customerConfigurationForm->list_gradient_top->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $customerConfigurationForm->list_gradient_middle->renderLabel(); ?></td>
+						<td><?php echo $customerConfigurationForm->list_gradient_middle->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $customerConfigurationForm->list_gradient_bottom->renderLabel(); ?></td>
+						<td><?php echo $customerConfigurationForm->list_gradient_bottom->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $customerConfigurationForm->list_font_color->renderLabel() ?></td>
+						<td><?php echo $customerConfigurationForm->list_font_color->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $customerConfigurationForm->list_background_color->renderLabel() ?></td>
+						<td><?php echo $customerConfigurationForm->list_background_color->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $customerConfigurationForm->list_font_size->renderLabel() ?></td>
+						<td><?php echo $customerConfigurationForm->list_font_size->renderViewHelper()?></td>
+					</tr>
+					<tr>
+						<td><?php echo $customerConfigurationForm->list_font_type->renderLabel() ?></td>
+						<td><?php echo $customerConfigurationForm->list_font_type->renderViewHelper()?></td>
+					</tr>
+					<tr>
 						<td><?php echo $customerConfigurationForm->imagegallery_limit->renderLabel() ?></td>
 						<td><?php echo $customerConfigurationForm->imagegallery_limit->renderViewHelper()?></td>
 					</tr>
@@ -131,15 +187,19 @@ $customerConfigurationForm = $this->customerConfigurationForm;
 						<td><?php echo $customerConfigurationForm->homewallpaper_limit->renderLabel() ?></td>
 						<td><?php echo $customerConfigurationForm->homewallpaper_limit->renderViewHelper()?></td>
 					</tr>
+					<tr>
+						<td><?php echo $customerConfigurationForm->invert->renderLabel() ?></td>
+						<td><?php echo $customerConfigurationForm->invert->renderViewHelper()?></td>
+					</tr>
 				</tbody>
 			</table>
-			<div class="customer_submit"><?php echo $customerConfigurationForm->submit->renderViewHelper().$customerForm->reset->renderViewHelper();?></div>
+			<div class="customer_submit"><?php echo html_entity_decode($customerConfigurationForm->submit->renderViewHelper().$customerForm->reset->renderViewHelper());?></div>
 		</form>
 	</div>
 </div>
 <script type="text/javascript">
 	$(document).ready(function(){
-		$("#font_color,#theme_color,#separator_color").colorpicker({
+		$("#font_color,#theme_color,#separator_color,#list_gradient_top,#list_gradient_middle,#list_gradient_bottom,#list_font_color,#list_background_color,#header_color,#header_font_color").colorpicker({
 			parts: 'draggable',
 			showOn: 'both',
 			regional: 'en',
@@ -167,7 +227,7 @@ $customerConfigurationForm = $this->customerConfigurationForm;
 			} 
 		?>
 		
-		$("#language_id").multiselect({
+		$("#language_id,#source_id").multiselect({
 			sortable: false, 
 			searchable: false
 		});

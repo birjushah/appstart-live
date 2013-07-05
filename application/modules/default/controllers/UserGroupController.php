@@ -26,7 +26,11 @@ class Default_UserGroupController extends Zend_Controller_Action {
 				'column' => array (
 						'id' => array (
 								'actions' 
-						) 
+						),
+						'ignore' => array(
+								'total_modules',
+								'total_users',
+						)
 				) 
 		), null, $select );
 		$rows = $response ['aaData'];

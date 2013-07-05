@@ -15,6 +15,15 @@ class Events_Form_Events extends Standard_Form {
 		) );
 		$this->addElement ( $module_events_id);
 		
+		// Module Events ID
+		$module_events_category_id = $this->createElement ( "hidden", "module_events_category_id", array (
+				'value' => '',
+				'filters' => array (
+						'StringTrim'
+				)
+		) );
+		$this->addElement ( $module_events_category_id);
+		
 		// Module Events Detail ID
 		$module_events_detail_id = $this->createElement ( "hidden", "module_events_detail_id", array (
 				'value' => '',
@@ -23,6 +32,12 @@ class Events_Form_Events extends Standard_Form {
 				)
 		) );
 		$this->addElement ( $module_events_detail_id);
+		
+		// Type
+		$this->addElement('select','module_events_types_id',array(
+		 		'label'		 => 'Type:',
+		 		'MultiOptions' => $this->_getTypes()
+		));
 		
 		// Language ID
 		$language_id = $this->createElement ( "hidden", "language_id", array (
@@ -59,11 +74,22 @@ class Events_Form_Events extends Standard_Form {
 				'label' => 'Description:',
 				'id' => 'ta1',
 				'size' => '128',
+		        'style' => 'width:490px;',
 				'filters' => array (
 						'StringTrim' 
 				) 
 		) );
 		$this->addElement ( $description );
+		
+		// information
+		$information = $this->createElement ( "textarea", "information", array (
+				'label' => 'Information:',
+				'id' => 'information',
+				'filters' => array (
+						'StringTrim' 
+				) 
+		) );
+		$this->addElement ( $information );
 		
 		// Start Date/Time
 		$startDate = $this->createElement ( "text", "start_date_time", array (
@@ -191,12 +217,53 @@ class Events_Form_Events extends Standard_Form {
 				'label' => 'Notes',
 				'id' => 'ta2',
 				'size' => '90',
+		        'style' => 'width:490px;',
 				'filters' => array(
 						'StringTrim'
 						)
 				)
 		);
 		$this->addElement($notes);
+		
+		// Phone
+		$phone = $this->createElement ( "text", "phone", array (
+				'label' => 'Phone:',
+				'size' => '20',
+				'filters' => array (
+						'StringTrim'
+				)
+		) );
+		$this->addElement ($phone);
+		
+		// Email
+		$email = $this->createElement ( "text", "email", array (
+				'label' => 'Email:',
+				'size' => '120',
+				'filters' => array (
+						'StringTrim'
+				)
+		) );
+		$this->addElement ($email);
+		
+		// Website
+		$website = $this->createElement ( "text", "website", array (
+				'label' => 'Website:',
+				'size' => '255',
+				'filters' => array (
+						'StringTrim'
+				)
+		) );
+		$this->addElement ($website);
+		
+		// Code
+		$code = $this->createElement ( "text", "code", array (
+				'label' => 'Code:',
+				'size' => '120',
+				'filters' => array (
+						'StringTrim'
+				)
+		) );
+		$this->addElement ($code);
 		
 		// //Recurrence
 		// $this->addElement('select','recurrence',array(
@@ -256,7 +323,22 @@ class Events_Form_Events extends Standard_Form {
 				$reset
 		) );
 	}
-	
+	private function _getTypes() {
+		$types = array(""=>"Select Type");
+		$mapper = new Events_Model_Mapper_ModuleEventsTypes();
+		$model = $mapper->fetchAll("status=1 AND customer_id=".Standard_Functions::getCurrentUser()->customer_id);
+		$active_lang_id = Standard_Functions::getCurrentUser ()->active_language_id;
+		foreach ($model as $typeModel) {
+			$mapperDetail = new Events_Model_Mapper_ModuleEventsTypesDetail();
+			$modelDetail = $mapperDetail->fetchAll("module_events_types_id = ".$typeModel->get("module_events_types_id"). " AND language_id=".$active_lang_id);
+		
+			if(is_array($modelDetail) && is_object($modelDetail[0])) {
+				$types[$typeModel->getModuleEventsTypesId()] = $modelDetail[0]->getTitle();
+			}
+		}
+		
+		return $types;
+	}
 	// private function _getRecurrence() {
 	// 	$options = array(
 	// 					"Daily"=>"Daily",

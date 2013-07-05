@@ -29,7 +29,7 @@ tinyMCE.init({
 	theme_advanced_toolbar_location : "top",
 	theme_advanced_toolbar_align : "left",
 	theme_advanced_statusbar_location : "bottom",
-	theme_advanced_resizing : true,
+	theme_advanced_resizing : false,
 
 	// Example content CSS (should be your site CSS)
 	content_css : "<?php echo $this->baseUrl("libs/tinymce/css/content.css"); ?>",
@@ -118,9 +118,9 @@ tinyMCE.init({
 				</tr>
 				<tr>	
 					<td colspan="3" align="center">
-		        	<?php echo $form->submit->renderViewHelper() ?>&nbsp;
-		        	<?php echo $form->applyall->renderViewHelper()?>&nbsp;
-					<?php echo $form->reset->renderViewHelper()?>
+		        	<?php echo html_entity_decode($form->submit->renderViewHelper()) ?>&nbsp;
+		        	<?php echo Standard_Functions::$action == "edit"?html_entity_decode($form->applyall->renderViewHelper()):""?>&nbsp;
+					<?php echo html_entity_decode($form->reset->renderViewHelper())?>
 					</td>
 				</tr>
 			</tbody>
@@ -147,6 +147,7 @@ $(document).ready(function() {
 	                message : "<?php echo $this->translate('Your changes will be saved and applied to all languages. Is it Ok?'); ?>",
 	                buttons : {
 	                    "Yes" : function(self){
+		                    this.close();
 	                        $("#frmAddEditVersion").trigger("submit",{all:true});
 	                    },
 	                    "No"  : function(self){

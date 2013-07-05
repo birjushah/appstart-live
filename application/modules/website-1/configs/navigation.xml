@@ -2,25 +2,21 @@
 <config>
     <nav> 
     	<Modules>
-    		<label>Modules</label>
-    		<order>3</order>
-    		<uri>#</uri>
-			<resource>index</resource>
     		<pages>
-				<Website-1>
+				<Website1>
 		    		<label>Website List</label>
 					<module>website-1</module>			
 					<controller>index</controller>
 					<action>index</action>
-		            <order>9</order>
+		            <order>8</order>
 		            <resource>website-1</resource>
 		            <pages>
 						<add>
 							<label>Add Website</label>
-							<module>website</module>			
+							<module>website-1</module>			
 							<controller>index</controller>
 							<action>add</action>
-							<resource>website-1</resource>
+							<resource>website</resource>
 							<visible>false</visible>
 						</add>
 						<edit>
@@ -40,7 +36,7 @@
 							<visible>false</visible>
 						</reorder>
 					</pages>
-		    	</Website-1>
+		    	</Website1>
     		</pages>
     	</Modules>
 	</nav>

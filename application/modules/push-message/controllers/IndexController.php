@@ -7,10 +7,18 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 		$modulesMapper = new Admin_Model_Mapper_Module();
 		$module = $modulesMapper->fetchAll("name ='push-message'");
 		if(is_array($module)) {
-			$this->_module_id = $module[0]->getModuleId();
+			PushMessage_Form_PushMessage::$_module_id = $this->_module_id = $module[0]->getModuleId();
 		}
-		
-		$iconpack = Standard_Functions::getIconset("push-message");
+		$image_dir = Standard_Functions::getResourcePath(). "push-message/preset-icons";
+		if(is_dir($image_dir)){
+		    $direc = opendir($image_dir);
+		    $iconpack = array();
+		    while($icon = readdir($direc)){
+		        if(is_file($image_dir."/".$icon) && getimagesize($image_dir."/".$icon)){
+		            $iconpack[] = $icon;
+		        }
+		    }
+		}
 		$this->_iconpack = $iconpack;
 	}
 	public function indexAction() {
@@ -24,6 +32,21 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 				"controller" => "index",
 				"action" => "reorder"
 		), "default", true );
+		$this->view->addcategory = $this->view->url(array (
+    			"module" => "push-message",
+    			"controller" => "category",
+    			"action" => "index"
+    	), "default", true);
+		//getting total categories
+		$mapper = new PushMessage_Model_Mapper_PushMessageCategory();
+		$customer_id = Standard_Functions::getCurrentUser()->customer_id;
+		$DBExpr = new Zend_Db_Expr("COUNT(push_message_category_id)");
+		$select = $mapper->getDbTable()->select(false)
+		->setIntegrityCheck(false)
+		->from('module_push_message_category',array('count'=>$DBExpr ))
+		->where("customer_id =".$customer_id);
+		$stack = $mapper->getDbTable()->fetchRow($select)->toArray();
+		$this->view->totalcategories = $stack['count'];
 	}
 	public function reorderAction() {
 		$active_lang_id = Standard_Functions::getCurrentUser ()->active_language_id;
@@ -117,7 +140,10 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 				"pmd.title" => "title",
 				"pmd.description" => "description",
 				"pmd.message_date" => "message_date" 
-		) )->where ( "pm.customer_id=" . Standard_Functions::getCurrentUser ()->customer_id );
+		) )->joinLeft ( array ("pmcd" => "module_push_message_category_detail"),
+                "pmcd.push_message_category_id = pm.push_message_category_id AND pmcd.language_id = ".$active_lang_id, array (
+                        "pmcd.title" => "title", 
+        ) )->where ( "pm.customer_id=" . Standard_Functions::getCurrentUser ()->customer_id );
 		
 		$response = $pushMessageMapper->getGridData ( array (
 				'column' => array (
@@ -148,17 +174,22 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 		$rows = $response ['aaData'];
 		foreach ( $rows as $rowId => $row ) {
 			$edit = array ();
-			if($row[4]['pmd.push_message_detail_id'] == ""){
+			if($row[6]['pmd.push_message_detail_id'] == ""){
 				$mapper = new PushMessage_Model_Mapper_PushMessageDetail();
 				$details = $mapper->fetchAll("push_message_id=".$row[5]["pm.push_message_id"]." AND language_id=".$default_lang_id);
 				if(is_array($details)){
 					$details = $details[0];
-					$row[5]["pmd.title"] = $row[0] = $details->getTitle();
-					$row[5]["pmd.description"] = $row[1] = $details->getDescription();
+					$row[6]["pmd.title"] = $row[0] = $details->getTitle();
+					$row[6]["pmd.description"] = $row[2] = $details->getDescription();
 				}
 			}
-			if($row[5]["pmd.message_date"] != null){
-				$row[5]["pmd.message_date"] = $row[2] = Standard_Functions::getLocalDateTime($row[5]["pmd.message_date"]);
+			if($row[6]["pmd.message_date"] != null){
+			    $message_date = Standard_Functions::getLocalDateTime($row[6]["pmd.message_date"]);
+    	        $message_date_format = DateTime::createFromFormat ( "Y-m-d H:i:s", $message_date );
+    	        if($message_date_format){
+    	            $message_date_format = $message_date_format->format ( "d/m/Y H:i" );
+    	        }
+				$row[6]["pmd.message_date"] = $row[3] = $message_date_format;
 			}
 			$response['aaData'][$rowId] = $row;
 			if ($languages) {
@@ -167,7 +198,7 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 							"module" => "push-message",
 							"controller" => "index",
 							"action" => "edit",
-							"id" => $row [5] ["pm.push_message_id"],
+							"id" => $row [6] ["pm.push_message_id"],
 							"lang" => $lang ["l.language_id"] 
 					), "default", true );
 					$edit [] = '<a href="' . $editUrl . '" ><img src="images/lang/' . $lang ["logo"] . '" alt="' . $lang ["l.title"] . '" /></a>';
@@ -177,29 +208,51 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 					"module" => "push-message",
 					"controller" => "index",
 					"action" => "delete",
-					"id" => $row [5] ["pm.push_message_id"] 
+					"id" => $row [6] ["pm.push_message_id"] 
 			), "default", true );
 			$defaultEdit = '<div id="editLanguage">&nbsp;<div class="flag-list">'.implode("",$edit).'</div></div>';
 			$delete = '<a href="' . $deleteUrl . '" class="button-grid greay grid_delete" >'.$this->view->translate('Delete').'</a>';
 			$sap = '';
-			$response ['aaData'] [$rowId] [5] = $defaultEdit . $sap . $delete;
+			$response ['aaData'] [$rowId] [6] = $defaultEdit . $sap . $delete;
 		}
 		$jsonGrid = Zend_Json::encode ( $response );
 		$this->_response->appendBody ( $jsonGrid );
 	}
 	public function addAction() {
 		// add Action
-		$form = new PushMessage_Form_PushMessage ();
-		$action = $this->view->url ( array (
-				"module" => "push-message",
-				"controller" => "index",
-				"action" => "save" 
-		), "default", true );
-		$form->setAction ( $action );
-		$this->view->form = $form;
+	    $request = $this->getRequest ();
+	    $language_id = Standard_Functions::getCurrentUser ()->default_language_id;
+	    $form = new PushMessage_Form_PushMessage ();
+	    $customer_id = Standard_Functions::getCurrentUser ()->customer_id;
+	    if($request->getParam('id',"") != null){
+	        $events_id = $request->getParam('id');
+	        $dataDetails = array();
+	        $details = new Events_Model_Mapper_ModuleEventsDetail();
+	        
+	        if($details->countAll("module_events_id = ".$events_id." AND language_id = ".$language_id) > 0) {
+	            $dataDetails = $details->getDbTable()->fetchAll("module_events_id = ".$events_id." AND language_id = ".$language_id)->toArray();
+	        }
+	        if($dataDetails[0]['notes'] != null){
+	            $dataDetails[0]['notes'] = strip_tags($dataDetails[0]['notes']);
+	        }
+	        if($dataDetails[0]['description'] != null){
+	            $dataDetails[0]['description'] = strip_tags($dataDetails[0]['description']);
+	        }
+	        $form->populate ( $dataDetails[0] );
+	        $this->view->form = $form;
+	    }else{
+	        $this->view->form = $form;
+	    }
+	    $action = $this->view->url ( array (
+	            "module" => "push-message",
+	            "controller" => "index",
+	            "action" => "save"
+	    ), "default", true );
+	    $form->setAction ( $action );
 		$this->view->assign ( array (
 				"partial" => "index/partials/add.phtml" 
 		) );
+		$this->view->categoryTree = $this->_getCategoryTree ( $customer_id, $language_id);
 		$this->view->iconpack = $this->_iconpack;
 		$this->render ( "add-edit" );
 	}
@@ -207,6 +260,7 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 		// edit action
 		$form = new PushMessage_Form_PushMessage ();
 		$request = $this->getRequest ();
+		$customer_id = Standard_Functions::getCurrentUser ()->customer_id;
 		if ($request->getParam ( "id", "" ) != "" && $request->getParam ( "lang", "" ) != "") {
 			$pushMessageMapper = new PushMessage_Model_Mapper_PushMessage ();
 			$push_message_id = $request->getParam ( "id", "" );
@@ -240,6 +294,12 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 			        }
 			    }
 				$dataDetails[0]['message_date'] = Standard_Functions::getLocalDateTime ($dataDetails[0]['message_date']);
+				if($dataDetails[0]["message_date"] != ""){
+				    $message_date = DateTime::createFromFormat ( "Y-m-d H:i:s", $dataDetails[0]["message_date"] );
+				    if($message_date){
+				        $dataDetails[0]["message_date"] = $message_date->format ( "d/m/Y H:i" );
+				    }
+				}
 				$form->populate ( $dataDetails [0] );
 			}
 			$action = $this->view->url ( array (
@@ -256,6 +316,16 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 		$this->view->assign ( array (
 				"partial" => "index/partials/edit.phtml" 
 		) );
+		$this->view->categoryTree = $this->_getCategoryTree ( $customer_id, $language_id);
+		$parent_id = $data["push_message_category_id"];
+		$this->view->orignalParent = $parent_id;
+		$detailMapper = new PushMessage_Model_Mapper_PushMessageCategoryDetail();
+		if($parent_id != 0){
+		    $details = $detailMapper->getDbTable()->fetchAll("language_id = ".$language_id." AND push_message_category_id =" .$parent_id)->toArray();
+		    $this->view->parentCategory = $details[0]['title'];
+		} else {
+		    $this->view->parentCategory = 'Menu';
+		}
 		$this->view->iconpack = $this->_iconpack;
 		$this->render ( "add-edit" );
 	}
@@ -272,7 +342,7 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 		        if($adapter->getFileName("icon")!="")
 		        {
 		        				$response = array (
-		        				        "success" => array_pop(explode('\\',$adapter->getFileName("icon")))
+		        				        "success" => array_pop(explode('/',$adapter->getFileName("icon")))
 		        				);
 		        } else {
 		        				$response = array (
@@ -306,7 +376,7 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 	                    $selIcon = $request->getParam("selLogo","0");
 	                }
 	                $icon_path = $request->getParam("icon_path","");
-	                if($selIcon != 0){
+	                if(isset($selIcon) && $selIcon != 0){
 	                    $allFormValues["icon"] = $selIcon;
 	                }elseif ($icon_path != ""){
 	                    $allFormValues["icon"] = "uploaded-icons/".$icon_path;
@@ -331,7 +401,7 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 							foreach ( $customerLanguageModel as $languages ) {
 								$pushMessageDetailModel = new PushMessage_Model_PushMessageDetail ( $allFormValues );
 								$pushMessageDetailModel->setPushMessageId ( $push_message_id );
-								//$pushMessageDetailModel->setMessageDate ( $date_time );
+								$pushMessageDetailModel->setSent(0);
 								$pushMessageDetailModel->setLanguageId ( $languages->getLanguageId () );
 								$pushMessageDetailModel = $pushMessageDetailModel->save ();
 							}
@@ -350,7 +420,7 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 						    $currentDetails = $pushDetailMapper->getDbTable()->fetchAll("push_message_id ='".$allFormValues['push_message_id']."' AND language_id =".$default_lang_id)->toArray();
 						}
 						if(is_array($currentDetails)){
-						    if(!$allFormValues['icon']){
+						    if(!isset($allFormValues['icon'])){
 						        $allFormValues['icon'] = $currentDetails[0]['icon'];
 						    }
 						}
@@ -359,6 +429,7 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 						    foreach ($pushDetails as $pushDetail) {
 						        $pushDetail = array_intersect_key($allFormValues + $pushDetail, $pushDetail);
 						        $pushDetailModel = new PushMessage_Model_PushMessageDetail($pushDetail);
+						        $pushDetailModel->setSent(0);
 						        $pushDetailModel = $pushDetailModel->save();
 						    }    
 						}else{
@@ -372,6 +443,7 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 						        foreach ( $customerLanguageModel as $languages ) {
 						            $pushDetailModel = new PushMessage_Model_PushMessageDetail($allFormValues);
 						            $pushDetailModel->setLanguageId ( $languages->getLanguageId () );
+						            $pushDetailModel->setSent(0);
 						            $pushDetailModel = $pushDetailModel->save ();
 						        }
 						    }
@@ -382,7 +454,7 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 						$pushMessageModel = $pushMessageModel->save ();
 						
 						$pushMessageDetailModel = new PushMessage_Model_PushMessageDetail ( $allFormValues );
-						//$pushMessageDetailModel->setMessageDate($date_time);
+						$pushMessageDetailModel->setSent(0);
 						$pushMessageDetailModel = $pushMessageDetailModel->save ();
 					}
 					$customermoduleMapper = new Admin_Model_Mapper_CustomerModule();
@@ -471,4 +543,35 @@ class PushMessage_IndexController extends Zend_Controller_Action {
 		
 		$this->_helper->json ( $response );
 	}
+	private function _getCategoryTree($customer_id = null, $language_id = null) {
+	    // Get customer_id, module_cms_id ,title, parent_id
+	    $where = "c.customer_id =" . $customer_id;
+	    $data = array();
+	    $this->_getChildrens($where,0,$data,$language_id);
+	    return Zend_Json::encode ( $data );
+	}
+	private function _getChildrens($where, $parent,&$data,$language_id){
+	    $categoryMapper = new PushMessage_Model_Mapper_PushMessageCategory();
+	    $select = $categoryMapper->getDbTable ()->select ()
+							->setIntegrityCheck ( false )
+							->from ( array (
+									'c' => 'module_push_message_category'), 
+									array (
+										'id' => 'c.push_message_category_id',
+										'parentId' => 'c.parent_id') )
+							->joinLeft ( array (
+									'cd' => 'module_push_message_category_detail'), 
+									"cd.push_message_category_id  = c.push_message_category_id AND cd.language_id = " . $language_id, 
+									array ('text' => 'cd.title') );
+        $select = $select->where ( "c.parent_id=".$parent." AND ".$where );
+        $item = $categoryMapper->getDbTable ()->fetchAll ( $select )->toArray ();
+        if(count($item) > 0) {
+            foreach ($item as $child) {
+                $data[] = $child;
+                $this->_getChildrens($where,$child['id'],$data,$language_id);
+            }
+        } else {
+            return false;
+        }
+    }
 }

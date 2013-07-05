@@ -36,6 +36,7 @@ window.imagesLimit = <?php echo $this->imagesLimit?$this->imagesLimit:0;?>;
 		<tr>
 	        <th scope="col"><?php echo $this->translate('Image Thumbnail view'); ?></th>
 		    <th scope="col"><?php echo $this->translate('Image Name'); ?></th>
+		    <th scope="col"><?php echo $this->translate('Usage'); ?></th>
 		    <th scope="col"><?php echo $this->translate('Status'); ?></th>
 		    <th scope="col"><?php echo $this->translate('Order'); ?></th>
 		    <th scope="col" class="action"><?php echo $this->translate('Action'); ?></th>
@@ -67,10 +68,11 @@ $(document).ready(function() {
 		}
 	});
 	grid = dataTable({
-		aaSorting: [[ 3, "asc" ]],
+		aaSorting: [[ 4, "asc" ]],
 		"aoColumns": [
 						{ "sName": "thumbnail" ,"bSortable": false},
 						{ "sName": "hd.image_title" },
+						{ "sName": "h.default" },
 						{ "sName": "h.status" },
 						{ "sName": "h.order" },
 						{ "sName": "actions","bSortable": false}
